@@ -78,7 +78,11 @@ void PerformerPage::draw(Canvas &canvas) {
         }
 
         // draw sequence progress
+#ifdef CONFIG_ENABLE_NOTE_EDIT_ENHANCEMENTS
+        SequencePainter::drawSequenceProgress(canvas, 0xf, x, y + h + 2, w, 2, trackEngine.sequenceProgress());
+#else
         SequencePainter::drawSequenceProgress(canvas, x, y + h + 2, w, 2, trackEngine.sequenceProgress());
+#endif
 
         // draw fill & fill amount amount
         bool pressed = pageKeyState()[MatrixMap::fromStep(trackIndex)];
