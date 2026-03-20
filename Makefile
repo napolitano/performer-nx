@@ -51,6 +51,8 @@ tools_clean: arm_sdk_clean openocd_clean
 
 # Source: https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads
 ARM_SDK_URL_BASE := https://developer.arm.com/-/media/Files/downloads/gnu-rm/6-2017q2/gcc-arm-none-eabi-6-2017-q2-update
+# Alternative ARM GCC toolchain (gcc-arm-none-eabi 10.3-2021.10).
+#RM_SDK_URL_BASE := https://developer.arm.com/-/media/Files/downloads/gnu-rm/10-2021q4/gcc-arm-none-eabi-10.3-2021.10
 
 ifdef LINUX
   ARM_SDK_URL := $(ARM_SDK_URL_BASE)-linux.tar.bz2
@@ -87,7 +89,7 @@ arm_sdk_clean:
 
 .PHONY: openocd_install
 
-OPENOCD_URL := https://downloads.sourceforge.net/project/openocd/openocd/0.10.0/openocd-0.10.0.tar.bz2
+OPENOCD_URL := https://downloads.sourceforge.net/project/openocd/openocd/0.12.0/openocd-0.12.0.tar.bz2
 OPENOCD_FILE := $(notdir $(OPENOCD_URL))
 OPENOCD_DIR := $(TOOLS_DIR)/openocd
 OPENOCD_BUILD_DIR := $(TOOLS_DIR)/openocd-build
