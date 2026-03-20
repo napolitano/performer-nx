@@ -1,5 +1,5 @@
 #pragma once
-
+#include "Config.h"
 #include "Types.h"
 
 #include "core/utils/StringBuilder.h"
@@ -30,6 +30,23 @@ public:
 
     virtual int notesPerOctave() const = 0;
 
+#ifdef FIX_BROKEN_SCALES
+    static constexpr int MinOctave = -5;
+    static constexpr int MaxOctave = 5;
+
+    int minNote() const {
+        return MinOctave * notesPerOctave();
+    }
+
+    int maxNote() const {
+        return MaxOctave * notesPerOctave();
+    }
+
+    int clampNote(int note) const {
+        return clamp(note, minNote(), maxNote());
+    }
+#endif
+
     static int Count;
     static const Scale &get(int index);
     static const char *name(int index);
@@ -56,6 +73,9 @@ public:
     }
 
     void noteName(StringBuilder &str, int note, int rootNote, Format format) const override {
+#ifdef FIX_BROKEN_SCALES
+        note = clampNote(note);
+#endif
         bool printNote = format == Short1 || format == Long;
         bool printOctave = format == Short2 || format == Long;
 
@@ -86,6 +106,9 @@ public:
     }
 
     float noteToVolts(int note) const override {
+#ifdef FIX_BROKEN_SCALES
+        note = clampNote(note);
+#endif
         int octave = roundDownDivide(note, _noteCount);
         int index = note - octave * _noteCount;
         return octave + _notes[index] * (1.f / 1536.f);
@@ -108,8 +131,11 @@ public:
             index = _noteCount -1;
             --octave;
         }
-
+#ifdef FIX_BROKEN_SCALES
+        return clampNote(octave * _noteCount + index);
+#else
         return octave * _noteCount + index;
+#endif
     }
 
     int notesPerOctave() const override {
@@ -135,6 +161,9 @@ public:
     }
 
     void noteName(StringBuilder &str, int note, int rootNote, Format format) const override {
+#ifdef FIX_BROKEN_SCALES
+        note = clampNote(note);
+#endif
         switch (format) {
         case Short1:
             str("%.1f", std::abs(note * _interval));
@@ -149,11 +178,18 @@ public:
     }
 
     float noteToVolts(int note) const override {
+#ifdef FIX_BROKEN_SCALES
+        note = clampNote(note);
+#endif
         return note * _interval;
     }
 
     int noteFromVolts(float volts) const override {
+#ifdef FIX_BROKEN_SCALES
+        return clampNote(int(std::floor(volts / _interval)));
+#else
         return int(std::floor(volts / _interval));
+#endif
     }
 
     int notesPerOctave() const override {

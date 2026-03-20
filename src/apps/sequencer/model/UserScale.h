@@ -152,6 +152,9 @@ public:
     }
 
     void noteName(StringBuilder &str, int note, int rootNote, Format format) const override {
+#ifdef FIX_BROKEN_SCALES
+        note = clampNote(note);
+#endif
         switch (_mode) {
         case Mode::Chromatic:
             noteNameChromaticMode(str, note, rootNote, format);
@@ -165,6 +168,9 @@ public:
     }
 
     float noteToVolts(int note) const override {
+#ifdef FIX_BROKEN_SCALES
+        note = clampNote(note);
+#endif
         int notesPerOctave_ = notesPerOctave();
         int octave = roundDownDivide(note, notesPerOctave_);
         int index = note - octave * notesPerOctave_;
@@ -192,13 +198,23 @@ public:
     }
 
     int notesPerOctave() const override {
+#ifdef FIX_BROKEN_SCALES
+        if (_mode == Mode::Chromatic) {
+            return std::max(1, int(_size));
+        }
+        return std::max(1, int(_size) - 1);
+#else
         return _mode == Mode::Chromatic ? _size : _size - 1;
+#endif
     }
 
     static Array userScales;
 
 private:
     void noteNameChromaticMode(StringBuilder &str, int note, int rootNote, Format format) const {
+#ifdef FIX_BROKEN_SCALES
+        note = clampNote(note);
+#endif
         bool printNote = format == Short1 || format == Long;
         bool printOctave = format == Short2 || format == Long;
 
@@ -220,6 +236,9 @@ private:
     }
 
     void noteNameVoltageMode(StringBuilder &str, int note, Format format) const {
+#ifdef FIX_BROKEN_SCALES
+        note = clampNote(note);
+#endif
         float volts = noteToVolts(note);
         switch (format) {
         case Short1:
@@ -251,8 +270,11 @@ private:
             index = _size -1;
             --octave;
         }
-
+#ifdef FIX_BROKEN_SCALES
+        return clampNote(octave * _size + index);
+#else
         return octave * _size + index;
+#endif
     }
 
     int noteFromVoltsVoltageMode(float volts) const {
@@ -274,12 +296,27 @@ private:
             --octave;
         }
 
+#ifdef FIX_BROKEN_SCALES
+        return clampNote(octave * (_size - 1) + index);
+#else
         return octave * (_size - 1) + index;
+#endif
     }
 
+#ifdef FIX_BROKEN_SCALES
+    float octaveRangeVolts() const {
+        if (_size < 2) {
+            return 1.f;
+        }
+
+        float range = (_items[_size - 1] - _items[0]) * (1.f / 1000.f);
+        return std::max(0.001f, range);
+    }
+#else
     float octaveRangeVolts() const {
         return (_items[_size - 1] - _items[0]) * (1.f / 1000.f);
     }
+#endif
 
     char _name[NameLength + 1];
     Mode _mode;

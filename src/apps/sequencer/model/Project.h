@@ -132,7 +132,12 @@ public:
     }
 
     void editScale(int value, bool shift) {
+#ifdef FIX_BROKEN_SCALE_CHANGE
+        int newScale = clamp(scale() + value, 0, Scale::Count - 1);
+        remapDefaultScaleChange(newScale);
+#else
         setScale(scale() + value);
+#endif
     }
 
     void printScale(StringBuilder &str) const {
@@ -420,6 +425,24 @@ public:
     void write(VersionedSerializedWriter &writer) const;
     bool read(VersionedSerializedReader &reader);
 
+#ifdef FIX_BROKEN_SCALE_CHANGE
+    void remapDefaultScaleChange(int newScale) {
+        const Scale &oldScale = selectedScale();
+        const Scale &newScaleRef = Scale::get(newScale);
+
+        for (auto &track : _tracks) {
+            for (int pattern = 0; pattern < CONFIG_PATTERN_COUNT; ++pattern) {
+                auto &sequence = track.noteTrack().sequence(pattern); // sinngemäß
+                if (sequence.scale() < 0) {
+                    sequence.remapScale(oldScale, newScaleRef);
+                }
+            }
+        }
+
+        setScale(newScale);
+    }
+#endif
+
 private:
     uint8_t _slot = uint8_t(-1);
     char _name[NameLength + 1];
@@ -453,3 +476,4 @@ private:
 
     Observable<Event, 2> _observable;
 };
+
