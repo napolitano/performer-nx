@@ -17,6 +17,7 @@ set(sources
     engine/RoutingEngine.cpp
     engine/SequenceState.cpp
     # engine/generators
+    engine/generators/AcidBasslineGenerator.cpp
     engine/generators/EuclideanGenerator.cpp
     engine/generators/Generator.cpp
     engine/generators/RandomGenerator.cpp
@@ -24,6 +25,7 @@ set(sources
     # intro
     intro/Intro.cpp
     # model
+    model/AdvancedSettings.cpp
     model/Arpeggiator.cpp
     model/Calibration.cpp
     model/ClipBoard.cpp
