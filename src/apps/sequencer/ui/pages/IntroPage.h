@@ -11,6 +11,8 @@ public:
     virtual void draw(Canvas &canvas) override;
 
     virtual bool isModal() const override { return true; }
+    // Close the modal intro page via user input (handled in IntroPage.cpp).
+    virtual void keyPress(KeyPressEvent &event) override;
 
 private:
     Intro _intro;

@@ -16,3 +16,12 @@ void IntroPage::draw(Canvas &canvas) {
     _intro.update(dt);
     _intro.draw(canvas);
 }
+
+void IntroPage::keyPress(KeyPressEvent &event) {
+    const auto &key = event.key();
+
+    // Close the intro page when the encoder is pressed.
+    if (key.is(Key::Encoder)) {
+        close();
+    }
+}
