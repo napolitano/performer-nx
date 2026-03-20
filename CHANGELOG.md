@@ -1,4 +1,31 @@
 # Changelog
+## v0.1.43 (19 March 2026)
+
+#### Fixes
+- **Scale:** Fixed note-to-voltage mapping and constrained scale ranges to eliminate invalid octaves and out-of-range voltages
+- **Scale Switching:** Remapped notes via voltage domain on scale change to preserve pitch instead of reinterpreting values
+- **Scale Bounds:** Fixed out-of-range access when scrolling beyond last scale (e.g. past User scales)
+- **User Scale Stability:** Prevented invalid states in user scales (e.g. zero notes per octave in voltage mode)
+
+#### Improvements
+- Updated startup page layout
+- Display firmware version on startup page
+- Dimmed steps outside active pattern range in note sequence editor
+- Reduced contrast of octave indicator when at +0 in note view
+- Dimmed steps outside active pattern range in curve sequence editor
+- Dimmed steps outside active pattern range in overview
+- Refined window header layout for improved clarity and hierarchy
+- Streamlined function key bar layout for better visual consistency
+
+#### Features
+- **Overview Mini Map:** Added compact pattern position indicator showing active 16-step segment
+- **Overview Note Labels:** Display note names for note tracks in overview
+- **Acid Bassline Generator:** Introduced rule-based generator with density, legato, root note, and pattern length controls for classic acid-style sequences
+- **Startup:** Optional intro can now be exited via encoder press
+- **System:** Added initial Advanced Settings page in system menu
+
+#### Development
+- Added compiler flags to enable/disable experimental improvements
 
 ## v0.1.42 (6 June 2022)
 
