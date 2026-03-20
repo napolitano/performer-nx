@@ -75,7 +75,8 @@ public:
 
     static Types::LayerRange layerRange(Layer layer);
     static int layerDefaultValue(Layer layer);
-
+    void remapScale(const Scale &oldScale, const Scale &newScale);
+    void remapScale(int oldScaleIndex, int newScaleIndex, int defaultScale);
     class Step {
     public:
         //----------------------------------------

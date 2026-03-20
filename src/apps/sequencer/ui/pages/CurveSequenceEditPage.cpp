@@ -162,13 +162,63 @@ void CurveSequenceEditPage::draw(Canvas &canvas) {
             canvas.point(x, loopY);
         }
 
+#ifdef CONFIG_ENABLE_CURVE_EDIT_ENHANCEMENTS
+        int stepColor = BasePage::UI_COLOR_ACTIVE;
+
+        if ((stepIndex < sequence.firstStep() || stepIndex > sequence.lastStep()) && stepIndex != trackEngine.currentStep()) {
+            stepColor = BasePage::UI_COLOR_INACTIVE;
+        } else if (_stepSelection[stepIndex]) {
+            stepColor = BasePage::BasePage::UI_COLOR_DIM;
+        } else if (stepIndex != trackEngine.currentStep()) {
+            stepColor = BasePage::BasePage::UI_COLOR_DIM;
+        }
+
+
+        // step index
+        {
+            canvas.setColor(stepColor);
+            FixedStringBuilder<8> str("%d", stepIndex + 1);
+            canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y - 2, str);
+        }
+
+#else
         // step index
         {
             canvas.setColor(_stepSelection[stepIndex] ? 0xf : 0x7);
             FixedStringBuilder<8> str("%d", stepIndex + 1);
             canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y - 2, str);
         }
+#endif
 
+#ifdef CONFIG_ENABLE_CURVE_EDIT_ENHANCEMENTS
+
+        if ((stepIndex < sequence.firstStep() || stepIndex > sequence.lastStep()) && stepIndex != trackEngine.currentStep()) {
+            stepColor = BasePage::UI_COLOR_INACTIVE;
+        } else if (_stepSelection[stepIndex]) {
+            stepColor = BasePage::BasePage::UI_COLOR_ACTIVE;
+        } else if (stepIndex != trackEngine.currentStep()) {
+            stepColor = BasePage::BasePage::UI_COLOR_NORMAL;
+        }
+
+        // curve
+        {
+            const auto function = Curve::function(Curve::Type(std::min(Curve::Last - 1, step.shape())));
+
+            canvas.setColor(stepColor);
+            canvas.setBlendMode(BlendMode::Add);
+
+            drawCurve(canvas, x, curveY, stepWidth, curveHeight, lastY, function, min, max);
+        }
+
+        if (drawShapeVariation) {
+            const auto function = Curve::function(Curve::Type(std::min(Curve::Last - 1, step.shapeVariation())));
+
+            canvas.setColor(BasePage::UI_COLOR_DIM_MORE);
+            canvas.setBlendMode(BlendMode::Add);
+
+            drawCurve(canvas, x, curveY, stepWidth, curveHeight, lastYVariation, function, min, max);
+        }
+#else
         // curve
         {
             const auto function = Curve::function(Curve::Type(std::min(Curve::Last - 1, step.shape())));
@@ -187,18 +237,27 @@ void CurveSequenceEditPage::draw(Canvas &canvas) {
 
             drawCurve(canvas, x, curveY, stepWidth, curveHeight, lastYVariation, function, min, max);
         }
-
+#endif
         switch (layer()) {
         case Layer::Shape:
             break;
         case Layer::ShapeVariation:
             break;
         case Layer::ShapeVariationProbability:
+#ifdef CONFIG_ENABLE_CURVE_EDIT_ENHANCEMENTS
+            SequencePainter::drawProbability(
+                canvas,
+                stepColor,
+                x + 2, bottomY, stepWidth - 4, 2,
+                step.shapeVariationProbability(), 8
+            );
+#else
             SequencePainter::drawProbability(
                 canvas,
                 x + 2, bottomY, stepWidth - 4, 2,
                 step.shapeVariationProbability(), 8
             );
+#endif
             break;
         case Layer::Min:
         case Layer::Max: {
@@ -214,16 +273,29 @@ void CurveSequenceEditPage::draw(Canvas &canvas) {
             break;
         }
         case Layer::Gate:
+#ifdef CONFIG_ENABLE_CURVE_EDIT_ENHANCEMENTS
+            canvas.setColor(stepColor);
+#else
             canvas.setColor(0xf);
+#endif
             canvas.setBlendMode(BlendMode::Set);
             drawGatePattern(canvas, x, bottomY, stepWidth, 2, step.gate());
             break;
         case Layer::GateProbability:
+#ifdef CONFIG_ENABLE_CURVE_EDIT_ENHANCEMENTS
+            SequencePainter::drawProbability(
+                canvas,
+                stepColor,
+                x + 2, bottomY, stepWidth - 4, 2,
+                step.gateProbability() + 1, CurveSequence::GateProbability::Range
+            );
+#else
             SequencePainter::drawProbability(
                 canvas,
                 x + 2, bottomY, stepWidth - 4, 2,
                 step.gateProbability() + 1, CurveSequence::GateProbability::Range
             );
+#endif
             break;
         case Layer::Last:
             break;
@@ -249,7 +321,11 @@ void CurveSequenceEditPage::draw(Canvas &canvas) {
     }
 
     if (_showDetail) {
+#ifdef CONFIG_ENABLE_CURVE_EDIT_ENHANCEMENTS
+        drawDetail(canvas, sequence.step(_stepSelection.first()), _stepSelection.first());
+#else
         drawDetail(canvas, sequence.step(_stepSelection.first()));
+#endif
     }
 }
 
@@ -483,8 +559,11 @@ void CurveSequenceEditPage::updateMonitorStep() {
     }
 }
 
+#ifdef CONFIG_ENABLE_CURVE_EDIT_ENHANCEMENTS
+void CurveSequenceEditPage::drawDetail(Canvas &canvas, const CurveSequence::Step &step, int stepIndex) {
+#else
 void CurveSequenceEditPage::drawDetail(Canvas &canvas, const CurveSequence::Step &step) {
-
+#endif
     FixedStringBuilder<16> str;
 
     WindowPainter::drawFrame(canvas, 64, 16, 128, 32);
@@ -502,11 +581,38 @@ void CurveSequenceEditPage::drawDetail(Canvas &canvas, const CurveSequence::Step
 
     canvas.setFont(Font::Tiny);
 
+#ifdef CONFIG_ENABLE_CURVE_EDIT_ENHANCEMENTS
+    const auto &trackEngine = _engine.selectedTrackEngine().as<CurveTrackEngine>();
+    const auto &sequence = _project.selectedCurveSequence();
+
+    int baseColor = 0;
+
+    if ((stepIndex < sequence.firstStep() || stepIndex > sequence.lastStep()) && stepIndex != trackEngine.currentStep()) {
+        baseColor = BasePage::UI_COLOR_INACTIVE;
+    } else if (_stepSelection[stepIndex]) {
+        baseColor = BasePage::BasePage::UI_COLOR_ACTIVE;
+    } else if (stepIndex != trackEngine.currentStep()) {
+        baseColor = BasePage::BasePage::UI_COLOR_NORMAL;
+    }
+#endif
+
     switch (layer()) {
     case Layer::Shape:
     case Layer::ShapeVariation:
         break;
     case Layer::ShapeVariationProbability:
+#ifdef CONFIG_ENABLE_CURVE_EDIT_ENHANCEMENTS
+        SequencePainter::drawProbability(
+            canvas,
+            baseColor,
+            64 + 32 + 8, 32 - 4, 64 - 16, 8,
+            step.shapeVariationProbability(), 8
+        );
+        str.reset();
+        str("%.1f%%", 100.f * step.shapeVariationProbability() / 8.f);
+        canvas.setColor(baseColor);
+        canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
+#else
         SequencePainter::drawProbability(
             canvas,
             64 + 32 + 8, 32 - 4, 64 - 16, 8,
@@ -516,11 +622,24 @@ void CurveSequenceEditPage::drawDetail(Canvas &canvas, const CurveSequence::Step
         str("%.1f%%", 100.f * step.shapeVariationProbability() / 8.f);
         canvas.setColor(0xf);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
+#endif
         break;
     case Layer::Min:
     case Layer::Max:
     case Layer::Gate:
     case Layer::GateProbability:
+#ifdef CONFIG_ENABLE_CURVE_EDIT_ENHANCEMENTS
+        SequencePainter::drawProbability(
+            canvas,
+            baseColor,
+            64 + 32 + 8, 32 - 4, 64 - 16, 8,
+            step.gateProbability() + 1, CurveSequence::GateProbability::Range
+        );
+        str.reset();
+        str("%.1f%%", 100.f * (step.gateProbability() + 1.f) / CurveSequence::GateProbability::Range);
+        canvas.setColor(baseColor);
+        canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
+#else
         SequencePainter::drawProbability(
             canvas,
             64 + 32 + 8, 32 - 4, 64 - 16, 8,
@@ -530,6 +649,7 @@ void CurveSequenceEditPage::drawDetail(Canvas &canvas, const CurveSequence::Step
         str("%.1f%%", 100.f * (step.gateProbability() + 1.f) / CurveSequence::GateProbability::Range);
         canvas.setColor(0xf);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
+#endif
         break;
     case Layer::Last:
         break;

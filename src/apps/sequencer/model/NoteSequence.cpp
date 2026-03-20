@@ -198,9 +198,18 @@ void NoteSequence::Step::read(VersionedSerializedReader &reader) {
 
 void NoteSequence::writeRouted(Routing::Target target, int intValue, float floatValue) {
     switch (target) {
+#ifdef FIX_BROKEN_SCALE_CHANGE
+    case Routing::Target::Scale:
+        if (scale() >= 0 && intValue >= 0) {
+            remapScale(Scale::get(scale()), Scale::get(intValue));
+        }
+        setScale(intValue, true);
+        break;
+#else
     case Routing::Target::Scale:
         setScale(intValue, true);
         break;
+#endif
     case Routing::Target::RootNote:
         setRootNote(intValue, true);
         break;
@@ -307,3 +316,18 @@ void NoteSequence::read(VersionedSerializedReader &reader) {
 
     readArray(reader, _steps);
 }
+
+#ifdef FIX_BROKEN_SCALE_CHANGE
+void NoteSequence::remapScale(const Scale &oldScale, const Scale &newScale) {
+    for (auto &step : _steps) {
+        float volts = oldScale.noteToVolts(step.note());
+        step.setNote(newScale.noteFromVolts(volts));
+    }
+}
+
+void NoteSequence::remapScale(int oldScaleIndex, int newScaleIndex, int defaultScale) {
+    const Scale &oldScale = Scale::get(oldScaleIndex < 0 ? defaultScale : oldScaleIndex);
+    const Scale &newScale = Scale::get(newScaleIndex < 0 ? defaultScale : newScaleIndex);
+    remapScale(oldScale, newScale);
+}
+#endif
