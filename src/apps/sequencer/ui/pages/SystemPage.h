@@ -4,6 +4,9 @@
 
 #include "ui/model/CalibrationCvOutputListModel.h"
 #include "ui/model/UtilitiesListModel.h"
+#ifdef CONFIG_ADVANCED_SETTINGS
+#include "ui/model/AdvancedSettingsListModel.h"
+#endif
 
 #include "model/Settings.h"
 
@@ -25,6 +28,9 @@ public:
 private:
     enum class Mode : uint8_t {
         Calibration = 0,
+#ifdef CONFIG_ADVANCED_SETTINGS
+        Advanced    = 2,
+#endif
         Utilities   = 3,
         Update      = 4,
     };
@@ -55,6 +61,8 @@ private:
     int _outputIndex;
     CalibrationCvOutputListModel _cvOutputListModel;
     UtilitiesListModel _utilitiesListModel;
-
+#ifdef CONFIG_ADVANCED_SETTINGS
+    AdvancedSettingsListModel _advancedListModel;
+#endif
     uint32_t _encoderDownTicks;
 };

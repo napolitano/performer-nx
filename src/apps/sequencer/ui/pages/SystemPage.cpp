@@ -11,17 +11,31 @@
 
 enum Function {
     Calibration = 0,
+    Advanced    = 2,
     Utilities   = 3,
     Update      = 4,
 };
 
-static const char *functionNames[] = { "CAL", nullptr, nullptr, "UTILS", "UPDATE" };
+static const char *functionNames[] = { "CAL", nullptr, "ADVANCED", "UTILS", "UPDATE" };
 
 enum CalibrationEditFunction {
     Auto        = 0,
 };
 
+#ifdef CONFIG_ADVANCED_SETTINGS
+enum AdvancedEditFunction {
+    Default        = 0,
+    Cancel         = 3,
+    Commit         = 4,
+};
+#endif
+
+
 static const char *calibrationEditFunctionNames[] = { "AUTO", nullptr, nullptr, nullptr, nullptr };
+
+#ifdef CONFIG_ADVANCED_SETTINGS
+static const char *advancedEditFunctionNames[] = { "DEFAULT", nullptr, nullptr, "CANCEL", "COMMIT" };
+#endif
 
 enum class ContextAction {
     Init,
@@ -80,6 +94,21 @@ void SystemPage::draw(Canvas &canvas) {
         ListPage::draw(canvas);
         break;
     }
+
+#ifdef CONFIG_ADVANCED_SETTINGS
+    case Mode::Advanced: {
+        WindowPainter::drawActiveFunction(canvas, "ADVANCED SETTINGS");
+        WindowPainter::drawFooter(canvas, functionNames, pageKeyState(), int(_mode));
+        ListPage::draw(canvas);
+        if (edit()) {
+            WindowPainter::drawFooter(canvas, advancedEditFunctionNames, pageKeyState());
+        } else {
+            WindowPainter::drawFooter(canvas, functionNames, pageKeyState(), int(_mode));
+        }
+        break;
+    }
+#endif
+
     case Mode::Utilities: {
         WindowPainter::drawActiveFunction(canvas, "UTILITIES");
         WindowPainter::drawFooter(canvas, functionNames, pageKeyState(), int(_mode));
@@ -169,6 +198,11 @@ void SystemPage::keyPress(KeyPressEvent &event) {
             case Function::Calibration:
                 setMode(Mode::Calibration);
                 break;
+#ifdef CONFIG_ADVANCED_SETTINGS
+            case Function::Advanced:
+                setMode(Mode::Advanced);
+                break;
+#endif
             case Function::Utilities:
                 setMode(Mode::Utilities);
                 break;
@@ -190,6 +224,10 @@ void SystemPage::keyPress(KeyPressEvent &event) {
         ListPage::keyPress(event);
         updateOutputs();
         break;
+#ifdef CONFIG_ADVANCED_SETTINGS
+    case Mode::Advanced:
+        return;
+#endif
     case Mode::Utilities:
         if (key.isEncoder()) {
             executeUtilityItem(UtilitiesListModel::Item(selectedRow()));
@@ -222,6 +260,11 @@ void SystemPage::setMode(Mode mode) {
     case Mode::Calibration:
         setListModel(_cvOutputListModel);
         break;
+#ifdef CONFIG_ADVANCED_SETTINGS
+    case Mode::Advanced:
+        setListModel(_advancedListModel);
+        break;
+#endif
     case Mode::Utilities:
         setListModel(_utilitiesListModel);
         break;
