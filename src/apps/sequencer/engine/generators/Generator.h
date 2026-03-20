@@ -16,6 +16,9 @@ public:
         InitLayer,
         Euclidean,
         Random,
+#ifdef CONFIG_ACID_BASS_GENERATOR
+        AcidBassline,
+#endif
         Last
     };
 
@@ -24,6 +27,9 @@ public:
         case Mode::InitLayer:   return "Init Layer";
         case Mode::Euclidean:   return "Euclidean";
         case Mode::Random:      return "Random";
+#ifdef CONFIG_ACID_BASS_GENERATOR
+        case Mode::AcidBassline: return "Acid Bassline";
+#endif
         case Mode::Last:        break;
         }
         return nullptr;
