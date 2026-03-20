@@ -123,6 +123,126 @@ void Clock::slaveConfigure(int slave, int divisor, bool enabled) {
     _slaves[slave] = { divisor, enabled };
 }
 
+#ifdef FIX_BROKEN_SLAVE_CLOCK_BPM_CALCULATION
+void Clock::slaveTick(int slave) {
+    os::InterruptLock lock;
+
+    if (!slaveEnabled(slave)) {
+        return;
+    }
+
+    if (_state == State::SlaveRunning && _activeSlave == slave) {
+        uint32_t divisor = _slaves[slave].divisor;
+
+        // Protect against clock overload
+        _slaveSubTicksPending = std::min(_slaveSubTicksPending + divisor, 2 * divisor);
+
+        // Time since last tick
+        uint32_t periodUs = _elapsedUs - _lastSlaveTickUs;
+
+        // Default fallback (120 BPM)
+        if (_slaveTickPeriodUs == 0) {
+            _slaveTickPeriodUs = (60 * 1000000 * divisor) / (Clock::masterBpm() * _ppqn);
+        }
+
+        uint32_t effectivePeriodUs = 0;
+
+        if (periodUs > 0 && _lastSlaveTickUs > 0) {
+
+            // --- Phase 1: immediate first estimate ---
+            if (_slavePeriodWindowCount == 0 && !_havePendingSlavePeriod) {
+                effectivePeriodUs = periodUs;
+                _pendingSlavePeriodUs = periodUs;
+                _havePendingSlavePeriod = true;
+            }
+
+            // --- Phase 2: pair-based shuffle-safe refinement ---
+            else if (!_havePendingSlavePeriod) {
+                _pendingSlavePeriodUs = periodUs;
+                _havePendingSlavePeriod = true;
+            } else {
+                effectivePeriodUs = (_pendingSlavePeriodUs + periodUs) / 2;
+                _pendingSlavePeriodUs = 0;
+                _havePendingSlavePeriod = false;
+            }
+
+            // --- Outlier guard ---
+            if (effectivePeriodUs > 0 && _slaveTickPeriodUs > 0) {
+                uint32_t lower = (_slaveTickPeriodUs * 75) / 100;
+                uint32_t upper = (_slaveTickPeriodUs * 125) / 100;
+
+                if (effectivePeriodUs < lower || effectivePeriodUs > upper) {
+                    effectivePeriodUs = (_slaveTickPeriodUs * 3 + effectivePeriodUs) / 4;
+                }
+            }
+
+            // --- Refinement window ---
+            if (effectivePeriodUs > 0) {
+                pushSlavePeriod(effectivePeriodUs);
+
+                uint32_t refinedPeriodUs =
+                    (_slavePeriodWindowCount >= 8)
+                        ? avgSlavePeriod()
+                        : effectivePeriodUs;
+
+                _slaveTickPeriodUs = refinedPeriodUs;
+            }
+        }
+
+        // Subtick scheduling
+        _slaveSubTickPeriodUs = _slaveTickPeriodUs / _slaveSubTicksPending;
+
+        if (_elapsedUs - _nextSlaveSubTickUs > 1000) {
+            _nextSlaveSubTickUs = _elapsedUs;
+        } else {
+            _nextSlaveSubTickUs += _slaveSubTickPeriodUs;
+        }
+
+        // --- BPM estimation ---
+        if (_slaveTickPeriodUs > 0) {
+            float bpm = (60.f * 1000000 * divisor) / (_slaveTickPeriodUs * _ppqn);
+
+            // adaptive smoothing
+            float alpha =
+                (_slavePeriodWindowCount < 4) ? 0.25f :
+                (_slavePeriodWindowCount < 8) ? 0.15f :
+                                               0.08f;
+
+            _slaveBpmFiltered = (1.f - alpha) * _slaveBpmFiltered + alpha * bpm;
+            _slaveBpmAvg.push(_slaveBpmFiltered);
+            _slaveBpm = _slaveBpmAvg();
+            Clock::setMasterBpm(_slaveBpm);
+        }
+
+        _lastSlaveTickUs = _elapsedUs;
+    }
+}
+
+void Clock::pushSlavePeriod(uint32_t periodUs) {
+    if (_slavePeriodWindowCount < SlavePeriodWindowSize) {
+        _slavePeriodWindow[_slavePeriodWindowIndex++] = periodUs;
+        _slavePeriodWindowSum += periodUs;
+        ++_slavePeriodWindowCount;
+    } else {
+        if (_slavePeriodWindowIndex >= SlavePeriodWindowSize) {
+            _slavePeriodWindowIndex = 0;
+        }
+        _slavePeriodWindowSum -= _slavePeriodWindow[_slavePeriodWindowIndex];
+        _slavePeriodWindow[_slavePeriodWindowIndex++] = periodUs;
+        _slavePeriodWindowSum += periodUs;
+    }
+
+    if (_slavePeriodWindowIndex >= SlavePeriodWindowSize) {
+        _slavePeriodWindowIndex = 0;
+    }
+}
+
+uint32_t Clock::avgSlavePeriod() const {
+    return _slavePeriodWindowCount > 0
+        ? uint32_t(_slavePeriodWindowSum / _slavePeriodWindowCount)
+        : 0;
+}
+#else
 void Clock::slaveTick(int slave) {
     os::InterruptLock lock;
 
@@ -167,6 +287,7 @@ void Clock::slaveTick(int slave) {
         _lastSlaveTickUs = _elapsedUs;
     }
 }
+#endif
 
 void Clock::slaveStart(int slave) {
     os::InterruptLock lock;
@@ -181,6 +302,10 @@ void Clock::slaveStart(int slave) {
 
     setState(State::SlaveRunning);
     _activeSlave = slave;
+#ifdef FIX_BROKEN_SLAVE_CLOCK_BPM_CALCULATION
+    _slaveBpm = Clock::masterBpm();
+    _slaveBpmFiltered = Clock::masterBpm();
+#endif
     requestStart();
 
     resetTicks();
@@ -190,6 +315,28 @@ void Clock::slaveStart(int slave) {
     _timer.enable();
 }
 
+#ifdef FIX_BROKEN_SLAVE_CLOCK_BPM_CALCULATION
+void Clock::slaveStop(int slave) {
+    os::InterruptLock lock;
+
+    if (!slaveEnabled(slave)) {
+        return;
+    }
+
+    if (_state != State::SlaveRunning || _mode == Mode::Master || _activeSlave != slave) {
+        return;
+    }
+
+    setState(State::Idle);
+    _activeSlave = -1;
+    _slavePeriodWindowCount = 0;
+    _slavePeriodWindowIndex = 0;
+    _slavePeriodWindowSum = 0;
+    requestStop();
+
+    _timer.disable();
+}
+#else
 void Clock::slaveStop(int slave) {
     os::InterruptLock lock;
 
@@ -207,6 +354,7 @@ void Clock::slaveStop(int slave) {
 
     _timer.disable();
 }
+#endif
 
 void Clock::slaveContinue(int slave) {
     os::InterruptLock lock;
@@ -221,12 +369,17 @@ void Clock::slaveContinue(int slave) {
 
     setState(State::SlaveRunning);
     _activeSlave = slave;
+#ifdef FIX_BROKEN_SLAVE_CLOCK_BPM_CALCULATION
+    _slaveBpm = Clock::masterBpm();
+    _slaveBpmFiltered = Clock::masterBpm();
+#endif
     requestContinue();
 
     setupSlaveTimer();
     _timer.enable();
 }
 
+#ifdef FIX_BROKEN_SLAVE_CLOCK_BPM_CALCULATION
 void Clock::slaveReset(int slave) {
     os::InterruptLock lock;
 
@@ -240,10 +393,36 @@ void Clock::slaveReset(int slave) {
 
     setState(State::Idle);
     _activeSlave = -1;
+    _slavePeriodWindowCount = 0;
+    _slavePeriodWindowIndex = 0;
+    _slavePeriodWindowSum = 0;
     requestReset();
 
     _timer.disable();
 }
+#else
+void Clock::slaveReset(int slave) {
+    os::InterruptLock lock;
+
+    if (!slaveEnabled(slave)) {
+        return;
+    }
+
+    if (_state == State::MasterRunning || _mode == Mode::Master || (_state == State::SlaveRunning && _activeSlave != slave)) {
+        return;
+    }
+
+    setState(State::Idle);
+    _activeSlave = -1;
+#ifdef FIX_BROKEN_SLAVE_CLOCK_BPM_CALCULATION
+    _slaveBpm = Clock::masterBpm();
+    _slaveBpmFiltered = Clock::masterBpm();
+#endif
+    requestReset();
+
+    _timer.disable();
+}
+#endif
 
 void Clock::slaveHandleMidi(int slave, uint8_t msg) {
     switch (MidiMessage::realTimeMessage(msg)) {

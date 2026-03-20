@@ -83,6 +83,20 @@ public:
     Event checkEvent();
     bool checkTick(uint32_t *tick);
 
+#ifdef FIX_BROKEN_SLAVE_CLOCK_BPM_CALCULATION
+    void pushSlavePeriod(uint32_t periodUs);
+    uint32_t avgSlavePeriod() const;
+
+    uint32_t _pendingSlavePeriodUs = 0;
+    bool _havePendingSlavePeriod = false;
+
+    static constexpr int SlavePeriodWindowSize = 16;
+    std::array<uint32_t, SlavePeriodWindowSize> _slavePeriodWindow = {};
+    int _slavePeriodWindowCount = 0;
+    int _slavePeriodWindowIndex = 0;
+    uint64_t _slavePeriodWindowSum = 0;
+#endif
+
 private:
     enum class State {
         Idle,

@@ -1,4 +1,11 @@
 # Changelog
+## v0.1.44 (19 March 2026)
+
+#### Fixes
+- **Clock:** Improved external clock BPM estimation with fast initial lock and shuffle-stable refinement
+- **Clock:** Prevent unintended tempo fallback to project BPM during external clock reset in slave/auto modes
+- **Clock:** Decouple master BPM from project tempo during external clocking to preserve learned tempo
+ 
 ## v0.1.43 (19 March 2026)
 
 #### Fixes

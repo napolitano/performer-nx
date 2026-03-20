@@ -108,8 +108,13 @@ void Engine::update() {
 
     // update tempo
     _nudgeTempo.update(dt);
+#ifdef FIX_BROKEN_SLAVE_CLOCK_BPM_CALCULATION
+	if(_clock.mode() != Clock::Mode::Slave) {
+	    _clock.setMasterBpm(_project.tempo() * (1.f + _nudgeTempo.strength() * 0.1f));
+	}
+#else
     _clock.setMasterBpm(_project.tempo() * (1.f + _nudgeTempo.strength() * 0.1f));
-
+#endif
     // update clock setup
     updateClockSetup();
 
