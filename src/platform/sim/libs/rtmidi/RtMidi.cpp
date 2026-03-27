@@ -1323,32 +1323,54 @@ MidiInAlsa :: MidiInAlsa( const std::string clientName, unsigned int queueSizeLi
 
 MidiInAlsa :: ~MidiInAlsa()
 {
-  // Close a connection if it exists.
   closePort();
 
-  // Shutdown the input thread.
   AlsaMidiData *data = static_cast<AlsaMidiData *> (apiData_);
+  if (!data) return;
+
   if ( inputData_.doInput ) {
     inputData_.doInput = false;
-    int res = write( data->trigger_fds[1], &inputData_.doInput, sizeof(inputData_.doInput) );
-    (void) res;
+    if (data->trigger_fds[1] >= 0) {
+      int res = write( data->trigger_fds[1], &inputData_.doInput, sizeof(inputData_.doInput) );
+      (void) res;
+    }
     if ( !pthread_equal(data->thread, data->dummy_thread_id) )
       pthread_join( data->thread, NULL );
   }
 
-  // Cleanup.
-  close ( data->trigger_fds[0] );
-  close ( data->trigger_fds[1] );
-  if ( data->vport >= 0 ) snd_seq_delete_port( data->seq, data->vport );
+  if ( data->trigger_fds[0] >= 0 ) close( data->trigger_fds[0] );
+  if ( data->trigger_fds[1] >= 0 ) close( data->trigger_fds[1] );
+  if ( data->seq && data->vport >= 0 ) snd_seq_delete_port( data->seq, data->vport );
 #ifndef AVOID_TIMESTAMPING
-  snd_seq_free_queue( data->seq, data->queue_id );
+  if ( data->seq && data->queue_id >= 0 ) snd_seq_free_queue( data->seq, data->queue_id );
 #endif
-  snd_seq_close( data->seq );
+  if ( data->seq ) snd_seq_close( data->seq );
   delete data;
 }
 
 void MidiInAlsa :: initialize( const std::string& clientName )
 {
+
+  if (isWsl()) {
+    AlsaMidiData *data = new AlsaMidiData;
+    data->seq = nullptr;
+    data->portNum = -1;
+    data->vport = -1;
+    data->subscription = 0;
+    data->coder = 0;
+    data->bufferSize = 0;
+    data->buffer = 0;
+    data->dummy_thread_id = pthread_self();
+    data->thread = data->dummy_thread_id;
+    data->lastTime = 0;
+    data->queue_id = -1;
+    data->trigger_fds[0] = -1;
+    data->trigger_fds[1] = -1;
+    apiData_ = (void *) data;
+    inputData_.apiData = (void *) data;
+    return;
+  }
+
   // Set up the ALSA sequencer client.
   snd_seq_t *seq;
   int result = snd_seq_open(&seq, "default", SND_SEQ_OPEN_DUPLEX, SND_SEQ_NONBLOCK);
@@ -1428,22 +1450,26 @@ unsigned int portInfo( snd_seq_t *seq, snd_seq_port_info_t *pinfo, unsigned int 
 
 unsigned int MidiInAlsa :: getPortCount()
 {
+  AlsaMidiData *data = static_cast<AlsaMidiData *> (apiData_);
+  if (!data || !data->seq) return 0;
+
   snd_seq_port_info_t *pinfo;
   snd_seq_port_info_alloca( &pinfo );
 
-  AlsaMidiData *data = static_cast<AlsaMidiData *> (apiData_);
   return portInfo( data->seq, pinfo, SND_SEQ_PORT_CAP_READ|SND_SEQ_PORT_CAP_SUBS_READ, -1 );
 }
 
 std::string MidiInAlsa :: getPortName( unsigned int portNumber )
 {
+  AlsaMidiData *data = static_cast<AlsaMidiData *> (apiData_);
+  if (!data || !data->seq) return std::string();
+
   snd_seq_client_info_t *cinfo;
   snd_seq_port_info_t *pinfo;
   snd_seq_client_info_alloca( &cinfo );
   snd_seq_port_info_alloca( &pinfo );
 
   std::string stringName;
-  AlsaMidiData *data = static_cast<AlsaMidiData *> (apiData_);
   if ( portInfo( data->seq, pinfo, SND_SEQ_PORT_CAP_READ|SND_SEQ_PORT_CAP_SUBS_READ, (int) portNumber ) ) {
     int cnum = snd_seq_port_info_get_client( pinfo );
     snd_seq_get_any_client_info( data->seq, cnum, cinfo );
@@ -1465,6 +1491,9 @@ std::string MidiInAlsa :: getPortName( unsigned int portNumber )
 
 void MidiInAlsa :: openPort( unsigned int portNumber, const std::string portName )
 {
+  AlsaMidiData *data = static_cast<AlsaMidiData *> (apiData_);
+  if (!data || !data->seq) return;
+
   if ( connected_ ) {
     errorString_ = "MidiInAlsa::openPort: a valid connection already exists!";
     error( RtMidiError::WARNING, errorString_ );
@@ -1480,7 +1509,6 @@ void MidiInAlsa :: openPort( unsigned int portNumber, const std::string portName
 
   snd_seq_port_info_t *src_pinfo;
   snd_seq_port_info_alloca( &src_pinfo );
-  AlsaMidiData *data = static_cast<AlsaMidiData *> (apiData_);
   if ( portInfo( data->seq, src_pinfo, SND_SEQ_PORT_CAP_READ|SND_SEQ_PORT_CAP_SUBS_READ, (int) portNumber ) == 0 ) {
     std::ostringstream ost;
     ost << "MidiInAlsa::openPort: the 'portNumber' argument (" << portNumber << ") is invalid.";
@@ -1574,6 +1602,8 @@ void MidiInAlsa :: openPort( unsigned int portNumber, const std::string portName
 void MidiInAlsa :: openVirtualPort( std::string portName )
 {
   AlsaMidiData *data = static_cast<AlsaMidiData *> (apiData_);
+  if (!data || !data->seq) return;
+
   if ( data->vport < 0 ) {
     snd_seq_port_info_t *pinfo;
     snd_seq_port_info_alloca( &pinfo );
@@ -1636,6 +1666,8 @@ void MidiInAlsa :: openVirtualPort( std::string portName )
 void MidiInAlsa :: closePort( void )
 {
   AlsaMidiData *data = static_cast<AlsaMidiData *> (apiData_);
+  if (!data || !data->seq) return;
+
 
   if ( connected_ ) {
     if ( data->subscription ) {
@@ -1676,8 +1708,10 @@ MidiOutAlsa :: ~MidiOutAlsa()
   // Close a connection if it exists.
   closePort();
 
-  // Cleanup.
   AlsaMidiData *data = static_cast<AlsaMidiData *> (apiData_);
+  if (!data) return;
+
+  // Cleanup.
   if ( data->vport >= 0 ) snd_seq_delete_port( data->seq, data->vport );
   if ( data->coder ) snd_midi_event_free( data->coder );
   if ( data->buffer ) free( data->buffer );
@@ -1687,6 +1721,26 @@ MidiOutAlsa :: ~MidiOutAlsa()
 
 void MidiOutAlsa :: initialize( const std::string& clientName )
 {
+
+  if (isWsl()) {
+    AlsaMidiData *data = new AlsaMidiData;
+    data->seq = nullptr;
+    data->portNum = -1;
+    data->vport = -1;
+    data->subscription = 0;
+    data->coder = 0;
+    data->bufferSize = 0;
+    data->buffer = 0;
+    data->thread = 0;
+    data->dummy_thread_id = 0;
+    data->lastTime = 0;
+    data->queue_id = -1;
+    data->trigger_fds[0] = -1;
+    data->trigger_fds[1] = -1;
+    apiData_ = (void *) data;
+    return;
+  }
+
   // Set up the ALSA sequencer client.
   snd_seq_t *seq;
   int result1 = snd_seq_open( &seq, "default", SND_SEQ_OPEN_OUTPUT, SND_SEQ_NONBLOCK );
@@ -1727,22 +1781,26 @@ void MidiOutAlsa :: initialize( const std::string& clientName )
 
 unsigned int MidiOutAlsa :: getPortCount()
 {
+  AlsaMidiData *data = static_cast<AlsaMidiData *> (apiData_);
+  if (!data || !data->seq) return 0;
+
 	snd_seq_port_info_t *pinfo;
 	snd_seq_port_info_alloca( &pinfo );
 
-  AlsaMidiData *data = static_cast<AlsaMidiData *> (apiData_);
   return portInfo( data->seq, pinfo, SND_SEQ_PORT_CAP_WRITE|SND_SEQ_PORT_CAP_SUBS_WRITE, -1 );
 }
 
 std::string MidiOutAlsa :: getPortName( unsigned int portNumber )
 {
+  AlsaMidiData *data = static_cast<AlsaMidiData *> (apiData_);
+  if (!data || !data->seq) return std::string();
+
   snd_seq_client_info_t *cinfo;
   snd_seq_port_info_t *pinfo;
   snd_seq_client_info_alloca( &cinfo );
   snd_seq_port_info_alloca( &pinfo );
 
   std::string stringName;
-  AlsaMidiData *data = static_cast<AlsaMidiData *> (apiData_);
   if ( portInfo( data->seq, pinfo, SND_SEQ_PORT_CAP_WRITE|SND_SEQ_PORT_CAP_SUBS_WRITE, (int) portNumber ) ) {
     int cnum = snd_seq_port_info_get_client(pinfo);
     snd_seq_get_any_client_info( data->seq, cnum, cinfo );
@@ -1764,6 +1822,9 @@ std::string MidiOutAlsa :: getPortName( unsigned int portNumber )
 
 void MidiOutAlsa :: openPort( unsigned int portNumber, const std::string portName )
 {
+  AlsaMidiData *data = static_cast<AlsaMidiData *> (apiData_);
+  if (!data || !data->seq) return;
+
   if ( connected_ ) {
     errorString_ = "MidiOutAlsa::openPort: a valid connection already exists!";
     error( RtMidiError::WARNING, errorString_ );
@@ -1779,7 +1840,6 @@ void MidiOutAlsa :: openPort( unsigned int portNumber, const std::string portNam
 
 	snd_seq_port_info_t *pinfo;
 	snd_seq_port_info_alloca( &pinfo );
-  AlsaMidiData *data = static_cast<AlsaMidiData *> (apiData_);
   if ( portInfo( data->seq, pinfo, SND_SEQ_PORT_CAP_WRITE|SND_SEQ_PORT_CAP_SUBS_WRITE, (int) portNumber ) == 0 ) {
     std::ostringstream ost;
     ost << "MidiOutAlsa::openPort: the 'portNumber' argument (" << portNumber << ") is invalid.";
@@ -1829,8 +1889,10 @@ void MidiOutAlsa :: openPort( unsigned int portNumber, const std::string portNam
 
 void MidiOutAlsa :: closePort( void )
 {
+  AlsaMidiData *data = static_cast<AlsaMidiData *> (apiData_);
+  if (!data || !data->seq) return;
+
   if ( connected_ ) {
-    AlsaMidiData *data = static_cast<AlsaMidiData *> (apiData_);
     snd_seq_unsubscribe_port( data->seq, data->subscription );
     snd_seq_port_subscribe_free( data->subscription );
     connected_ = false;
@@ -1840,6 +1902,8 @@ void MidiOutAlsa :: closePort( void )
 void MidiOutAlsa :: openVirtualPort( std::string portName )
 {
   AlsaMidiData *data = static_cast<AlsaMidiData *> (apiData_);
+  if (!data || !data->seq) return;
+
   if ( data->vport < 0 ) {
     data->vport = snd_seq_create_simple_port( data->seq, portName.c_str(),
                                               SND_SEQ_PORT_CAP_READ|SND_SEQ_PORT_CAP_SUBS_READ,
@@ -1854,8 +1918,10 @@ void MidiOutAlsa :: openVirtualPort( std::string portName )
 
 void MidiOutAlsa :: sendMessage( std::vector<unsigned char> *message )
 {
-  int result;
   AlsaMidiData *data = static_cast<AlsaMidiData *> (apiData_);
+  if (!data || !data->seq) return;
+
+  int result;
   unsigned int nBytes = message->size();
   if ( nBytes > data->bufferSize ) {
     data->bufferSize = nBytes;

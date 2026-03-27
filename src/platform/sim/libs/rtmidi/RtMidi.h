@@ -49,6 +49,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <fstream>
 
 /************************************************************************/
 /*! \class RtMidiError
@@ -652,6 +653,19 @@ class MidiOutJack: public MidiOutApi
 #endif
 
 #if defined(__LINUX_ALSA__)
+
+static bool isWsl()
+{
+#ifdef __linux__
+    std::ifstream f("/proc/version");
+    std::string s;
+    std::getline(f, s);
+    return s.find("Microsoft") != std::string::npos ||
+           s.find("WSL") != std::string::npos;
+#else
+    return false;
+#endif
+}
 
 class MidiInAlsa: public MidiInApi
 {

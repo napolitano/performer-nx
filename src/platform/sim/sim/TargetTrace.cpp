@@ -6,6 +6,8 @@
 
 #include <iomanip>
 
+#include <memory>
+
 namespace sim {
 
 template<typename T>
