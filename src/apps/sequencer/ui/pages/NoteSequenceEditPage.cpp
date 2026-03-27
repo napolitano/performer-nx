@@ -210,7 +210,7 @@ void NoteSequenceEditPage::draw(Canvas &canvas) {
                 x, y + 18, stepWidth, 2,
                 step.retrigger() + 1, NoteSequence::Retrigger::Range
             );
-#endif;
+#endif
             break;
         case Layer::RetriggerProbability:
 #ifdef CONFIG_ENABLE_NOTE_EDIT_ENHANCEMENTS
@@ -763,7 +763,7 @@ void NoteSequenceEditPage::drawDetail(Canvas &canvas, const NoteSequence::Step &
         str("%.1f%%", 100.f * (step.gateProbability() + 1.f) / NoteSequence::GateProbability::Range);
         canvas.setColor(0xf);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
-#endif;
+#endif
         break;
     case Layer::GateOffset:
 #ifdef CONFIG_ENABLE_NOTE_EDIT_ENHANCEMENTS
@@ -954,7 +954,7 @@ void NoteSequenceEditPage::drawDetail(Canvas &canvas, const NoteSequence::Step &
     case Layer::Condition:
 #ifdef CONFIG_ENABLE_NOTE_EDIT_ENHANCEMENTS
         canvas.setColor(baseColor);
-#endif;
+#endif
         str.reset();
         Types::printCondition(str, step.condition(), Types::ConditionFormat::Long);
         canvas.setFont(Font::Small);

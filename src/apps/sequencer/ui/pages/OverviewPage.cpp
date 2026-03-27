@@ -39,8 +39,8 @@ static void drawNoteTrack(Canvas &canvas, int trackIndex, const NoteTrackEngine 
     if (showMaps) {
         // Draw header showing the number of 16-step slices and the active slice
         for (int i= 0; i < 4; ++i) {
-            int stepIndex = stepOffset + i;
-            const auto &step = sequence.step(stepIndex);
+            //int stepIndex = stepOffset + i;
+            //const auto &step = sequence.step(stepIndex);
             int x = 34  + i * 5;
 
             int stepColor = BasePage::UI_COLOR_ACTIVE;
@@ -134,8 +134,8 @@ static void drawCurveTrack(Canvas &canvas, int trackIndex, const CurveTrackEngin
     if (showMaps) {
         // Draw header showing the number of 16-step slices and the active slice
         for (int i= 0; i < 4; ++i) {
-            int stepIndex = stepOffset + i;
-            const auto &step = sequence.step(stepIndex);
+            //int stepIndex = stepOffset + i;
+            //const auto &step = sequence.step(stepIndex);
             int x = 34  + i * 5;
 
             int stepColor = BasePage::UI_COLOR_ACTIVE;

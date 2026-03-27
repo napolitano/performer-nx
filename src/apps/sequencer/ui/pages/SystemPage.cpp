@@ -11,7 +11,9 @@
 
 enum Function {
     Calibration = 0,
+#ifdef CONFIG_ADVANCED_SETTINGS
     Advanced    = 2,
+#endif
     Utilities   = 3,
     Update      = 4,
 };
@@ -245,6 +247,8 @@ void SystemPage::encoder(EncoderEvent &event) {
     case Mode::Calibration:
         ListPage::encoder(event);
         updateOutputs();
+        break;
+    case Mode::Advanced:
         break;
     case Mode::Utilities:
         ListPage::encoder(event);

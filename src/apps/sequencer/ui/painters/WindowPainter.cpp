@@ -155,7 +155,7 @@ void WindowPainter::drawActiveMode(Canvas &canvas, const char *mode) {
 	}
 
 	FixedStringBuilder<48> functionMode;
-	if (g_activeFunction && g_activeFunction[0] && g_hasActiveFunction) {
+    if (g_hasActiveFunction && g_activeFunction[0]) {
 		functionMode = FixedStringBuilder<48>("%-s     %-s", g_activeFunction, mode);
 	} else {
 		functionMode = FixedStringBuilder<48>("%-s", mode);
