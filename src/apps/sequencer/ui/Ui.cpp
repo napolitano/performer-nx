@@ -18,11 +18,12 @@ Ui::Ui(Model &model, Engine &engine, Lcd &lcd, ButtonLedMatrix &blm, Encoder &en
     _encoder(encoder),
     _frameBuffer(CONFIG_LCD_WIDTH, CONFIG_LCD_HEIGHT, _frameBufferData),
     _canvas(_frameBuffer),
-    _pageManager(_pages),
+    _pageManager(),
     _pageContext({ _messageManager, _pageKeyState, _globalKeyState, _model, _engine }),
     _pages(_pageManager, _pageContext),
     _controllerManager(model, engine)
 {
+    _pageManager.setPages(_pages);
 }
 
 void Ui::init() {

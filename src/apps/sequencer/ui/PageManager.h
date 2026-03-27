@@ -14,12 +14,17 @@ struct Pages;
 
 class PageManager {
 public:
-    // called before entering a page
     typedef std::function<void(Page *)> PageSwitchHandler;
 
-    PageManager(Pages &pages);
+    PageManager() = default;
 
-    Pages &pages() { return _pages; }
+    void setPages(Pages &pages) {
+        _pages = &pages;
+    }
+
+    Pages &pages() {
+        return *_pages;
+    }
 
     Page *top() const;
     void push(Page *page);
@@ -48,7 +53,7 @@ private:
         }
     }
 
-    Pages &_pages;
+    Pages *_pages = nullptr;
     static const int PageStackSize = 8;
     std::array<Page *, PageStackSize> _pageStack;
     int _pageStackPos = -1;
