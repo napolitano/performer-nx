@@ -58,40 +58,205 @@ The simulator is great when developing new features. It allows for a faster deve
 
 ### Setup on Windows
 
-Currently, there is no native support for compiling the firmware on Windows. As a workaround, there is a Vagrantfile to allow setting up a Vagrant virtual machine running Linux for compiling the application.
+#### Windows Setup (WSL)
 
-First you have to clone this repository (make sure to add the `--recursive` option to also clone all the submodules):
+**Important:**  
+Do not clone the repository into a path that contains spaces. This can break builds and tooling.
 
-```
-git clone --recursive https://github.com/westlicht/performer.git
-```
+---
 
-Next, go to https://www.vagrantup.com/downloads.html and download the latest Vagrant release. Once installed, use the following to setup the Vagrant machine:
+#### 1. Install WSL (Windows Subsystem for Linux)
 
-```
-cd performer
-vagrant up
-```
+Open PowerShell as Administrator:
 
-This will take a while. When finished, you have a virtual machine ready to go. To open a shell, use the following:
-
-```
-vagrant ssh
+```powershell
+wsl --install
 ```
 
-When logged in, you can follow the development instructions below, everything is now just the same as with a native development environment on macOS or Linux. The only difference is that while you have access to all the source code on your local machine, you use the virtual machine for compiling the source.
+Verify installation:
 
-To stop the virtual machine, log out of the shell and use:
-
-```
-vagrant halt
+```powershell
+wsl -l -v
 ```
 
-You can also remove the virtual machine using:
+If Ubuntu is not installed yet:
 
+```powershell
+wsl --install -d Ubuntu
 ```
-vagrant destroy
+
+Launch WSL once and complete the initial setup.
+
+---
+
+#### 2. Configure WSL (Networking and Integration)
+
+WSL networking is a common source of issues.
+
+Edit:
+
+```powershell
+notepad %USERPROFILE%\.wslconfig
 ```
+
+```ini
+[wsl2]
+networkingMode=mirrored
+localhostForwarding=true
+```
+
+Ensure in WSL settings:
+
+- Networking mode: Mirrored
+- Localhost forwarding: Enabled
+- Host address loopback: Enabled
+- DNS tunneling: Disabled
+
+Apply:
+
+```powershell
+wsl --shutdown
+```
+
+Note: With this configuration, `/etc/resolv.conf` should not require manual changes.
+
+---
+
+#### 3. Install Build Toolchain
+
+```bash
+sudo apt update
+sudo apt install build-essential gdb cmake git pkg-config
+```
+
+---
+
+#### 4. Install Simulator Dependencies
+
+```bash
+sudo apt install libsdl2-dev python3-dev pybind11-dev mesa-utils libgl1-mesa-dri libglx-mesa0 alsa-utils
+```
+
+---
+
+#### 5. Graphics Configuration (Mesa / D3D12)
+
+```bash
+export GALLIUM_DRIVER=d3d12
+```
+
+Persist:
+
+```bash
+echo 'export GALLIUM_DRIVER=d3d12' >> ~/.bashrc
+source ~/.bashrc
+```
+
+---
+
+#### 6. Development Workflow
+
+Start WSL before each session:
+
+```powershell
+wsl
+```
+
+All build steps must run inside WSL:
+
+```bash
+# First-time setup
+make tools_install
+make setup_stm32
+make setup_sim
+
+# Build firmware for hardware
+cd build/stm32/<debug|release>/
+make -j
+
+# The resulting UPDATE.DAT is located in:
+#   src/apps/sequencer/
+# Copy it to the root directory of the SD card.
+
+# Build and run the simulator
+cd build/sim/debug/
+make -j
+./src/apps/sequencer/sequencer
+```
+
+---
+
+#### Audio
+
+##### WSLg (Preferred)
+
+WSLg provides:
+
+- Audio (PulseAudio-compatible)
+- Graphics (Wayland/X11)
+
+Verify:
+
+```bash
+echo $WAYLAND_DISPLAY
+```
+
+Test audio:
+
+```bash
+paplay /usr/share/sounds/alsa/Front_Center.wav
+```
+
+No configuration required.
+
+---
+
+##### PulseAudio (Manual Setup)
+
+Only required if WSLg is unavailable.
+
+Start server on Windows:
+
+```powershell
+pulseaudio.exe --load=module-native-protocol-tcp --exit-idle-time=-1
+```
+
+WSL:
+
+```bash
+export PULSE_SERVER=tcp:localhost
+```
+
+---
+
+#### MIDI
+
+Not supported in WSL.
+
+- No `/dev/snd/seq`
+- ALSA sequencer unavailable
+- RtMidi ALSA backend fails
+
+---
+
+#### Simulator Status
+
+- Build: works
+- Graphics: works
+- Audio: works (WSLg or PulseAudio)
+- MIDI: not available
+
+---
+
+#### Recommendation
+
+WSL is suitable for:
+
+- Building firmware
+- Basic simulator use
+
+Use native Linux or macOS for full functionality.
+
 
 ### Build directories
 
