@@ -5,7 +5,7 @@ $provision_script = <<-SCRIPT
 
 echo "Installing dependencies ..."
 sudo apt-get update
-sudo apt-get install -y git python libtool autoconf cmake libusb-1.0.0-dev libftdi-dev pkg-config
+sudo apt-get install -y git python libtool autoconf cmake libusb-1.0.0-dev libftdi-dev pkg-config build-essential gdb cmake git pkg-config libsdl2-dev python3-dev python3-pip pybind11-dev mesa-utils libgl1-mesa-dri libglx-mesa0 alsa-utils
 
 echo "Installing toolchain ..."
 cd /vagrant
@@ -14,6 +14,9 @@ make tools_install
 
 echo "Setting up build ..."
 make setup_stm32
+
+echo "Setting up simulator ..."
+make setup_sim
 
 echo "Setting up programmers ...."
 # Allow non-root users to access USB devices
@@ -40,7 +43,7 @@ Vagrant.configure(2) do |config|
 
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://atlas.hashicorp.com/search.
-  config.vm.box = "ubuntu/xenial64"
+  config.vm.box = "ubuntu/jammy64"
 
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
@@ -80,7 +83,7 @@ Vagrant.configure(2) do |config|
    
    # Use 2 CPUs
    vb.cpus = 2
-   
+
    # Enable all USB devices needed for development
    vb.customize ['modifyvm', :id, '--usb', 'on']
    vb.customize ['modifyvm', :id, '--usbehci', 'on']
