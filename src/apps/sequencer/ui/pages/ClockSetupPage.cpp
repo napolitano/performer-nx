@@ -1,3 +1,4 @@
+#include "Config.h"
 #include "ClockSetupPage.h"
 
 #include "ui/painters/WindowPainter.h"
@@ -12,7 +13,7 @@ ClockSetupPage::ClockSetupPage(PageManager &manager, PageContext &context) :
 
 void ClockSetupPage::draw(Canvas &canvas) {
     WindowPainter::clear(canvas);
-    WindowPainter::drawHeader(canvas, _model, _engine, "CLOCK");
+    WindowPainter::drawHeader(canvas, _model, _engine, TXT_MODE_CLOCK);
     WindowPainter::drawFooter(canvas);
 
     ListPage::draw(canvas);

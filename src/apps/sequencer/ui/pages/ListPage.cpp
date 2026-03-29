@@ -1,3 +1,4 @@
+#include "Config.h"
 #include "ListPage.h"
 
 #include "ui/LedPainter.h"
@@ -101,7 +102,7 @@ void ListPage::drawCell(Canvas &canvas, int row, int column, int x, int y, int w
     _listModel->cell(row, column, str);
     canvas.setFont(Font::Small);
     canvas.setBlendMode(BlendMode::Set);
-    canvas.setColor(column == int(_edit) && row == _selectedRow ? 0xf : 0x7);
+    canvas.setColor(column == int(_edit) && row == _selectedRow ? UI_COLOR_ACTIVE : UI_COLOR_DIM);
     canvas.drawText(x, y + 7, str);
 }
 

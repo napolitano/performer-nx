@@ -1,3 +1,4 @@
+#include "Config.h"
 #include "Routing.h"
 
 #include "Project.h"
@@ -334,41 +335,41 @@ void Routing::printTargetValue(Routing::Target target, float normalized, StringB
     int intValue = std::round(value);
     switch (target) {
     case Target::None:
-        str("-");
+        str(TXT_MODEL_NONE_SHORT);
         break;
     case Target::Tempo:
-        str("%.1f", value);
+        str(TXT_MODEL_TEMPO, value);
         break;
     case Target::Swing:
     case Target::SlideTime:
     case Target::FillAmount:
-        str("%d%%", intValue);
+        str(TXT_MODEL_FILL_AMOUNT, intValue);
         break;
     case Target::Octave:
     case Target::Transpose:
     case Target::Rotate:
-        str("%+d", intValue);
+        str(TXT_MODEL_ROTATION, intValue);
         break;
     case Target::Offset:
-        str("%+.2fV", value * 0.01f);
+        str(TXT_MODEL_OFFSET_VOLTAGE, value * 0.01f);
         break;
     case Target::GateProbabilityBias:
     case Target::RetriggerProbabilityBias:
     case Target::LengthBias:
     case Target::NoteProbabilityBias:
     case Target::ShapeProbabilityBias:
-        str("%+.1f%%", value * 12.5f);
+        str(TXT_MODEL_SHAPE_PROBABILITY_BIAS, value * 12.5f);
         break;
     case Target::Divisor:
         ModelUtils::printDivisor(str, intValue);
         break;
     case Target::RunMode:
-        str("%s", Types::runModeName(Types::RunMode(intValue)));
+        str(TXT_MODEL_GENERIC_STRING, Types::runModeName(Types::RunMode(intValue)));
         break;
     case Target::FirstStep:
     case Target::LastStep:
     case Target::Pattern:
-        str("%d", intValue + 1);
+        str(TXT_MODEL_GENERIC_VALUE, intValue + 1);
         break;
     case Target::Play:
     case Target::PlayToggle:
@@ -377,16 +378,16 @@ void Routing::printTargetValue(Routing::Target target, float normalized, StringB
     case Target::TapTempo:
     case Target::Mute:
     case Target::Fill:
-        str(intValue ? "on" : "off");
+        str(intValue ? TXT_MODEL_PRINT_ON : TXT_MODEL_PRINT_OFF);
         break;
     case Target::Scale:
-        str("%s", Scale::name(intValue));
+        str(TXT_MODEL_GENERIC_STRING, Scale::name(intValue));
         break;
     case Target::RootNote:
         Types::printNote(str, intValue);
         break;
     default:
-        str("%d", intValue);
+        str(TXT_MODEL_GENERIC_VALUE, intValue);
         break;
     }
 }

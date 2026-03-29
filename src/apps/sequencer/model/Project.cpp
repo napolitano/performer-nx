@@ -1,3 +1,4 @@
+#include "Config.h"
 #include "Project.h"
 #include "ProjectVersion.h"
 
@@ -27,7 +28,7 @@ void Project::writeRouted(Routing::Target target, int intValue, float floatValue
 
 void Project::clear() {
     _slot = uint8_t(-1);
-    StringUtils::copy(_name, "INIT", sizeof(_name));
+    StringUtils::copy(_name, TXT_MODEL_INIT, sizeof(_name));
     setAutoLoaded(false);
     setTempo(120.f);
     setSwing(50);

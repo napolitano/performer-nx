@@ -1,3 +1,4 @@
+#include "Config.h"
 #include "TrackPage.h"
 
 #include "Pages.h"
@@ -16,10 +17,10 @@ enum class ContextAction {
 };
 
 static const ContextMenuModel::Item contextMenuItems[] = {
-    { "INIT" },
-    { "COPY" },
-    { "PASTE" },
-    { "ROUTE" },
+    { TXT_MENU_INIT },
+    { TXT_MENU_COPY },
+    { TXT_MENU_PASTE },
+    { TXT_MENU_ROUTE },
 };
 
 TrackPage::TrackPage(PageManager &manager, PageContext &context) :
@@ -35,7 +36,7 @@ void TrackPage::exit() {
 
 void TrackPage::draw(Canvas &canvas) {
     WindowPainter::clear(canvas);
-    WindowPainter::drawHeader(canvas, _model, _engine, "TRACK");
+    WindowPainter::drawHeader(canvas, _model, _engine, TXT_MODE_TRACK);
     WindowPainter::drawActiveFunction(canvas, Track::trackModeName(_project.selectedTrack().trackMode()));
     WindowPainter::drawFooter(canvas);
 
@@ -136,12 +137,12 @@ bool TrackPage::contextActionEnabled(int index) const {
 void TrackPage::initTrackSetup() {
     _project.selectedTrack().clear();
     setTrack(_project.selectedTrack());
-    showMessage("TRACK INITIALIZED");
+    showMessage(TXT_MESSAGE_TRACK_INITIALIZED);
 }
 
 void TrackPage::copyTrackSetup() {
     _model.clipBoard().copyTrack(_project.selectedTrack());
-    showMessage("TRACK COPIED");
+    showMessage(TXT_MESSAGE_TRACK_COPIED);
 }
 
 void TrackPage::pasteTrackSetup() {
@@ -150,7 +151,7 @@ void TrackPage::pasteTrackSetup() {
     _model.clipBoard().pasteTrack(_project.selectedTrack());
     _engine.unlock();
     setTrack(_project.selectedTrack());
-    showMessage("TRACK PASTED");
+    showMessage(TXT_MESSAGE_TRACK_PASTED);
 }
 
 void TrackPage::initRoute() {

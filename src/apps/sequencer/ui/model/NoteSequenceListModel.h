@@ -85,13 +85,13 @@ public:
 private:
     static const char *itemName(Item item) {
         switch (item) {
-        case FirstStep:         return "First Step";
-        case LastStep:          return "Last Step";
-        case RunMode:           return "Run Mode";
-        case Divisor:           return "Divisor";
-        case ResetMeasure:      return "Reset Measure";
-        case Scale:             return "Scale";
-        case RootNote:          return "Root Note";
+        case FirstStep:         return TXT_LIST_LABEL_FIRST_STEP;
+        case LastStep:          return TXT_LIST_LABEL_LAST_STEP;
+        case RunMode:           return TXT_LIST_LABEL_RUN_MODE;
+        case Divisor:           return TXT_LIST_LABEL_DIVISOR;
+        case ResetMeasure:      return TXT_LIST_LABEL_RESET_MEASURE;
+        case Scale:             return TXT_LIST_LABEL_SCALE;
+        case RootNote:          return TXT_LIST_LABEL_ROOT_NOTE;
         case Last:              break;
         }
         return nullptr;

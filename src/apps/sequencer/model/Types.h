@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Config.h"
 #include "core/utils/StringBuilder.h"
 #include "core/math/Math.h"
 
@@ -20,9 +21,9 @@ public:
 
     static const char *monitorModeName(MonitorMode monitorMode) {
         switch (monitorMode) {
-        case MonitorMode::Always:   return "Always";
-        case MonitorMode::Stopped:  return "Stopped";
-        case MonitorMode::Off:      return "Off";
+        case MonitorMode::Always:   return TXT_MODEL_ALWAYS;
+        case MonitorMode::Stopped:  return TXT_LIST_LABEL_STOPPED;
+        case MonitorMode::Off:      return TXT_MODEL_PRINT_OCTAVE_OFF;
         case MonitorMode::Last:     break;
         }
         return nullptr;
@@ -39,9 +40,9 @@ public:
 
     static const char *recordModeName(RecordMode recordMode) {
         switch (recordMode) {
-        case RecordMode::Overdub:   return "Overdub";
-        case RecordMode::Overwrite: return "Overwrite";
-        case RecordMode::StepRecord:return "Step Record";
+        case RecordMode::Overdub:   return TXT_LIST_LABEL_OVERDUB;
+        case RecordMode::Overwrite: return TXT_LIST_LABEL_OVERWRITE;
+        case RecordMode::StepRecord:return TXT_LIST_LABEL_STEP_RECORD;
         case RecordMode::Last:      break;
         }
         return nullptr;
@@ -67,9 +68,9 @@ public:
 
     static const char *cvGateInputName(CvGateInput cvGateInput) {
         switch (cvGateInput) {
-        case CvGateInput::Off:      return "Off";
-        case CvGateInput::Cv1Cv2:   return "CV1/CV2";
-        case CvGateInput::Cv3Cv4:   return "CV3/CV4";
+        case CvGateInput::Off:      return TXT_MODEL_PRINT_OCTAVE_OFF;
+        case CvGateInput::Cv1Cv2:   return TXT_LIST_LABEL_CV1_CV2;
+        case CvGateInput::Cv3Cv4:   return TXT_LIST_LABEL_CV3_CV4;
         case CvGateInput::Last:     break;
         }
         return nullptr;
@@ -86,11 +87,11 @@ public:
 
     static const char *curveCvInput(CurveCvInput curveCvInput) {
         switch (curveCvInput) {
-        case CurveCvInput::Off:     return "Off";
-        case CurveCvInput::Cv1:     return "CV1";
-        case CurveCvInput::Cv2:     return "CV2";
-        case CurveCvInput::Cv3:     return "CV3";
-        case CurveCvInput::Cv4:     return "CV4";
+        case CurveCvInput::Off:     return TXT_MODEL_PRINT_OCTAVE_OFF;
+        case CurveCvInput::Cv1:     return TXT_LIST_LABEL_CV1;
+        case CurveCvInput::Cv2:     return TXT_LIST_LABEL_CV2;
+        case CurveCvInput::Cv3:     return TXT_LIST_LABEL_CV3;
+        case CurveCvInput::Cv4:     return TXT_LIST_LABEL_CV4;
         case CurveCvInput::Last:    break;
         }
         return nullptr;
@@ -106,8 +107,8 @@ public:
 
     static const char *playModeName(PlayMode playMode) {
         switch (playMode) {
-        case PlayMode::Aligned: return "Aligned";
-        case PlayMode::Free:    return "Free";
+        case PlayMode::Aligned: return TXT_LIST_LABEL_ALIGNED;
+        case PlayMode::Free:    return TXT_LIST_LABEL_FREE;
         case PlayMode::Last:    break;
         }
         return nullptr;
@@ -127,12 +128,12 @@ public:
 
     static const char *runModeName(RunMode runMode) {
         switch (runMode) {
-        case RunMode::Forward:      return "Forward";
-        case RunMode::Backward:     return "Backward";
-        case RunMode::Pendulum:     return "Pendulum";
-        case RunMode::PingPong:     return "PingPong";
-        case RunMode::Random:       return "Random";
-        case RunMode::RandomWalk:   return "Random Walk";
+        case RunMode::Forward:      return TXT_LIST_LABEL_FORWARD;
+        case RunMode::Backward:     return TXT_LIST_LABEL_BACKWARD;
+        case RunMode::Pendulum:     return TXT_LIST_LABEL_PENDULUM;
+        case RunMode::PingPong:     return TXT_LIST_LABEL_PINGPONG;
+        case RunMode::Random:       return TXT_LIST_LABEL_RANDOM;
+        case RunMode::RandomWalk:   return TXT_LIST_LABEL_RANDOM_WALK;
         case RunMode::Last:         break;
         }
         return nullptr;
@@ -237,16 +238,16 @@ public:
 
     static const char *voltageRangeName(VoltageRange voltageRange) {
         switch (voltageRange) {
-        case VoltageRange::Unipolar1V:  return "1V Unipolar";
-        case VoltageRange::Unipolar2V:  return "2V Unipolar";
-        case VoltageRange::Unipolar3V:  return "3V Unipolar";
-        case VoltageRange::Unipolar4V:  return "4V Unipolar";
-        case VoltageRange::Unipolar5V:  return "5V Unipolar";
-        case VoltageRange::Bipolar1V:   return "1V Bipolar";
-        case VoltageRange::Bipolar2V:   return "2V Bipolar";
-        case VoltageRange::Bipolar3V:   return "3V Bipolar";
-        case VoltageRange::Bipolar4V:   return "4V Bipolar";
-        case VoltageRange::Bipolar5V:   return "5V Bipolar";
+        case VoltageRange::Unipolar1V:  return TXT_LIST_LABEL_1V_UNIPOLAR;
+        case VoltageRange::Unipolar2V:  return TXT_LIST_LABEL_2V_UNIPOLAR;
+        case VoltageRange::Unipolar3V:  return TXT_LIST_LABEL_3V_UNIPOLAR;
+        case VoltageRange::Unipolar4V:  return TXT_LIST_LABEL_4V_UNIPOLAR;
+        case VoltageRange::Unipolar5V:  return TXT_LIST_LABEL_5V_UNIPOLAR;
+        case VoltageRange::Bipolar1V:   return TXT_LIST_LABEL_1V_BIPOLAR;
+        case VoltageRange::Bipolar2V:   return TXT_LIST_LABEL_2V_BIPOLAR;
+        case VoltageRange::Bipolar3V:   return TXT_LIST_LABEL_3V_BIPOLAR;
+        case VoltageRange::Bipolar4V:   return TXT_LIST_LABEL_4V_BIPOLAR;
+        case VoltageRange::Bipolar5V:   return TXT_LIST_LABEL_5V_BIPOLAR;
         case VoltageRange::Last:        break;
         }
         return nullptr;
@@ -279,8 +280,8 @@ public:
 
     static const char *midiPortName(MidiPort midiPort) {
         switch (midiPort) {
-        case MidiPort::Midi:    return "MIDI";
-        case MidiPort::UsbMidi: return "USB";
+        case MidiPort::Midi:    return TXT_LIST_LABEL_MIDI;
+        case MidiPort::UsbMidi: return TXT_LIST_LABEL_USB;
         case MidiPort::Last:    break;
         }
         return nullptr;
@@ -298,21 +299,21 @@ public:
 
     static void printMidiChannel(StringBuilder &str, int midiChannel) {
         if (midiChannel == -1) {
-            str("Omni");
+            str(TXT_LIST_LABEL_OMNI);
         } else {
-            str("%d", midiChannel + 1);
+            str(TXT_MODEL_GENERIC_VALUE, midiChannel + 1);
         }
     }
 
     static void printNote(StringBuilder &str, int note) {
-        static const char *names[] = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
+        static const char *names[] = TXT_NOTE_NAMES;
         str(names[note]);
     }
 
     static void printMidiNote(StringBuilder &str, int midiNote) {
         printNote(str, midiNote % 12);
         int octave = midiNote / 12 - 1;
-        str("%d", octave);
+        str(TXT_MODEL_GENERIC_VALUE, octave);
     }
 
 private:

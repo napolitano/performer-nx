@@ -66,14 +66,14 @@ private:
 
     static const char *itemName(Item item) {
         switch (item) {
-        case PlayMode:              return "Play Mode";
-        case FillMode:              return "Fill Mode";
-        case MuteMode:              return "Mute Mode";
-        case SlideTime:             return "Slide Time";
-        case Offset:                return "Offset";
-        case Rotate:                return "Rotate";
-        case ShapeProbabilityBias:  return "Shape P. Bias";
-        case GateProbabilityBias:   return "Gate P. Bias";
+        case PlayMode:              return TXT_LIST_LABEL_PLAY_MODE;
+        case FillMode:              return TXT_LIST_LABEL_FILL_MODE;
+        case MuteMode:              return TXT_LIST_LABEL_MUTE_MODE;
+        case SlideTime:             return TXT_LIST_LABEL_SLIDE_TIME;
+        case Offset:                return TXT_LIST_LABEL_OFFSET;
+        case Rotate:                return TXT_LIST_LABEL_ROTATE;
+        case ShapeProbabilityBias:  return TXT_LIST_LABEL_GATE_SHAPE_PROBABILITY_BIAS;
+        case GateProbabilityBias:   return TXT_LIST_LABEL_GATE_PROBABILITY_BIAS;
         case Last:                  break;
         }
         return nullptr;

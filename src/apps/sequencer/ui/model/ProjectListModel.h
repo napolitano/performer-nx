@@ -64,18 +64,18 @@ private:
 
     static const char *itemName(Item item) {
         switch (item) {
-        case Name:              return "Name";
-        case Tempo:             return "Tempo";
-        case Swing:             return "Swing";
-        case TimeSignature:     return "Time Signature";
-        case SyncMeasure:       return "Sync Measure";
-        case Scale:             return "Scale";
-        case RootNote:          return "Root Note";
-        case MonitorMode:       return "Monitor Mode";
-        case RecordMode:        return "Record Mode";
-        case MidiInput:         return "MIDI Input";
-        case CvGateInput:       return "CV/Gate Input";
-        case CurveCvInput:      return "Curve CV Input";
+        case Name:              return TXT_LIST_LABEL_NAME;
+        case Tempo:             return TXT_LIST_LABEL_TEMPO;
+        case Swing:             return TXT_LIST_LABEL_SWING;
+        case TimeSignature:     return TXT_LIST_LABEL_TIME_SIGNATURE;
+        case SyncMeasure:       return TXT_LIST_LABEL_SYNC_MEASURE;
+        case Scale:             return TXT_LIST_LABEL_SCALE;
+        case RootNote:          return TXT_LIST_LABEL_ROOT_NOTE;
+        case MonitorMode:       return TXT_LIST_LABEL_MONITOR_MODE;
+        case RecordMode:        return TXT_LIST_LABEL_RECORD_MODE;
+        case MidiInput:         return TXT_LIST_LABEL_MIDI_INPUT;
+        case CvGateInput:       return TXT_LIST_LABEL_CVGATE_INPUT;
+        case CurveCvInput:      return TXT_LIST_LABEL_CURVECV_INPUT;
         case Last:              break;
         }
         return nullptr;

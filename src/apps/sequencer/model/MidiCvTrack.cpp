@@ -1,3 +1,4 @@
+#include "Config.h"
 #include "MidiCvTrack.h"
 
 #include "ProjectVersion.h"
@@ -53,7 +54,7 @@ MidiCvTrack::VoiceSignal MidiCvTrack::voiceSignalByIndex(int index) const {
 }
 
 void MidiCvTrack::gateOutputName(int index, StringBuilder &str) const {
-    str("Gate%d", (index % _voices) + 1);
+    str(TXT_MODEL_GATE_VALUE, (index % _voices) + 1);
 }
 
 void MidiCvTrack::cvOutputName(int index, StringBuilder &str) const {
@@ -64,13 +65,13 @@ void MidiCvTrack::cvOutputName(int index, StringBuilder &str) const {
     int signalIndex = index / _voices;
     switch (voiceSignalByIndex(signalIndex)) {
     case VoiceSignal::Pitch:
-        str("V/Oct%d", voiceIndex + 1);
+        str(TXT_MODEL_VOLTAGE_OCTAVE_VALUE, voiceIndex + 1);
         break;
     case VoiceSignal::Velocity:
-        str("Vel%d", voiceIndex + 1);
+        str(TXT_MODEL_GENERIC_VALUE, voiceIndex + 1);
         break;
     case VoiceSignal::Pressure:
-        str("Press%d", voiceIndex + 1);
+        str(TXT_MODEL_PRESSURE_VALUE, voiceIndex + 1);
         break;
     }
 }

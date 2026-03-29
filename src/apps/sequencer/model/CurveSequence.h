@@ -42,13 +42,13 @@ public:
 
     static const char *layerName(Layer layer) {
         switch (layer) {
-        case Layer::Shape:                      return "SHAPE";
-        case Layer::ShapeVariation:             return "SHAPE VAR";
-        case Layer::ShapeVariationProbability:  return "SHAPE PROB";
-        case Layer::Min:                        return "MIN";
-        case Layer::Max:                        return "MAX";
-        case Layer::Gate:                       return "GATE";
-        case Layer::GateProbability:            return "GATE PROB";
+        case Layer::Shape:                      return TXT_MODEL_SHAPE;
+        case Layer::ShapeVariation:             return TXT_MODEL_SHAPE_VARIATION;
+        case Layer::ShapeVariationProbability:  return TXT_MODEL_SHAPE_VARIATION_PROBABILITY;
+        case Layer::Min:                        return TXT_MODEL_MINIMUM;
+        case Layer::Max:                        return TXT_MODEL_MAXIMUM;
+        case Layer::Gate:                       return TXT_MODEL_GATE;
+        case Layer::GateProbability:            return TXT_MODEL_GATE_PROBABILITY;
         case Layer::Last:                       break;
         }
         return nullptr;
@@ -227,9 +227,9 @@ public:
 
     void printResetMeasure(StringBuilder &str) const {
         if (resetMeasure() == 0) {
-            str("off");
+            str(TXT_MODEL_PRINT_OFF);
         } else {
-            str("%d %s", resetMeasure(), resetMeasure() > 1 ? "bars" : "bar");
+            str(TXT_MODEL_PRINT_BAR_COUNT, resetMeasure(), resetMeasure() > 1 ? TXT_MODEL_PRINT_BAR_PLURAL : TXT_MODEL_PRINT_BAR);
         }
     }
 
@@ -271,7 +271,7 @@ public:
 
     void printFirstStep(StringBuilder &str) const {
         printRouted(str, Routing::Target::FirstStep);
-        str("%d", firstStep() + 1);
+        str(TXT_MODEL_PRINT_FIRST_STEP, firstStep() + 1);
     }
 
     // lastStep
@@ -295,7 +295,7 @@ public:
 
     void printLastStep(StringBuilder &str) const {
         printRouted(str, Routing::Target::LastStep);
-        str("%d", lastStep() + 1);
+        str(TXT_MODEL_PRINT_LAST_STEP, lastStep() + 1);
     }
 
     // steps

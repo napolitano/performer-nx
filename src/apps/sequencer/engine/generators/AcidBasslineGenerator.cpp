@@ -34,10 +34,7 @@ static constexpr int kPreferredDegreeWeights[] = {
 static constexpr int kPreferredDegreeCount =
     sizeof(kPreferredDegrees) / sizeof(kPreferredDegrees[0]);
 
-static const char *kRootNames[] = {
-    "C", "C#", "D", "D#", "E", "F",
-    "F#", "G", "G#", "A", "A#", "B"
-};
+static const char *kRootNames[] = TXT_NOTE_NAMES;
 } // namespace
 
 const AcidBasslineGenerator::TimingFeel AcidBasslineGenerator::kTightFeel = {
@@ -60,11 +57,11 @@ int AcidBasslineGenerator::paramCount() const {
 
 const char *AcidBasslineGenerator::paramName(int index) const {
     switch (Param(index)) {
-    case Param::Seed:          return "Seed";
-    case Param::RootNote:      return "Root";
-    case Param::PatternLength: return "Length";
-    case Param::Density:       return "Density";
-    case Param::LegatoMix:     return "Legato";
+    case Param::Seed:          return TXT_MENU_SEED;
+    case Param::RootNote:      return TXT_MENU_ROOT;
+    case Param::PatternLength: return TXT_MENU_LENGTH;
+    case Param::Density:       return TXT_MENU_DENSITY;
+    case Param::LegatoMix:     return TXT_MENU_LEGATO;
     case Param::Last:          break;
     }
     return nullptr;

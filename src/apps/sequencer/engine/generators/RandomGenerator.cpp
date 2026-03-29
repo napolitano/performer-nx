@@ -11,10 +11,10 @@ RandomGenerator::RandomGenerator(SequenceBuilder &builder, Params &params) :
 
 const char *RandomGenerator::paramName(int index) const {
     switch (Param(index)) {
-    case Param::Seed:   return "Seed";
-    case Param::Smooth: return "Smooth";
-    case Param::Bias:   return "Bias";
-    case Param::Scale:  return "Scale";
+    case Param::Seed:   return TXT_MENU_SEED;
+    case Param::Smooth: return TXT_MENU_SMOOTH;
+    case Param::Bias:   return TXT_MENU_BIAS;
+    case Param::Scale:  return TXT_MENU_SCALE;
     case Param::Last:   break;
     }
     return nullptr;

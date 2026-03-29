@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Config.h"
 #include "Serialize.h"
 #include "ModelUtils.h"
 
@@ -23,9 +24,9 @@ public:
 
     static const char *modeName(Mode mode) {
         switch (mode) {
-        case Mode::Auto:    return "Auto";
-        case Mode::Master:  return "Master";
-        case Mode::Slave:   return "Slave";
+        case Mode::Auto:    return TXT_MODEL_CLOCK_MODE_AUTO;
+        case Mode::Master:  return TXT_MODEL_CLOCK_MODE_MASTER;
+        case Mode::Slave:   return TXT_MODEL_CLOCK_MODE_SLAVE;
         case Mode::Last:    break;
         }
         return nullptr;
@@ -39,8 +40,8 @@ public:
 
     static const char *shiftModeName(ShiftMode mode) {
         switch (mode) {
-        case ShiftMode::Restart:    return "Restart";
-        case ShiftMode::Pause:      return "Pause";
+        case ShiftMode::Restart:    return TXT_MODEL_CLOCK_SHIFT_MODE_RESTART;
+        case ShiftMode::Pause:      return TXT_MODEL_CLOCK_SHIFT_MODE_PAUSE;
         case ShiftMode::Last:       break;
         }
         return nullptr;
@@ -55,9 +56,9 @@ public:
 
     static const char *clockInputModeName(ClockInputMode mode) {
         switch (mode) {
-        case ClockInputMode::Reset:     return "Reset";
-        case ClockInputMode::Run:       return "Run";
-        case ClockInputMode::StartStop: return "Start/Stop";
+        case ClockInputMode::Reset:     return TXT_MODEL_CLOCK_MODE_RESET;
+        case ClockInputMode::Run:       return TXT_MODEL_CLOCK_MODE_RUN;
+        case ClockInputMode::StartStop: return TXT_MODEL_CLOCK_MODE_START_STOP;
         case ClockInputMode::Last:      break;
         }
         return nullptr;
@@ -71,8 +72,8 @@ public:
 
     static const char *clockOutputModeName(ClockOutputMode mode) {
         switch (mode) {
-        case ClockOutputMode::Reset:    return "Reset";
-        case ClockOutputMode::Run:      return "Run";
+        case ClockOutputMode::Reset:    return TXT_MODEL_CLOCK_MODE_RESET;
+        case ClockOutputMode::Run:      return TXT_MODEL_CLOCK_MODE_RUN;
         case ClockOutputMode::Last:     break;
         }
         return nullptr;
@@ -207,7 +208,7 @@ public:
     }
 
     void printClockOutputPulse(StringBuilder &str) const {
-        str("%dms", clockOutputPulse());
+        str(TXT_MODEL_CLOCK_PULSE, clockOutputPulse());
     }
 
     // clockOutputMode

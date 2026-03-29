@@ -1,3 +1,4 @@
+#include "Config.h"
 #include "QuickEditPage.h"
 
 #include "ui/LedPainter.h"
@@ -27,7 +28,7 @@ void QuickEditPage::draw(Canvas &canvas) {
 
     canvas.setBlendMode(BlendMode::Set);
     canvas.setFont(Font::Small);
-    canvas.setColor(0xf);
+    canvas.setColor(UI_COLOR_ACTIVE);
 
     FixedStringBuilder<16> str;
     _listModel->cell(_row, 0, str);

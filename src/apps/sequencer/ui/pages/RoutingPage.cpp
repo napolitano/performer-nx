@@ -1,3 +1,4 @@
+#include "Config.h"
 #include "RoutingPage.h"
 
 #include "ui/painters/WindowPainter.h"
@@ -38,11 +39,17 @@ void RoutingPage::draw(Canvas &canvas) {
     bool showCommit = *_route != _editRoute;
     bool showLearn = _editRoute.target() != Routing::Target::None;
     bool highlightLearn = showLearn && _engine.midiLearn().isActive();
-    const char *functionNames[] = { "PREV", "NEXT", "INIT", showLearn ? "LEARN" : nullptr, showCommit ? "COMMIT" : nullptr };
+    const char *functionNames[] = {
+        TXT_MENU_PREVIOUS,
+        TXT_MENU_NEXT,
+        TXT_MENU_INIT,
+        showLearn ? TXT_MENU_LEARN : nullptr,
+        showCommit ? TXT_MENU_COMMIT : nullptr
+    };
 
     WindowPainter::clear(canvas);
-    WindowPainter::drawHeader(canvas, _model, _engine, "ROUTING");
-    WindowPainter::drawActiveFunction(canvas, FixedStringBuilder<16>("ROUTE %d", _routeIndex + 1));
+    WindowPainter::drawHeader(canvas, _model, _engine, TXT_MODE_ROUTING);
+    WindowPainter::drawActiveFunction(canvas, FixedStringBuilder<16>(TXT_FUNCTION_ROUTE, _routeIndex + 1));
     WindowPainter::drawFooter(canvas, functionNames, pageKeyState(), highlightLearn ? int(Function::Learn) : -1);
 
     ListPage::draw(canvas);
@@ -86,11 +93,11 @@ void RoutingPage::keyPress(KeyPressEvent &event) {
             _engine.midiLearn().stop();
             int conflict = _project.routing().checkRouteConflict(_editRoute, *_route);
             if (conflict >= 0) {
-                showMessage(FixedStringBuilder<64>("ROUTE SETTINGS CONFLICT WITH ROUTE %d", conflict + 1));
+                showMessage(FixedStringBuilder<64>(TXT_MESSAGE_ROUTE_SETTINGS_CONFLICT, conflict + 1));
             } else {
                 *_route = _editRoute;
                 setEdit(false);
-                showMessage("ROUTE CHANGED");
+                showMessage(TXT_MESSAGE_ROUTE_CHANGED);
             }
             break;
         }
@@ -126,7 +133,7 @@ void RoutingPage::drawCell(Canvas &canvas, int row, int column, int x, int y, in
     ) {
         canvas.setFont(Font::Tiny);
         canvas.setBlendMode(BlendMode::Set);
-        canvas.setColor(edit() && row == selectedRow() ? 0xf : 0x7);
+        canvas.setColor(edit() && row == selectedRow() ? UI_COLOR_ACTIVE : UI_COLOR_DIM);
 
         uint8_t tracks = _editRoute.tracks();
         for (int i = 0; i < CONFIG_TRACK_COUNT; ++i) {

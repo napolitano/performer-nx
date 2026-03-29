@@ -73,7 +73,7 @@ public:
 
     void printTempo(StringBuilder &str) const {
         printRouted(str, Routing::Target::Tempo);
-        str("%.1f", tempo());
+        str(TXT_MODEL_TEMPO, tempo());
     }
 
     // swing
@@ -91,7 +91,7 @@ public:
 
     void printSwing(StringBuilder &str) const {
         printRouted(str, Routing::Target::Swing);
-        str("%d%%", swing());
+        str(TXT_MODEL_SWING, swing());
     }
 
     // timeSignature
@@ -121,7 +121,7 @@ public:
     }
 
     void printSyncMeasure(StringBuilder &str) const {
-        str("%d %s", syncMeasure(), syncMeasure() > 1 ? "bars" : "bar");
+        str(TXT_MODEL_PRINT_BAR_COUNT, syncMeasure(), syncMeasure() > 1 ? TXT_MODEL_PRINT_BAR_PLURAL : TXT_MODEL_PRINT_BAR);
     }
 
     // scale
@@ -209,8 +209,8 @@ public:
 
     void printMidiInput(StringBuilder &str) const {
         switch (_midiInputMode) {
-        case Types::MidiInputMode::Off:     str("Off"); break;
-        case Types::MidiInputMode::All:     str("All"); break;
+        case Types::MidiInputMode::Off:     str(TXT_MODEL_PRINT_OFF); break;
+        case Types::MidiInputMode::All:     str(TXT_MODEL_PRINT_ALL); break;
         case Types::MidiInputMode::Source:  _midiInputSource.print(str); break;
         case Types::MidiInputMode::Last:    break;
         }

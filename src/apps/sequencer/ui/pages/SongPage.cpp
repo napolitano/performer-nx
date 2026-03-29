@@ -1,3 +1,4 @@
+#include "Config.h"
 #include "SongPage.h"
 
 #include "Pages.h"
@@ -16,7 +17,7 @@ enum class ContextAction {
 };
 
 static const ContextMenuModel::Item contextMenuItems[] = {
-    { "INIT" },
+    { TXT_MENU_INIT },
 };
 
 enum class Function {
@@ -50,16 +51,33 @@ void SongPage::draw(Canvas &canvas) {
 
     bool isShift = globalKeyState()[Key::Shift];
     bool isPlaying = songState.playing();
-    const char *functionNames[] = { "CHAIN", isShift ? "INSERT" : "ADD", "REMOVE", "DUPL", isPlaying ? "STOP" : "PLAY" };
+    const char *functionNames[] = {
+        TXT_MENU_CHAIN,
+        isShift ? TXT_MENU_INSERT : TXT_MENU_ADD,
+        TXT_MENU_REMOVE,
+        TXT_MENU_DUPLICATE,
+        isPlaying ? TXT_MENU_STOP : TXT_MENU_PLAY
+    };
 
     uint8_t selectedTracks = pressedTrackKeys();
 
     WindowPainter::clear(canvas);
-    WindowPainter::drawHeader(canvas, _model, _engine, "SONG");
+    WindowPainter::drawHeader(canvas, _model, _engine, TXT_MODE_SONG);
     WindowPainter::drawFooter(canvas, functionNames, pageKeyState());
 
     const int colWidth[] = { 16, 16, 20, 20, 20, 20, 20, 20, 20, 20 };
-    const char *colHeader[] = { "#", "N", "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8" };
+    const char *colHeader[] = {
+        TXT_INFO_NUMBER,
+        TXT_INFO_REPEATS,
+        TXT_INFO_TRACK_1,
+        TXT_INFO_TRACK_2,
+        TXT_INFO_TRACK_3,
+        TXT_INFO_TRACK_4,
+        TXT_INFO_TRACK_5,
+        TXT_INFO_TRACK_6,
+        TXT_INFO_TRACK_7,
+        TXT_INFO_TRACK_8
+    };
     const int rowHeight = 8;
     const int tableOriginX = 60;
     const int tableOriginY = 11;
@@ -67,7 +85,7 @@ void SongPage::draw(Canvas &canvas) {
     int y = tableOriginY;
 
     canvas.setBlendMode(BlendMode::Set);
-    canvas.setColor(0xf);
+    canvas.setColor(UI_COLOR_ACTIVE);
 
     auto isHighlighted = [isShift, selectedTracks] (int colIndex) {
         return
@@ -81,7 +99,7 @@ void SongPage::draw(Canvas &canvas) {
     {
         int x = tableOriginX;
         for (int colIndex = 0; colIndex < 10; ++colIndex) {
-            canvas.setColor(isHighlighted(colIndex) ? 0xf : 0x7);
+            canvas.setColor(isHighlighted(colIndex) ? UI_COLOR_ACTIVE : UI_COLOR_DIM);
             canvas.drawTextCentered(x, y, colWidth[colIndex], rowHeight, colHeader[colIndex]);
             x += colWidth[colIndex];
         }
@@ -98,32 +116,32 @@ void SongPage::draw(Canvas &canvas) {
 
         // draw play cursor
         if (songState.playing() && slotIndex == songState.currentSlot()) {
-            canvas.setColor(0xf);
+            canvas.setColor(UI_COLOR_ACTIVE);
             SongPainter::drawArrowRight(canvas, x - 4, y, 4, rowHeight);
         }
 
         // draw table cells
         for (int colIndex = 0; colIndex < 10; ++colIndex) {
-            canvas.setColor(slotIndex == _selectedSlot && isHighlighted(colIndex) ? 0xf : 0x7);
+            canvas.setColor(slotIndex == _selectedSlot && isHighlighted(colIndex) ? UI_COLOR_ACTIVE : UI_COLOR_DIM);
             FixedStringBuilder<8> str;
             if (colIndex == 0) {
-                str("%d", slotIndex + 1);
+                str(TXT_INFO_SLOT_NUMBER, slotIndex + 1);
             } else if (colIndex == 1) {
                 if (slotActive) {
-                    str("%d", slot.repeats());
+                    str(TXT_INFO_SLOT_ACTIVE, slot.repeats());
                 } else {
-                    str("-");
+                    str(TXT_INFO_SLOT_INACTIVE);
                 }
             } else {
                 if (slotActive) {
                     int trackIndex = colIndex - 2;
                     if (slot.mute(trackIndex)) {
-                        str("M");
+                        str(TXT_INFO_SLOT_MUTE);
                     } else {
-                        str("P%d", slot.pattern(trackIndex) + 1);
+                        str(TXT_INFO_PATTERN, slot.pattern(trackIndex) + 1);
                     }
                 } else {
-                    str("-");
+                    str(TXT_INFO_SLOT_INACTIVE);
                 }
             }
             canvas.drawTextCentered(x, y, colWidth[colIndex], rowHeight, str);
@@ -145,20 +163,20 @@ void SongPage::draw(Canvas &canvas) {
         uint32_t beat = _engine.tick() / _engine.noteDivisor();
 
         canvas.setBlendMode(BlendMode::Set);
-        canvas.setColor(0xf);
+        canvas.setColor(UI_COLOR_ACTIVE);
 
         canvas.setFont(Font::Tiny);
-        canvas.drawTextCentered(8, 10, 32, 10, FixedStringBuilder<16>("%d.%d", beat / beatsPerMeasure + 1, beat % beatsPerMeasure + 1));
+        canvas.drawTextCentered(8, 10, 32, 10, FixedStringBuilder<16>(TXT_INFO_SONG_DURATION, beat / beatsPerMeasure + 1, beat % beatsPerMeasure + 1));
 
         canvas.setFont(Font::Small);
-        canvas.drawTextCentered(8, 25, 32, 10, FixedStringBuilder<8>("S%d", currentSlot + 1));
+        canvas.drawTextCentered(8, 25, 32, 10, FixedStringBuilder<8>(TXT_INFO_STEP_NUMBER, currentSlot + 1));
 
         canvas.setFont(Font::Tiny);
         SongPainter::drawProgress(canvas, 8, 40, 32, 2, slotProgress);
     }
 
     if (playState.hasSyncedRequests() && songState.hasPlayRequests()) {
-        canvas.setColor(0xf);
+        canvas.setColor(UI_COLOR_ACTIVE);
         canvas.hline(0, 10, _engine.syncFraction() * Width);
     }
 }
@@ -407,5 +425,5 @@ void SongPage::initSong() {
     _project.playState().stopSong();
     _project.song().clear();
     setSelectedSlot(_selectedSlot);
-    showMessage("SONG INITIALIZED");
+    showMessage(TXT_MESSAGE_SONG_INITIALIZED);
 }

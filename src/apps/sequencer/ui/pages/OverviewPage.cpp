@@ -1,3 +1,4 @@
+#include "Config.h"
 #include "OverviewPage.h"
 
 #include "model/NoteTrack.h"
@@ -6,7 +7,6 @@
 
 #include "model/Scale.h"
 
-#ifdef CONFIG_OVERVIEW_ENHANCEMENTS
 enum class ContextAction {
     Maps,
     Gates,
@@ -16,10 +16,10 @@ enum class ContextAction {
 };
 
 static const ContextMenuModel::Item contextMenuItems[] = {
-    { "MAPS" },
-    { "GATES" },
-    { "NOTES" },
-    { "VOLTAGES" },
+    { TXT_MENU_MAPS },
+    { TXT_MENU_GATES },
+    { TXT_MENU_NOTES },
+    { TXT_MENU_VOLTAGES },
     { },
 };
 
@@ -27,7 +27,6 @@ static bool showMaps = true;
 static bool showVoltages = true;
 static bool showNotes = true;
 static bool showGates = true;
-#endif
 
 static void drawNoteTrack(Canvas &canvas, int trackIndex, const NoteTrackEngine &trackEngine, const NoteSequence &sequence) {
     canvas.setBlendMode(BlendMode::Set);
@@ -35,7 +34,6 @@ static void drawNoteTrack(Canvas &canvas, int trackIndex, const NoteTrackEngine 
     int stepOffset = (std::max(0, trackEngine.currentStep()) / 16) * 16;
     int y = trackIndex * 8;
 
-#ifdef CONFIG_OVERVIEW_ENHANCEMENTS
     if (showMaps) {
         // Draw header showing the number of 16-step slices and the active slice
         for (int i= 0; i < 4; ++i) {
@@ -43,15 +41,15 @@ static void drawNoteTrack(Canvas &canvas, int trackIndex, const NoteTrackEngine 
             //const auto &step = sequence.step(stepIndex);
             int x = 34  + i * 5;
 
-            int stepColor = BasePage::UI_COLOR_ACTIVE;
+            int stepColor = UI_COLOR_ACTIVE;
 
 
             if (sequence.firstStep() / 16 > i || i > sequence.lastStep() / 16) {
-                stepColor = BasePage::UI_COLOR_INACTIVE;
+                stepColor = UI_COLOR_INACTIVE;
             } else if (trackEngine.currentStep() / 16 == i) {
-                stepColor = BasePage::UI_COLOR_ACTIVE;
+                stepColor = UI_COLOR_ACTIVE;
             } else if (trackEngine.currentStep() / 16 != i) {
-                stepColor = BasePage::UI_COLOR_NORMAL;
+                stepColor = UI_COLOR_NORMAL;
             }
 
             canvas.setColor(stepColor);
@@ -59,7 +57,6 @@ static void drawNoteTrack(Canvas &canvas, int trackIndex, const NoteTrackEngine 
 
         }
     }
-#endif
 
     for (int i = 0; i < 16; ++i) {
         int stepIndex = stepOffset + i;
@@ -67,33 +64,24 @@ static void drawNoteTrack(Canvas &canvas, int trackIndex, const NoteTrackEngine 
 
         int x = 64 + i * 8;
 
-#ifdef CONFIG_OVERVIEW_ENHANCEMENTS
         // Draw the steps of the current 16-step slice
-        int stepColor = BasePage::UI_COLOR_ACTIVE;
+        int stepColor = UI_COLOR_ACTIVE;
 
         if (stepIndex < sequence.firstStep() || stepIndex > sequence.lastStep()) {
-            stepColor = BasePage::UI_COLOR_INACTIVE;
+            stepColor = UI_COLOR_INACTIVE;
         } else if (trackEngine.currentStep() == stepIndex && step.gate()) {
-            stepColor = BasePage::UI_COLOR_ACTIVE;
+            stepColor = UI_COLOR_ACTIVE;
         } else if (trackEngine.currentStep() == stepIndex && !step.gate()) {
-            stepColor = BasePage::UI_COLOR_ACTIVE;
+            stepColor = UI_COLOR_ACTIVE;
         } else if (trackEngine.currentStep() != stepIndex && step.gate()) {
-            stepColor = BasePage::UI_COLOR_NORMAL;
+            stepColor = UI_COLOR_NORMAL;
         } else if (trackEngine.currentStep() != stepIndex && !step.gate()) {
-            stepColor = BasePage::UI_COLOR_DIM_MORE;
+            stepColor = UI_COLOR_DIM_MORE;
         }
 
         canvas.setColor(stepColor);
         canvas.fillRect(x + 1, y + 1, 6, 6);
-#else
-        if (trackEngine.currentStep() == stepIndex) {
-            canvas.setColor(step.gate() ? 0xf : 0xa);
-            canvas.fillRect(x + 1, y + 1, 6, 6);
-        } else {
-            canvas.setColor(step.gate () ? 0x7 : 0x3);
-            canvas.fillRect(x + 1, y + 1, 6, 6);
-        }
-#endif
+
         // if (trackEngine.currentStep() == stepIndex) {
         //     canvas.setColor(0xf);
         //     canvas.drawRect(x + 1, y + 1, 6, 6);
@@ -125,12 +113,11 @@ static void drawCurve(Canvas &canvas, int x, int y, int w, int h, float &lastY, 
 
 static void drawCurveTrack(Canvas &canvas, int trackIndex, const CurveTrackEngine &trackEngine, const CurveSequence &sequence) {
     canvas.setBlendMode(BlendMode::Add);
-    canvas.setColor(0xa);
+    canvas.setColor(UI_COLOR_NORMAL);
 
     int stepOffset = (std::max(0, trackEngine.currentStep()) / 16) * 16;
     int y = trackIndex * 8;
 
-#ifdef CONFIG_OVERVIEW_ENHANCEMENTS
     if (showMaps) {
         // Draw header showing the number of 16-step slices and the active slice
         for (int i= 0; i < 4; ++i) {
@@ -138,15 +125,15 @@ static void drawCurveTrack(Canvas &canvas, int trackIndex, const CurveTrackEngin
             //const auto &step = sequence.step(stepIndex);
             int x = 34  + i * 5;
 
-            int stepColor = BasePage::UI_COLOR_ACTIVE;
+            int stepColor = UI_COLOR_ACTIVE;
 
 
             if (sequence.firstStep() / 16 > i || i > sequence.lastStep() / 16) {
-                stepColor = BasePage::UI_COLOR_INACTIVE;
+                stepColor = UI_COLOR_INACTIVE;
             } else if (trackEngine.currentStep() / 16 == i) {
-                stepColor = BasePage::UI_COLOR_ACTIVE;
+                stepColor = UI_COLOR_ACTIVE;
             } else if (trackEngine.currentStep() / 16 != i) {
-                stepColor = BasePage::UI_COLOR_NORMAL;
+                stepColor = UI_COLOR_NORMAL;
             }
 
             canvas.setColor(stepColor);
@@ -154,7 +141,6 @@ static void drawCurveTrack(Canvas &canvas, int trackIndex, const CurveTrackEngin
 
         }
     }
-#endif
 
     float lastY = -1.f;
 
@@ -167,19 +153,17 @@ static void drawCurveTrack(Canvas &canvas, int trackIndex, const CurveTrackEngin
 
         int x = 64 + i * 8;
 
-#ifdef CONFIG_OVERVIEW_ENHANCEMENTS
-        int stepColor = BasePage::UI_COLOR_ACTIVE;
+        int stepColor = UI_COLOR_ACTIVE;
 
         if (sequence.firstStep() > i || i > sequence.lastStep()) {
-            stepColor = BasePage::UI_COLOR_INACTIVE;
+            stepColor = UI_COLOR_INACTIVE;
         } else if (trackEngine.currentStep() / 16 == i) {
-            stepColor = BasePage::UI_COLOR_ACTIVE;
+            stepColor = UI_COLOR_ACTIVE;
         } else if (trackEngine.currentStep() / 16 != i) {
-            stepColor = BasePage::UI_COLOR_NORMAL;
+            stepColor = UI_COLOR_NORMAL;
         }
 
         canvas.setColor(stepColor);
-#endif
 
         drawCurve(canvas, x, y + 1, 8, 6, lastY, function, min, max);
     }
@@ -187,7 +171,7 @@ static void drawCurveTrack(Canvas &canvas, int trackIndex, const CurveTrackEngin
     if (trackEngine.currentStep() >= 0) {
         int x = 64 + ((trackEngine.currentStep() - stepOffset) + trackEngine.currentStepFraction()) * 8;
         canvas.setBlendMode(BlendMode::Set);
-        canvas.setColor(0xf);
+        canvas.setColor(UI_COLOR_ACTIVE);
         canvas.vline(x, y + 1, 7);
     }
 }
@@ -208,7 +192,7 @@ void OverviewPage::draw(Canvas &canvas) {
 
     canvas.setFont(Font::Tiny);
     canvas.setBlendMode(BlendMode::Set);
-    canvas.setColor(0x7);
+    canvas.setColor(UI_COLOR_DIM);
 
     canvas.vline(64 - 3, 0, 64);
     canvas.vline(64 - 2, 0, 64);
@@ -221,15 +205,15 @@ void OverviewPage::draw(Canvas &canvas) {
         const auto &trackEngine = _engine.trackEngine(trackIndex);
 
         canvas.setBlendMode(BlendMode::Set);
-        canvas.setColor(0x7);
+        canvas.setColor(UI_COLOR_DIM);
 
         int y = 5 + trackIndex * 8;
 
         // track number / pattern number
-        canvas.setColor(trackState.mute() ? 0x7 : 0xf);
-        canvas.drawText(2, y, FixedStringBuilder<8>("T%d", trackIndex + 1));
-        canvas.drawText(18, y, FixedStringBuilder<8>("P%d", trackState.pattern() + 1));
-#ifdef CONFIG_OVERVIEW_ENHANCEMENTS
+        canvas.setColor(trackState.mute() ? UI_COLOR_DIM : UI_COLOR_ACTIVE);
+        canvas.drawText(2, y, FixedStringBuilder<8>(TXT_INFO_TRACK, trackIndex + 1));
+        canvas.drawText(18, y, FixedStringBuilder<8>(TXT_INFO_PATTERN, trackState.pattern() + 1));
+
         int gatesX = 256 - 60 + 1;
         int notesX = 256 - 51;
         int voltagesX = 256 - 27;
@@ -244,24 +228,15 @@ void OverviewPage::draw(Canvas &canvas) {
             gatesX = 256 - 32;
         }
 
-#endif
-
-
-#ifdef CONFIG_OVERVIEW_ENHANCEMENTS
         if (showGates) {
             bool gate = _engine.gateOutput() & (1 << trackIndex);
-            canvas.setColor(gate ? 0xf : 0x7);
+            canvas.setColor(gate ? UI_COLOR_ACTIVE : UI_COLOR_DIM);
             canvas.fillRect(gatesX, trackIndex * 8 + 1, 6, 6);
         }
-#else
-        // gate output
-        bool gate = _engine.gateOutput() & (1 << trackIndex);
-        canvas.setColor(gate ? 0xf : 0x7);
-        canvas.fillRect(256 - 48 + 1, trackIndex * 8 + 1, 6, 6);
-#endif
+
         // cv output
-        canvas.setColor(0xf);
-#ifdef CONFIG_OVERVIEW_ENHANCEMENTS
+        canvas.setColor(UI_COLOR_ACTIVE);
+
         if (showNotes) {
             if (track.trackMode() == Track::TrackMode::Note) {
                 auto &sequence = track.noteTrack().sequence(trackState.pattern());
@@ -271,16 +246,13 @@ void OverviewPage::draw(Canvas &canvas) {
                 FixedStringBuilder<16> noteName;
                 scale.noteName(noteName,  note, rootNote, Scale:: Long);
 
-                canvas.drawText(notesX, y, FixedStringBuilder<8>("%-16s", (const char *)(noteName)));
+                canvas.drawText(notesX, y, FixedStringBuilder<8>(TXT_INFO_NOTE, (const char *)(noteName)));
             }
         }
 
         if (showVoltages) {
-            canvas.drawText(voltagesX, y, FixedStringBuilder<8>("%.2fV", _engine.cvOutput().channel(trackIndex)));
+            canvas.drawText(voltagesX, y, FixedStringBuilder<8>(TXT_INFO_VOLTAGE, _engine.cvOutput().channel(trackIndex)));
         }
-#else
-        canvas.drawText(256 - 32, y, FixedStringBuilder<8>("%.2fV", _engine.cvOutput().channel(trackIndex)));
-#endif
 
         switch (track.trackMode()) {
         case Track::TrackMode::Note:
@@ -323,13 +295,12 @@ void OverviewPage::keyUp(KeyEvent &event) {
 void OverviewPage::keyPress(KeyPressEvent &event) {
     const auto &key = event.key();
 
-#ifdef CONFIG_OVERVIEW_ENHANCEMENTS
+
     if (key.isContextMenu()) {
         contextShow();
         event.consume();
         return;
     }
-#endif
 
     if (key.isGlobal()) {
         return;
@@ -342,7 +313,6 @@ void OverviewPage::encoder(EncoderEvent &event) {
     // event.consume();
 }
 
-#ifdef CONFIG_OVERVIEW_ENHANCEMENTS
 void OverviewPage::contextShow() {
     showContextMenu(ContextMenu(
     contextMenuItems,
@@ -378,4 +348,3 @@ bool OverviewPage::contextActionEnabled(int index) const {
             return true;
     }
 }
-#endif

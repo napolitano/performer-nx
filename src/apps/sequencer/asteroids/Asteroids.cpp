@@ -1,3 +1,5 @@
+
+#include "Config.h"
 #include "Asteroids.h"
 
 #include "core/Debug.h"
@@ -468,24 +470,24 @@ void Game::draw(Canvas &canvas) {
 
     switch (_state) {
     case Intro:
-        drawTexts(canvas, "ASTEROIDS", "Press any f-key to continue");
+        drawTexts(canvas, TXT_ASTEROIDS_INTRO);
         break;
     case Start: {
-        FixedStringBuilder<16> str("LEVEL %d", _level);
-        drawTexts(canvas, str, "Press any f-key to continue");
+        FixedStringBuilder<16> str(TXT_ASTEROIDS_LEVEL, _level);
+        drawTexts(canvas, str, TXT_ASTEROIDS_PRESS_ANY_KEY);
         break;
     }
     case Play:
         drawHUD(canvas);
         break;
     case Win: {
-        FixedStringBuilder<16> str("Score %d", _player.score());
-        drawTexts(canvas, "YOU WIN!", str);
+        FixedStringBuilder<16> str(TXT_ASTEROIDS_SCORE, _player.score());
+        drawTexts(canvas, TXT_ASTEROIDS_WIN, str);
         break;
     }
     case Lose: {
-        FixedStringBuilder<16> str("Score %d", _player.score());
-        drawTexts(canvas, "YOU LOSE!", str);
+        FixedStringBuilder<16> str(TXT_ASTEROIDS_SCORE, _player.score());
+        drawTexts(canvas, TXT_ASTEROIDS_LOSE, str);
         break;
     }
     }
@@ -560,10 +562,10 @@ void Game::drawTexts(Canvas &canvas, const char *title, const char *msg) {
 void Game::drawHUD(Canvas &canvas) {
     canvas.setFont(Font::Tiny);
 
-    FixedStringBuilder<16> level("Level %d", _level);
+    FixedStringBuilder<16> level(TXT_ASTEROIDS_LEVEL, _level);
     drawShadowText(canvas, 2, 7, 0xf, level);
 
-    FixedStringBuilder<16> score("Score %d", _player.score());
+    FixedStringBuilder<16> score(TXT_ASTEROIDS_SCORE, _player.score());
     drawShadowText(canvas, ScreenWidth - 2 - canvas.textWidth(score), 7, 0xf, score);
 }
 

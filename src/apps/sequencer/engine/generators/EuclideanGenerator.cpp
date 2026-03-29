@@ -9,9 +9,9 @@ EuclideanGenerator::EuclideanGenerator(SequenceBuilder &builder, Params& params)
 
 const char *EuclideanGenerator::paramName(int index) const {
     switch (Param(index)) {
-    case Param::Steps:  return "Steps";
-    case Param::Beats:  return "Beats";
-    case Param::Offset: return "Offset";
+    case Param::Steps:  return TXT_MENU_STEPS;
+    case Param::Beats:  return TXT_MENU_BEATS;
+    case Param::Offset: return TXT_MENU_OFFSET;
     case Param::Last:   break;
     }
     return nullptr;

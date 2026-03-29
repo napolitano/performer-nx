@@ -1,3 +1,4 @@
+#include "Config.h"
 #include "MidiOutputPage.h"
 
 #include "ui/painters/WindowPainter.h"
@@ -32,11 +33,17 @@ void MidiOutputPage::exit() {
 
 void MidiOutputPage::draw(Canvas &canvas) {
     bool showCommit = *_output != _editOutput;
-    const char *functionNames[] = { "PREV", "NEXT", "INIT", nullptr, showCommit ? "COMMIT" : nullptr };
+    const char *functionNames[] = {
+        TXT_MENU_PREVIOUS,
+        TXT_MENU_NEXT,
+        TXT_MENU_INIT,
+        nullptr,
+        showCommit ? TXT_MENU_COMMIT : nullptr
+    };
 
     WindowPainter::clear(canvas);
-    WindowPainter::drawHeader(canvas, _model, _engine, "MIDI OUTPUT");
-    WindowPainter::drawActiveFunction(canvas, FixedStringBuilder<16>("OUTPUT %d", _outputIndex + 1));
+    WindowPainter::drawHeader(canvas, _model, _engine, TXT_MODE_MIDI_OUTPUT);
+    WindowPainter::drawActiveFunction(canvas, FixedStringBuilder<16>(TXT_FUNCTION_MIDI_OUTPUT_INDEX, _outputIndex + 1));
     WindowPainter::drawFooter(canvas, functionNames, pageKeyState());
 
     ListPage::draw(canvas);
@@ -61,7 +68,7 @@ void MidiOutputPage::keyPress(KeyPressEvent &event) {
         case Function::Commit:
             *_output = _editOutput;
             setEdit(false);
-            showMessage("OUTPUT CHANGED");
+            showMessage(TXT_MESSAGE_MIDI_OUTPUT_CHANGED);
             break;
         }
         event.consume();

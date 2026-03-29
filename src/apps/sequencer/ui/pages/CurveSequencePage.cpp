@@ -1,3 +1,4 @@
+#include "Config.h"
 #include "CurveSequencePage.h"
 
 #include "Pages.h"
@@ -17,11 +18,11 @@ enum class ContextAction {
 };
 
 static const ContextMenuModel::Item contextMenuItems[] = {
-    { "INIT" },
-    { "COPY" },
-    { "PASTE" },
-    { "DUPL" },
-    { "ROUTE" },
+    { TXT_MENU_INIT },
+    { TXT_MENU_COPY },
+    { TXT_MENU_PASTE },
+    { TXT_MENU_DUPLICATE },
+    { TXT_MENU_ROUTE },
 };
 
 CurveSequencePage::CurveSequencePage(PageManager &manager, PageContext &context) :
@@ -38,7 +39,7 @@ void CurveSequencePage::exit() {
 
 void CurveSequencePage::draw(Canvas &canvas) {
     WindowPainter::clear(canvas);
-    WindowPainter::drawHeader(canvas, _model, _engine, "SEQUENCE");
+    WindowPainter::drawHeader(canvas, _model, _engine, TXT_MODE_SEQUENCE);
     WindowPainter::drawActiveFunction(canvas, Track::trackModeName(_project.selectedTrack().trackMode()));
     WindowPainter::drawFooter(canvas);
 
@@ -111,22 +112,22 @@ bool CurveSequencePage::contextActionEnabled(int index) const {
 
 void CurveSequencePage::initSequence() {
     _project.selectedCurveSequence().clear();
-    showMessage("SEQUENCE INITIALIZED");
+    showMessage(TXT_MESSAGE_SEQUENCE_INITIALIZED);
 }
 
 void CurveSequencePage::copySequence() {
     _model.clipBoard().copyCurveSequence(_project.selectedCurveSequence());
-    showMessage("SEQUENCE COPIED");
+    showMessage(TXT_MESSAGE_SEQUENCE_COPIED);
 }
 
 void CurveSequencePage::pasteSequence() {
     _model.clipBoard().pasteCurveSequence(_project.selectedCurveSequence());
-    showMessage("SEQUENCE PASTED");
+    showMessage(TXT_MESSAGE_SEQUENCE_PASTED);
 }
 
 void CurveSequencePage::duplicateSequence() {
     if (_project.selectedTrack().duplicatePattern(_project.selectedPatternIndex())) {
-        showMessage("SEQUENCE DUPLICATED");
+        showMessage(TXT_MESSAGE_SEQUENCE_DUPLICATED);
     }
 }
 

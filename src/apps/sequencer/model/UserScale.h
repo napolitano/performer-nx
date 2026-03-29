@@ -34,8 +34,8 @@ public:
 
     static const char *modeName(Mode mode) {
         switch (mode) {
-        case Mode::Chromatic:   return "Chromatic";
-        case Mode::Voltage:     return "Voltage";
+        case Mode::Chromatic:   return TXT_LIST_LABEL_SCALE_CHROMATIC;
+        case Mode::Voltage:     return TXT_LIST_LABEL_SCALE_VOLTAGE;
         default:                break;
         }
         return nullptr;
@@ -83,7 +83,7 @@ public:
     }
 
     void printSize(StringBuilder &str) const {
-        str("%d", size());
+        str(TXT_MODEL_GENERIC_VALUE, size());
     }
 
     // items
@@ -124,7 +124,7 @@ public:
             noteNameChromaticMode(str, index, 0, Scale::Short1);
             break;
         case Mode::Voltage:
-            str("%+.3fV", _items[index] * (1.f / 1000.f));
+            str(TXT_MODEL_VOLTAGE, _items[index] * (1.f / 1000.f));
             break;
         case Mode::Last:
             break;
@@ -231,7 +231,7 @@ private:
         }
 
         if (printOctave) {
-            str("%+d", octave);
+            str(TXT_MODEL_OCTAVE, octave);
         }
     }
 
@@ -242,13 +242,13 @@ private:
         float volts = noteToVolts(note);
         switch (format) {
         case Short1:
-            str("%c", volts < 0.f ? '-' : '+');
+            str(TXT_MODEL_GENERIC_CHAR, volts < 0.f ? '-' : '+');
             break;
         case Short2:
-            str("%.1f", std::abs(volts));
+            str(TXT_MODEL_NOTE_OCTAVE, std::abs(volts));
             break;
         case Long:
-            str("%+.3fV", volts);
+            str(TXT_MODEL_VOLTAGE, volts);
             break;
         }
     }

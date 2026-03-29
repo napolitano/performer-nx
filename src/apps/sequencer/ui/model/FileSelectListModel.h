@@ -33,7 +33,7 @@ private:
     void formatName(int row, StringBuilder &str) const {
         FileManager::SlotInfo info;
         FileManager::slotInfo(_type, row, info);
-        str("%d: %s", row + 1, info.used ? info.name : "(empty)");
+        str(TXT_LIST_LABEL_FILE, row + 1, info.used ? info.name : TXT_LIST_LABEL_EMPTY);
     }
 
     FileType _type;

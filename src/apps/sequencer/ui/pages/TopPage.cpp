@@ -1,3 +1,4 @@
+#include "Config.h"
 #include "TopPage.h"
 
 #include "Pages.h"
@@ -58,7 +59,7 @@ void TopPage::editRoute(Routing::Target target, int trackIndex) {
         setMode(Mode::Routing);
         _manager.pages().routing.showRoute(routeIndex, &initRoute);
     } else {
-        showMessage("All routes are used!");
+        showMessage(TXT_MESSAGE_ALL_ROUTES_USED);
     }
 }
 
@@ -191,7 +192,7 @@ void TopPage::setMode(Mode mode) {
         break;
     case Mode::System:
         if (mode != _lastMode) {
-            _manager.pages().confirmation.show("DO YOU REALLY WANT TO ENTER SYSTEM PAGE?", [this] (bool result) {
+            _manager.pages().confirmation.show(TXT_REALLY_ENTER_SYSTEM_PAGE, [this] (bool result) {
                 if (result) {
                     setMainPage(_manager.pages().system);
                 } else {

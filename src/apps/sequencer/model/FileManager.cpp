@@ -1,3 +1,4 @@
+#include "Config.h"
 #include "FileManager.h"
 #include "ProjectVersion.h"
 
@@ -28,13 +29,13 @@ struct FileTypeInfo {
 };
 
 FileTypeInfo fileTypeInfos[] = {
-    { "PROJECTS", "PRO" },
-    { "SCALES", "SCA" },
+    { TXT_MODEL_FILE_TYPE_PROJECTS_LONG, TXT_MODEL_FILE_TYPE_PROJECTS },
+    { TXT_MODEL_FILE_TYPE_SCALES_LONG, 	 TXT_MODEL_FILE_TYPE_SCALES },
 };
 
 static void slotPath(StringBuilder &str, FileType type, int slot) {
     const auto &info = fileTypeInfos[int(type)];
-    str("%s/%03d.%s", info.dir, slot + 1, info.ext);
+    str(TXT_MODEL_SLOT_PATH, info.dir, slot + 1, info.ext);
 }
 
 void FileManager::init() {
@@ -197,7 +198,7 @@ fs::Error FileManager::writeSettings(const Settings &settings, const char *path)
         return fileWriter.error();
     }
 
-    FileHeader header(FileType::Settings, 0, "SETTINGS");
+    FileHeader header(FileType::Settings, 0, TXT_MODEL_FILE_HEADER_SETTINGS);
     fileWriter.write(&header, sizeof(header));
 
     VersionedSerializedWriter writer(
@@ -329,7 +330,7 @@ fs::Error FileManager::readFile(FileType type, int slot, std::function<fs::Error
 }
 
 fs::Error FileManager::writeLastProject(int slot) {
-    fs::FileWriter fileWriter("LAST.DAT");
+    fs::FileWriter fileWriter(TXT_MODEL_FILE_LAST_PROJECT_FILE_NAME);
     if (fileWriter.error() != fs::OK) {
         return fileWriter.error();
     }
@@ -340,7 +341,7 @@ fs::Error FileManager::writeLastProject(int slot) {
 }
 
 fs::Error FileManager::readLastProject(int &slot) {
-    fs::FileReader fileReader("LAST.DAT");
+    fs::FileReader fileReader(TXT_MODEL_FILE_LAST_PROJECT_FILE_NAME);
     if (fileReader.error() != fs::OK) {
         return fileReader.error();
     }

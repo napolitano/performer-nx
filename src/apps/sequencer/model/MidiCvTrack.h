@@ -28,10 +28,10 @@ public:
 
     static const char *voiceConfigName(VoiceConfig voiceConfig) {
         switch (voiceConfig) {
-        case VoiceConfig::Pitch:                    return "Pitch";
-        case VoiceConfig::Velocity:                 return "Velocity";
-        case VoiceConfig::PitchVelocity:            return "Pitch+Vel";
-        case VoiceConfig::PitchVelocityPressure:    return "Pitch+Vel+Press";
+        case VoiceConfig::Pitch:                    return TXT_MODEL_PITCH;
+        case VoiceConfig::Velocity:                 return TXT_MODEL_VELOCITY;
+        case VoiceConfig::PitchVelocity:            return TXT_MODEL_PITCH_VELOCITY;
+        case VoiceConfig::PitchVelocityPressure:    return TXT_MODEL_PITCH_VELOCITY_PRESSURE;
         case VoiceConfig::Last:                     break;
         }
         return nullptr;
@@ -47,10 +47,10 @@ public:
 
     static const char *notePriorityName(NotePriority notePriority) {
         switch (notePriority) {
-        case NotePriority::LastNote:    return "Last Note";
-        case NotePriority::FirstNote:   return "First Note";
-        case NotePriority::LowestNote:  return "Lowest Note";
-        case NotePriority::HighestNote: return "Highest Note";
+        case NotePriority::LastNote:    return TXT_MODEL_LAST_NOTE;
+        case NotePriority::FirstNote:   return TXT_MODEL_FIRST_NOTE;
+        case NotePriority::LowestNote:  return TXT_MODEL_LOWEST_NOTE;
+        case NotePriority::HighestNote: return TXT_MODEL_HIGHEST_NOTE;
         case NotePriority::Last:        break;
         }
         return nullptr;
@@ -77,7 +77,7 @@ public:
     }
 
     void printVoices(StringBuilder &str) const {
-        str("%d", voices());
+        str(TXT_MODEL_PRINT_VOICES, voices());
     }
 
     // voiceConfig
@@ -153,9 +153,9 @@ public:
 
     void printPitchBendRange(StringBuilder &str) const {
         if (_pitchBendRange == 0) {
-            str("off");
+            str(TXT_MODEL_PRINT_OFF);
         } else {
-            str("%d semitones", _pitchBendRange);
+            str(TXT_MODEL_PRINT_SEMITONES, _pitchBendRange);
         }
     }
 
@@ -204,7 +204,7 @@ public:
 
     void printSlideTime(StringBuilder &str) const {
         printRouted(str, Routing::Target::SlideTime);
-        str("%d%%", slideTime());
+        str(TXT_MODEL_SLIDE_TIME, slideTime());
     }
 
     // transpose
@@ -222,7 +222,7 @@ public:
 
     void printTranspose(StringBuilder &str) const {
         printRouted(str, Routing::Target::Transpose);
-        str("%+d", transpose());
+        str(TXT_MODEL_TRANSPOSE, transpose());
     }
 
     // arpeggiator

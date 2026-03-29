@@ -1,3 +1,4 @@
+#include "Config.h"
 #include "SystemPage.h"
 
 #include "ui/pages/Pages.h"
@@ -18,7 +19,13 @@ enum Function {
     Update      = 4,
 };
 
-static const char *functionNames[] = { "CAL", nullptr, "ADVANCED", "UTILS", "UPDATE" };
+static const char *functionNames[] = {
+    TXT_MENU_SYSTEM_CALIBRATION,
+    nullptr,
+    TXT_MENU_SYSTEM_ADVANCED,
+    TXT_MENU_SYSTEM_UTILS,
+    TXT_MENU_SYSTEM_UPDATE
+};
 
 enum CalibrationEditFunction {
     Auto        = 0,
@@ -33,10 +40,22 @@ enum AdvancedEditFunction {
 #endif
 
 
-static const char *calibrationEditFunctionNames[] = { "AUTO", nullptr, nullptr, nullptr, nullptr };
+static const char *calibrationEditFunctionNames[] = {
+    TXT_MENU_AUTO,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr
+};
 
 #ifdef CONFIG_ADVANCED_SETTINGS
-static const char *advancedEditFunctionNames[] = { "DEFAULT", nullptr, nullptr, "CANCEL", "COMMIT" };
+static const char *advancedEditFunctionNames[] = {
+    TXT_MENU_DEFAULT,
+    nullptr,
+    nullptr,
+    TXT_MENU_REVERT,
+    TXT_MENU_COMMIT
+};
 #endif
 
 enum class ContextAction {
@@ -48,10 +67,10 @@ enum class ContextAction {
 };
 
 static const ContextMenuModel::Item contextMenuItems[] = {
-    { "INIT" },
-    { "SAVE" },
-    { "BACKUP" },
-    { "RESTORE" }
+    { TXT_MENU_INIT },
+    { TXT_MENU_SAVE },
+    { TXT_MENU_BACKUP },
+    { TXT_MENU_RESTORE }
 };
 
 SystemPage::SystemPage(PageManager &manager, PageContext &context) :
@@ -82,11 +101,11 @@ void SystemPage::exit() {
 
 void SystemPage::draw(Canvas &canvas) {
     WindowPainter::clear(canvas);
-    WindowPainter::drawHeader(canvas, _model, _engine, "SYSTEM");
+    WindowPainter::drawHeader(canvas, _model, _engine, TXT_MODE_SYSTEM);
 
     switch (_mode) {
     case Mode::Calibration: {
-        FixedStringBuilder<8> str("CAL CV%d", _outputIndex + 1);
+        FixedStringBuilder<8> str(TXT_FUNCTION_CALIBRATION, _outputIndex + 1);
         WindowPainter::drawActiveFunction(canvas, str);
         if (edit()) {
             WindowPainter::drawFooter(canvas, calibrationEditFunctionNames, pageKeyState());
@@ -99,7 +118,7 @@ void SystemPage::draw(Canvas &canvas) {
 
 #ifdef CONFIG_ADVANCED_SETTINGS
     case Mode::Advanced: {
-        WindowPainter::drawActiveFunction(canvas, "ADVANCED SETTINGS");
+        WindowPainter::drawActiveFunction(canvas, TXT_FUNCTION_ADVANCED_SETTING);
         WindowPainter::drawFooter(canvas, functionNames, pageKeyState(), int(_mode));
         ListPage::draw(canvas);
         if (edit()) {
@@ -112,20 +131,19 @@ void SystemPage::draw(Canvas &canvas) {
 #endif
 
     case Mode::Utilities: {
-        WindowPainter::drawActiveFunction(canvas, "UTILITIES");
+        WindowPainter::drawActiveFunction(canvas, TXT_FUNCTION_UTILITIES);
         WindowPainter::drawFooter(canvas, functionNames, pageKeyState(), int(_mode));
         ListPage::draw(canvas);
         break;
     }
     case Mode::Update: {
-        WindowPainter::drawActiveFunction(canvas, "UPDATE");
+        WindowPainter::drawActiveFunction(canvas, TXT_FUNCTION_UPDATE);
         WindowPainter::drawFooter(canvas, functionNames, pageKeyState(), int(_mode));
         canvas.setBlendMode(BlendMode::Set);
-        canvas.setColor(0xf);
-        canvas.drawText(4, 24, "CURRENT VERSION:");
-        FixedStringBuilder<16> str("%d.%d.%d", CONFIG_VERSION_MAJOR, CONFIG_VERSION_MINOR, CONFIG_VERSION_REVISION);
-        canvas.drawText(100, 24, str);
-        canvas.drawText(4, 40, "PRESS AND HOLD ENCODER TO RESET TO BOOTLOADER");
+        canvas.setColor(UI_COLOR_ACTIVE);
+        FixedStringBuilder<16> str(TXT_INFO_CURRENT_VERSION, CONFIG_VERSION_MAJOR, CONFIG_VERSION_MINOR, CONFIG_VERSION_REVISION);
+        canvas.drawText(4, 24, str);
+        canvas.drawText(4, 40, TXT_PRESS_ENCODER_TO_RESET_TO_BOOTLOADER);
 
 #ifdef PLATFORM_STM32
         if (_encoderDownTicks != 0 && os::ticks() - _encoderDownTicks > os::time::ms(2000)) {
@@ -338,16 +356,16 @@ bool SystemPage::contextActionEnabled(int index) const {
 }
 
 void SystemPage::initSettings() {
-    _manager.pages().confirmation.show("ARE YOU SURE?", [this] (bool result) {
+    _manager.pages().confirmation.show(TXT_ARE_YOU_SURE, [this] (bool result) {
         if (result) {
             _settings.clear();
-            showMessage("SETTINGS INITIALIZED");
+            showMessage(TXT_MESSAGE_SETTINGS_INITIALIZED);
         }
     });
 }
 
 void SystemPage::saveSettings() {
-    _manager.pages().confirmation.show("ARE YOU SURE?", [this] (bool result) {
+    _manager.pages().confirmation.show(TXT_ARE_YOU_SURE, [this] (bool result) {
         if (result) {
             saveSettingsToFlash();
         }
@@ -355,7 +373,7 @@ void SystemPage::saveSettings() {
 }
 
 void SystemPage::backupSettings() {
-    _manager.pages().confirmation.show("ARE YOU SURE?", [this] (bool result) {
+    _manager.pages().confirmation.show(TXT_ARE_YOU_SURE, [this] (bool result) {
         if (result) {
             backupSettingsToFile();
         }
@@ -364,7 +382,7 @@ void SystemPage::backupSettings() {
 
 void SystemPage::restoreSettings() {
     if (fs::exists(Settings::Filename)) {
-        _manager.pages().confirmation.show("ARE YOU SURE?", [this] (bool result) {
+        _manager.pages().confirmation.show(TXT_ARE_YOU_SURE, [this] (bool result) {
             if (result) {
                 restoreSettingsFromFile();
             }
@@ -374,13 +392,13 @@ void SystemPage::restoreSettings() {
 
 void SystemPage::saveSettingsToFlash() {
     _engine.suspend();
-    _manager.pages().busy.show("SAVING SETTINGS ...");
+    _manager.pages().busy.show(TXT_STATUS_SAVING_SETTINGS);
 
     FileManager::task([this] () {
         _model.settings().writeToFlash();
         return fs::OK;
     }, [this] (fs::Error result) {
-        showMessage("SETTINGS SAVED");
+        showMessage(TXT_MESSAGE_SETTINGS_SAVED);
         // TODO lock ui mutex
         _manager.pages().busy.close();
         _engine.resume();
@@ -389,15 +407,15 @@ void SystemPage::saveSettingsToFlash() {
 
 void SystemPage::backupSettingsToFile() {
     _engine.suspend();
-    _manager.pages().busy.show("BACKING UP SETTINGS ...");
+    _manager.pages().busy.show(TXT_STATUS_BACKING_UP_SETTINGS);
 
     FileManager::task([this] () {
         return FileManager::writeSettings(_model.settings(), Settings::Filename);
     }, [this] (fs::Error result) {
         if (result == fs::OK) {
-            showMessage("SETTINGS BACKED UP");
+            showMessage(TXT_MESSAGE_SETTINGS_BACKED_UP);
         } else {
-            showMessage(FixedStringBuilder<32>("FAILED (%s)", fs::errorToString(result)));
+            showMessage(FixedStringBuilder<32>(TXT_ERROR_FAILED, fs::errorToString(result)));
         }
         // TODO lock ui mutex
         _manager.pages().busy.close();
@@ -407,18 +425,18 @@ void SystemPage::backupSettingsToFile() {
 
 void SystemPage::restoreSettingsFromFile() {
     _engine.suspend();
-    _manager.pages().busy.show("RESTORING SETTINGS ...");
+    _manager.pages().busy.show(TXT_STATUS_RESTORING_SETTINGS);
 
     FileManager::task([this] () {
         return FileManager::readSettings(_model.settings(), Settings::Filename);
     }, [this] (fs::Error result) {
         if (result == fs::OK) {
-            showMessage("SETTINGS RESTORED");
+            showMessage(TXT_MESSAGE_SETTINGS_RESTORED);
         } else if (result == fs::INVALID_CHECKSUM) {
-            showMessage("INVALID SETTINGS FILE");
+            showMessage(TXT_ERROR_INVALID_SETTINGS_FILE);
             _model.settings().readFromFlash();
         } else {
-            showMessage(FixedStringBuilder<32>("FAILED (%s)", fs::errorToString(result)));
+            showMessage(FixedStringBuilder<32>(TXT_ERROR_FAILED, fs::errorToString(result)));
             _model.settings().readFromFlash();
         }
         // TODO lock ui mutex
@@ -429,21 +447,21 @@ void SystemPage::restoreSettingsFromFile() {
 
 void SystemPage::formatSdCard() {
     if (!FileManager::volumeAvailable()) {
-        showMessage("NO SD CARD DETECTED!");
+        showMessage(TXT_MESSAGE_NO_SD_CARD_DETECTED);
         return;
     }
 
-    _manager.pages().confirmation.show("DO YOU REALLY WANT TO FORMAT THE SD CARD?", [this] (bool result) {
+    _manager.pages().confirmation.show(TXT_REALLY_FORMAT_SD_CARD, [this] (bool result) {
         if (result) {
-            _manager.pages().busy.show("FORMATTING SD CARD ...");
+            _manager.pages().busy.show(TXT_STATUS_FORMATTING_SD_CARD);
 
             FileManager::task([] () {
                 return FileManager::format();
             }, [this] (fs::Error result) {
                 if (result == fs::OK) {
-                    showMessage("SD CARD FORMATTED");
+                    showMessage(TXT_MESSAGE_SD_CARD_FORMATTED);
                 } else {
-                    showMessage(FixedStringBuilder<32>("FAILED (%s)", fs::errorToString(result)));
+                    showMessage(FixedStringBuilder<32>(TXT_ERROR_FAILED, fs::errorToString(result)));
                 }
                 // TODO lock ui mutex
                 _manager.pages().busy.close();

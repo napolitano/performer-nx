@@ -1,3 +1,4 @@
+#include "Config.h"
 #include "LayoutPage.h"
 
 #include "Pages.h"
@@ -22,10 +23,16 @@ void LayoutPage::enter() {
 
 void LayoutPage::draw(Canvas &canvas) {
     bool showCommit = _mode == Mode::TrackMode && !_trackModeListModel.sameAsProject(_project);
-    const char *functionNames[] = { "MODE", "LINK", "GATE", "CV", showCommit ? "COMMIT" : nullptr };
+    const char *functionNames[] = {
+        TXT_MENU_MODE,
+        TXT_MENU_LINK,
+        TXT_MENU_GATES,
+        TXT_MENU_CV,
+        showCommit ? TXT_MENU_COMMIT : nullptr
+    };
 
     WindowPainter::clear(canvas);
-    WindowPainter::drawHeader(canvas, _model, _engine, "LAYOUT");
+    WindowPainter::drawHeader(canvas, _model, _engine, TXT_MODE_LAYOUT);
     WindowPainter::drawActiveFunction(canvas, modeName(_mode));
     WindowPainter::drawFooter(canvas, functionNames, pageKeyState(), int(_mode));
 
@@ -37,14 +44,14 @@ void LayoutPage::keyPress(KeyPressEvent &event) {
 
     if (key.isFunction()) {
         if (key.function() == 4 && _mode == Mode::TrackMode && !_trackModeListModel.sameAsProject(_project)) {
-            _manager.pages().confirmation.show("ARE YOU SURE?", [this] (bool result) {
+            _manager.pages().confirmation.show(TXT_ARE_YOU_SURE, [this] (bool result) {
                 if (result) {
                     setEdit(false);
                     // we are about to change track engines -> lock the engine to avoid inconsistent state
                     _engine.lock();
                     _trackModeListModel.toProject(_project);
                     _engine.unlock();
-                    showMessage("LAYOUT CHANGED");
+                    showMessage(TXT_MESSAGE_LAYOUT_CHANGED);
                 }
             });
         }

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Config.h"
+
 #include "ListModel.h"
 
 class UtilitiesListModel : public ListModel {
@@ -30,7 +32,7 @@ private:
 
     static const char *itemName(Item item) {
         switch (item) {
-        case FormatSdCard:      return "Format SD card";
+        case FormatSdCard:      return TXT_LIST_LABEL_FORMAT_SD_CARD;
         case Last:              break;
         }
         return nullptr;

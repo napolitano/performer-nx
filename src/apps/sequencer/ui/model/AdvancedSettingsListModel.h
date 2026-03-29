@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Config.h"
 #include "ListModel.h"
 #include "model/AdvancedSettings.h"
 

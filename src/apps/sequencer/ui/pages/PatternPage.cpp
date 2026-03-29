@@ -1,3 +1,4 @@
+#include "Config.h"
 #include "PatternPage.h"
 
 #include "Pages.h"
@@ -26,10 +27,10 @@ enum class ContextAction {
 };
 
 static const ContextMenuModel::Item contextMenuItems[] = {
-    { "INIT" },
-    { "COPY" },
-    { "PASTE" },
-    { "DUP"},
+    { TXT_MENU_INIT },
+    { TXT_MENU_COPY },
+    { TXT_MENU_PASTE },
+    { TXT_MENU_DUPLICATE },
 };
 
 
@@ -51,15 +52,15 @@ void PatternPage::draw(Canvas &canvas) {
     bool hasCancel = playState.hasSyncedRequests() || playState.hasLatchedRequests();
     bool snapshotActive = playState.snapshotActive();
     const char *functionNames[] = {
-        "LATCH",
-        "SYNC",
-        snapshotActive ? "REVERT" : "SNAP",
-        snapshotActive ? "COMMIT" : nullptr,
-        hasCancel ? "CANCEL" : nullptr
+        TXT_MENU_LATCH,
+        TXT_MENU_SYNC,
+        snapshotActive ? TXT_MENU_REVERT : TXT_MENU_SNAP,
+        snapshotActive ? TXT_MENU_COMMIT : nullptr,
+        hasCancel ? TXT_MENU_CANCEL : nullptr
     };
 
     WindowPainter::clear(canvas);
-    WindowPainter::drawHeader(canvas, _model, _engine, "PATTERN");
+    WindowPainter::drawHeader(canvas, _model, _engine, TXT_MODE_PATTERN);
     WindowPainter::drawFooter(canvas, functionNames, pageKeyState());
 
     bool hasRequested = false;
@@ -80,33 +81,33 @@ void PatternPage::draw(Canvas &canvas) {
 
         x += 2;
 
-        canvas.setColor(trackSelected ? 0xf : 0x7);
-        canvas.drawTextCentered(x, y - 2, w, 8, FixedStringBuilder<8>("T%d", trackIndex + 1));
+        canvas.setColor(trackSelected ? UI_COLOR_ACTIVE : UI_COLOR_DIM);
+        canvas.drawTextCentered(x, y - 2, w, 8, FixedStringBuilder<8>(TXT_INFO_TRACK, trackIndex + 1));
 
         y += 11;
 
-        canvas.setColor(trackEngine.activity() ? 0xf : 0x7);
+        canvas.setColor(trackEngine.activity() ? UI_COLOR_ACTIVE : UI_COLOR_DIM);
         canvas.drawRect(x, y, w, h);
 
         for (int p = 0; p < 16; ++p) {
             int px = x + (p % 8) * 3 + 2;
             int py = y + (p / 8) * 3 + 2;
             if (p == trackState.pattern()) {
-                canvas.setColor(0xf);
+                canvas.setColor(UI_COLOR_ACTIVE);
                 canvas.fillRect(px, py, 3, 3);
             } else if (trackState.hasPatternRequest() && p == trackState.requestedPattern()) {
-                canvas.setColor(0x7);
+                canvas.setColor(UI_COLOR_DIM);
                 canvas.fillRect(px, py, 3, 3);
             } else {
-                canvas.setColor(0x3);
+                canvas.setColor(UI_COLOR_DIM_MORE);
                 canvas.point(px + 1, py + 1);
             }
         }
 
         y += 5;
 
-        canvas.setColor(trackSelected ? 0xf : 0x7);
-        canvas.drawTextCentered(x, y + 10, w, 8, snapshotActive ? "S" : FixedStringBuilder<8>("P%d", trackState.pattern() + 1));
+        canvas.setColor(trackSelected ? UI_COLOR_ACTIVE : UI_COLOR_DIM);
+        canvas.drawTextCentered(x, y + 10, w, 8, snapshotActive ? TXT_INFO_SNAP_MODE_ACTIVE : FixedStringBuilder<8>(TXT_INFO_PATTERN, trackState.pattern() + 1));
 
         if (trackState.hasPatternRequest() && trackState.pattern() != trackState.requestedPattern()) {
             hasRequested = true;
@@ -114,7 +115,7 @@ void PatternPage::draw(Canvas &canvas) {
     }
 
     if (playState.hasSyncedRequests() && hasRequested) {
-        canvas.setColor(0xf);
+        canvas.setColor(UI_COLOR_ACTIVE);
         canvas.hline(0, 10, _engine.syncFraction() * Width);
     }
 }
@@ -336,17 +337,17 @@ bool PatternPage::contextActionEnabled(int index) const {
 
 void PatternPage::initPattern() {
     _project.clearPattern(_project.selectedPatternIndex());
-    showMessage("PATTERN INITIALIZED");
+    showMessage(TXT_MESSAGE_PATTERN_INITIALIZED);
 }
 
 void PatternPage::copyPattern() {
     _model.clipBoard().copyPattern(_project.selectedPatternIndex());
-    showMessage("PATTERN COPIED");
+    showMessage(TXT_MESSAGE_PATTERN_COPIED);
 }
 
 void PatternPage::pastePattern() {
     _model.clipBoard().pastePattern(_project.selectedPatternIndex());
-    showMessage("PATTERN PASTED");
+    showMessage(TXT_MESSAGE_PATTERN_PASTED);
 }
 
 void PatternPage::duplicatePattern() {
@@ -355,6 +356,6 @@ void PatternPage::duplicatePattern() {
         _project.editSelectedPatternIndex(1, false);
         _model.clipBoard().pastePattern(_project.selectedPatternIndex());
         _model.clipBoard().clear();
-        showMessage("PATTERN DUPLICATED");
+        showMessage(TXT_MESSAGE_PATTERN_DUPLICATED);
     }
 }

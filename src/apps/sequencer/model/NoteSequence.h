@@ -55,19 +55,19 @@ public:
 
     static const char *layerName(Layer layer) {
         switch (layer) {
-        case Layer::Gate:                       return "GATE";
-        case Layer::GateProbability:            return "GATE PROB";
-        case Layer::GateOffset:                 return "GATE OFFSET";
-        case Layer::Slide:                      return "SLIDE";
-        case Layer::Retrigger:                  return "RETRIG";
-        case Layer::RetriggerProbability:       return "RETRIG PROB";
-        case Layer::Length:                     return "LENGTH";
-        case Layer::LengthVariationRange:       return "LENGTH RANGE";
-        case Layer::LengthVariationProbability: return "LENGTH PROB";
-        case Layer::Note:                       return "NOTE";
-        case Layer::NoteVariationRange:         return "NOTE RANGE";
-        case Layer::NoteVariationProbability:   return "NOTE PROB";
-        case Layer::Condition:                  return "CONDITION";
+        case Layer::Gate:                       return TXT_MODEL_GATE;
+        case Layer::GateProbability:            return TXT_MODEL_GATE_PROBABILITY;
+        case Layer::GateOffset:                 return TXT_MODEL_NOTE_GATE_OFFSET;
+        case Layer::Slide:                      return TXT_MODEL_NOTE_SLIDE;
+        case Layer::Retrigger:                  return TXT_MODEL_NOTE_RETRIGGER;
+        case Layer::RetriggerProbability:       return TXT_MODEL_NOTE_RETRIGGER_PROBABILITY;
+        case Layer::Length:                     return TXT_MODEL_NOTE_LENGTH;
+        case Layer::LengthVariationRange:       return TXT_MODEL_NOTE_LENGTH_RANGE;
+        case Layer::LengthVariationProbability: return TXT_MODEL_NOTE_LENGTH_PROBABILITY;
+        case Layer::Note:                       return TXT_MODEL_NOTE;
+        case Layer::NoteVariationRange:         return TXT_MODEL_NOTE_RANGE;
+        case Layer::NoteVariationProbability:   return TXT_MODEL_NOTE_PROBABILITY;
+        case Layer::Condition:                  return TXT_MODEL_NOTE_CONDITION;
         case Layer::Last:                       break;
         }
         return nullptr;
@@ -252,7 +252,7 @@ public:
 
     void printScale(StringBuilder &str) const {
         printRouted(str, Routing::Target::Scale);
-        str(scale() < 0 ? "Default" : Scale::name(scale()));
+        str(scale() < 0 ? TXT_MODEL_DEFAULT : Scale::name(scale()));
     }
 
     const Scale &selectedScale(int defaultScale) const {
@@ -280,7 +280,7 @@ public:
     void printRootNote(StringBuilder &str) const {
         printRouted(str, Routing::Target::RootNote);
         if (rootNote() < 0) {
-            str("Default");
+            str(TXT_MODEL_DEFAULT);
         } else {
             Types::printNote(str, rootNote());
         }
@@ -329,9 +329,9 @@ public:
 
     void printResetMeasure(StringBuilder &str) const {
         if (resetMeasure() == 0) {
-            str("off");
+            str(TXT_MODEL_PRINT_OFF);
         } else {
-            str("%d %s", resetMeasure(), resetMeasure() > 1 ? "bars" : "bar");
+            str(TXT_MODEL_PRINT_BAR_COUNT, resetMeasure(), resetMeasure() > 1 ? TXT_MODEL_PRINT_BAR_PLURAL : TXT_MODEL_PRINT_BAR);
         }
     }
 
@@ -373,7 +373,7 @@ public:
 
     void printFirstStep(StringBuilder &str) const {
         printRouted(str, Routing::Target::FirstStep);
-        str("%d", firstStep() + 1);
+        str(TXT_MODEL_PRINT_FIRST_STEP, firstStep() + 1);
     }
 
     // lastStep
@@ -397,7 +397,7 @@ public:
 
     void printLastStep(StringBuilder &str) const {
         printRouted(str, Routing::Target::LastStep);
-        str("%d", lastStep() + 1);
+        str(TXT_MODEL_PRINT_LAST_STEP, lastStep() + 1);
     }
 
     // steps

@@ -55,7 +55,7 @@ public:
 
     virtual void cell(int row, int column, StringBuilder &str) const override {
         if (column == 0) {
-            str("Track%d", row + 1);
+            str(TXT_LIST_LABEL_TRACK, row + 1);
         } else if (column == 1) {
             str(Track::trackModeName(_trackModes[row]));
         }

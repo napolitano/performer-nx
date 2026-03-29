@@ -1,3 +1,4 @@
+#include "Config.h"
 #include "GeneratorSelectPage.h"
 
 #include "ui/painters/WindowPainter.h"
@@ -7,7 +8,13 @@ enum class Function {
     OK      = 4,
 };
 
-static const char *functionNames[] = { nullptr, nullptr, nullptr, "CANCEL", "OK" };
+static const char *functionNames[] = {
+    nullptr,
+    nullptr,
+    nullptr,
+    TXT_MENU_CANCEL,
+    TXT_MENU_OK
+};
 
 
 GeneratorSelectPage::GeneratorSelectPage(PageManager &manager, PageContext &context) :
@@ -27,7 +34,7 @@ void GeneratorSelectPage::exit() {
 
 void GeneratorSelectPage::draw(Canvas &canvas) {
     WindowPainter::clear(canvas);
-    WindowPainter::drawHeader(canvas, _model, _engine, "GENERATOR");
+    WindowPainter::drawHeader(canvas, _model, _engine, TXT_MODE_GENERATOR);
     WindowPainter::drawFooter(canvas, functionNames, pageKeyState());
 
     ListPage::draw(canvas);

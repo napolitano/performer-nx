@@ -1,3 +1,4 @@
+#include "Config.h"
 #include "FileSelectPage.h"
 
 #include "ui/painters/WindowPainter.h"
@@ -7,7 +8,13 @@ enum class Function {
     OK      = 4,
 };
 
-static const char *functionNames[] = { nullptr, nullptr, nullptr, "CANCEL", "OK" };
+static const char *functionNames[] = {
+	nullptr,
+	nullptr,
+	nullptr,
+	TXT_MENU_CANCEL,
+	TXT_MENU_OK
+};
 
 
 FileSelectPage::FileSelectPage(PageManager &manager, PageContext &context) :

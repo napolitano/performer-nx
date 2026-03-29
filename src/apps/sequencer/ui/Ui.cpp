@@ -51,12 +51,12 @@ void Ui::init() {
     });
 
     _engine.setUsbMidiConnectHandler([this] (uint16_t vendorId, uint16_t productId) {
-        _messageManager.showMessage("USB MIDI DEVICE CONNECTED");
+        _messageManager.showMessage(TXT_MESSAGE_MIDI_DEVICE_CONNECTED);
         _controllerManager.connect(vendorId, productId);
     });
 
     _engine.setUsbMidiDisconnectHandler([this] () {
-        _messageManager.showMessage("USB MIDI DEVICE DISCONNECTED");
+        _messageManager.showMessage(TXT_MESSAGE_MIDI_DEVICE_DISCONNECTED);
         _controllerManager.disconnect();
     });
 
@@ -108,7 +108,7 @@ void Ui::showAssert(const char *filename, int line, const char *msg) {
 
     _canvas.setColor(0xf);
     _canvas.setFont(Font::Small);
-    _canvas.drawText(4, 10, "FATAL ERROR");
+    _canvas.drawText(4, 10, TXT_ERROR_FATAL_ERROR);
 
     _canvas.setFont(Font::Tiny);
     _canvas.drawTextMultiline(4, 20, CONFIG_LCD_WIDTH - 8, msg);
@@ -118,7 +118,7 @@ void Ui::showAssert(const char *filename, int line, const char *msg) {
         _canvas.drawTextMultiline(4, 40, CONFIG_LCD_WIDTH - 8, str);
     }
 
-    _canvas.drawText(4, 58, "PRESS ENCODER TO RESET");
+    _canvas.drawText(4, 58, TXT_PRESS_ENCODER_TO_RESET);
 
     _lcd.draw(_frameBuffer.data());
 }

@@ -79,39 +79,39 @@ public:
 
     static const char *targetName(Target target) {
         switch (target) {
-        case Target::None:                      return "None";
+        case Target::None:                      return TXT_LIST_LABEL_NONE;
 
-        case Target::Play:                      return "Play";
-        case Target::PlayToggle:                return "Play Toggle";
-        case Target::Record:                    return "Record";
-        case Target::RecordToggle:              return "Record Toggle";
-        case Target::TapTempo:                  return "Tap Tempo";
+        case Target::Play:                      return TXT_LIST_LABEL_PLAY;
+        case Target::PlayToggle:                return TXT_LIST_LABEL_PLAY_TOGGLE;
+        case Target::Record:                    return TXT_LIST_LABEL_RECORD;
+        case Target::RecordToggle:              return TXT_LIST_LABEL_RECORD_TOGGLE;
+        case Target::TapTempo:                  return TXT_LIST_LABEL_TAP_TEMPO;
 
-        case Target::Tempo:                     return "Tempo";
-        case Target::Swing:                     return "Swing";
+        case Target::Tempo:                     return TXT_LIST_LABEL_TEMPO;
+        case Target::Swing:                     return TXT_LIST_LABEL_SWING;
 
-        case Target::Mute:                      return "Mute";
-        case Target::Fill:                      return "Fill";
-        case Target::FillAmount:                return "Fill Amount";
-        case Target::Pattern:                   return "Pattern";
+        case Target::Mute:                      return TXT_LIST_LABEL_MUTE;
+        case Target::Fill:                      return TXT_LIST_LABEL_FILL;
+        case Target::FillAmount:                return TXT_LIST_LABEL_FILL_AMOUNT;
+        case Target::Pattern:                   return TXT_LIST_LABEL_PATTERN;
 
-        case Target::SlideTime:                 return "Slide Time";
-        case Target::Octave:                    return "Octave";
-        case Target::Transpose:                 return "Transpose";
-        case Target::Offset:                    return "Offset";
-        case Target::Rotate:                    return "Rotate";
-        case Target::GateProbabilityBias:       return "Gate P. Bias";
-        case Target::RetriggerProbabilityBias:  return "Retrig P. Bias";
-        case Target::LengthBias:                return "Length Bias";
-        case Target::NoteProbabilityBias:       return "Note P. Bias";
-        case Target::ShapeProbabilityBias:      return "Shape P. Bias";
+        case Target::SlideTime:                 return TXT_LIST_LABEL_SLIDE_TIME;
+        case Target::Octave:                    return TXT_LIST_LABEL_OCTAVE;
+        case Target::Transpose:                 return TXT_LIST_LABEL_TRANSPOSE;
+        case Target::Offset:                    return TXT_LIST_LABEL_OFFSET;
+        case Target::Rotate:                    return TXT_LIST_LABEL_ROTATE;
+        case Target::GateProbabilityBias:       return TXT_LIST_LABEL_GATE_PROBABILITY_BIAS;
+        case Target::RetriggerProbabilityBias:  return TXT_LIST_LABEL_GATE_RETRIGGER_PROBABILITY_BIAS;
+        case Target::LengthBias:                return TXT_LIST_LABEL_GATE_LENGTH_BIAS;
+        case Target::NoteProbabilityBias:       return TXT_LIST_LABEL_GATE_NOTE_PROBABILITY_BIAS;
+        case Target::ShapeProbabilityBias:      return TXT_LIST_LABEL_GATE_SHAPE_PROBABILITY_BIAS;
 
-        case Target::FirstStep:                 return "First Step";
-        case Target::LastStep:                  return "Last Step";
-        case Target::RunMode:                   return "Run Mode";
-        case Target::Divisor:                   return "Divisor";
-        case Target::Scale:                     return "Scale";
-        case Target::RootNote:                  return "Root Note";
+        case Target::FirstStep:                 return TXT_LIST_LABEL_FIRST_STEP;
+        case Target::LastStep:                  return TXT_LIST_LABEL_LAST_STEP;
+        case Target::RunMode:                   return TXT_LIST_LABEL_RUN_MODE;
+        case Target::Divisor:                   return TXT_LIST_LABEL_DIVISOR;
+        case Target::Scale:                     return TXT_LIST_LABEL_SCALE;
+        case Target::RootNote:                  return TXT_LIST_LABEL_ROOT_NOTE;
 
         case Target::Last:                      break;
         }
@@ -210,13 +210,13 @@ public:
     static void printSource(Source source, StringBuilder &str) {
         switch (source) {
         case Source::None:
-            str("None");
+            str(TXT_LIST_LABEL_NONE);
             break;
         case Source::CvIn1:
         case Source::CvIn2:
         case Source::CvIn3:
         case Source::CvIn4:
-            str("CV In %d", int(source) - int(Source::CvIn1) + 1);
+            str(TXT_LIST_LABEL_CV_IN_VALUE, int(source) - int(Source::CvIn1) + 1);
             break;
         case Source::CvOut1:
         case Source::CvOut2:
@@ -226,10 +226,10 @@ public:
         case Source::CvOut6:
         case Source::CvOut7:
         case Source::CvOut8:
-            str("CV Out %d", int(source) - int(Source::CvOut1) + 1);
+            str(TXT_LIST_LABEL_CV_OUT_VALUE, int(source) - int(Source::CvOut1) + 1);
             break;
         case Source::Midi:
-            str("MIDI");
+            str(TXT_LIST_LABEL_MIDI);
         case Source::Last:
             break;
         }
@@ -279,13 +279,13 @@ public:
 
         static const char *eventName(Event event) {
             switch (event) {
-            case Event::ControlAbsolute:return "CC Absolute";
-            case Event::ControlRelative:return "CC Relative";
-            case Event::PitchBend:      return "Pitch Bend";
-            case Event::NoteMomentary:  return "Note Momentary";
-            case Event::NoteToggle:     return "Note Toggle";
-            case Event::NoteVelocity:   return "Note Velocity";
-            case Event::NoteRange:      return "Note Range";
+            case Event::ControlAbsolute:return TXT_LIST_LABEL_CC_ABSOLUTE;
+            case Event::ControlRelative:return TXT_LIST_LABEL_CC_RELATIVE;
+            case Event::PitchBend:      return TXT_LIST_LABEL_PITCH_BEND;
+            case Event::NoteMomentary:  return TXT_LIST_LABEL_NOTE_MOMENTARY;
+            case Event::NoteToggle:     return TXT_LIST_LABEL_NOTE_TOGGLE;
+            case Event::NoteVelocity:   return TXT_LIST_LABEL_NOTE_VELOCITY;
+            case Event::NoteRange:      return TXT_LIST_LABEL_NOTE_RANGE;
             case Event::Last:           break;
             }
             return nullptr;
@@ -327,7 +327,7 @@ public:
         }
 
         void printControlNumber(StringBuilder &str) const {
-            str("%d", note());
+            str(TXT_MODEL_CONTROL_NUMBER, note());
         }
 
         // note
@@ -357,7 +357,7 @@ public:
         }
 
         void printNoteRange(StringBuilder &str) const {
-            str("%d", noteRange());
+            str(TXT_MODEL_NOTE_RANGE_VALUE, noteRange());
         }
 
         void clear();
@@ -416,10 +416,10 @@ public:
         void printTracks(StringBuilder &str) const {
             if (isPerTrackTarget(_target)) {
                 for (int i = 0; i < CONFIG_TRACK_COUNT; ++i) {
-                    str("%c", (_tracks & (1<<i)) ? 'X' : '-');
+                    str(TXT_MODEL_GENERIC_CHAR, (_tracks & (1<<i)) ? TXT_MODEL_X : TXT_MODEL_NONE_SHORT);
                 }
             } else {
-                str("n/a");
+                str(TXT_MODEL_NA);
             }
         }
 

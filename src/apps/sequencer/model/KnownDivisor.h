@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Config.h"
 #include <cstdint>
 
 // straight
@@ -47,31 +48,31 @@ struct KnownDivisor {
 // divisors based on 48 PPQN
 
 static KnownDivisor knownDivisors[] = {
-    {   2,      1,  64, 'T',    8   },  // 1/64T
-    {   3,      1,  64, '\0',   0   },  // 1/64
-    {   4,      1,  32, 'T',    9   },  // 1/32T
-    {   6,      1,  32, '\0',   1   },  // 1/32
-    {   8,      1,  16, 'T',    10  },  // 1/16T
-    {   9,      1,  32, '.',    -1  },  // 1/32.
-    {   12,     1,  16, '\0',   2   },  // 1/16
-    {   16,     1,  8,  'T',    11  },  // 1/8T
-    {   18,     1,  16, '.',    -1  },  // 1/16.
-    {   24,     1,  8,  '\0',   3   },  // 1/8
-    {   32,     1,  4,  'T',    12  },  // 1/4T
-    {   36,     1,  8,  '.',    -1  },  // 1/8.
-    {   48,     1,  4,  '\0',   4   },  // 1/4
-    {   64,     1,  2,  'T',    13  },  // 1/2T
-    {   72,     1,  4,  '.',    -1  },  // 1/4.
-    {   96,     1,  2,  '\0',   5   },  // 1/2
-    {   128,    1,  1,  'T',    14  },  // 1T
-    {   144,    1,  2,  '.',    -1  },  // 1/2.
-    {   192,    1,  1,  '\0',   6   },  // 1
-    {   256,    2,  1,  'T',    15  },  // 2/1T
-    {   288,    1,  1,  '.',    -1  },  // 1/1.
-    {   384,    2,  1,  '\0',   7   },  // 2/1
-    {   512,    4,  1,  'T',    -1  },  // 4/1T
-    {   576,    2,  1,  '.',    -1  },  // 2/1.
-    {   768,    4,  1,  '\0',   -1  },  // 4/1
+    {   2,      1,  64, TXT_MODEL_TRIPLET_SHORTCODE,    8   },  // 1/64T
+    {   3,      1,  64, TXT_MODEL_FULL_SHORTCODE,   0   },  // 1/64
+    {   4,      1,  32, TXT_MODEL_TRIPLET_SHORTCODE,    9   },  // 1/32T
+    {   6,      1,  32, TXT_MODEL_FULL_SHORTCODE,   1   },  // 1/32
+    {   8,      1,  16, TXT_MODEL_TRIPLET_SHORTCODE,    10  },  // 1/16T
+    {   9,      1,  32, TXT_MODEL_DOTTED_SHORTCODE,    -1  },  // 1/32.
+    {   12,     1,  16, TXT_MODEL_FULL_SHORTCODE,   2   },  // 1/16
+    {   16,     1,  8,  TXT_MODEL_TRIPLET_SHORTCODE,    11  },  // 1/8T
+    {   18,     1,  16, TXT_MODEL_DOTTED_SHORTCODE,    -1  },  // 1/16.
+    {   24,     1,  8,  TXT_MODEL_FULL_SHORTCODE,   3   },  // 1/8
+    {   32,     1,  4,  TXT_MODEL_TRIPLET_SHORTCODE,    12  },  // 1/4T
+    {   36,     1,  8,  TXT_MODEL_DOTTED_SHORTCODE,    -1  },  // 1/8.
+    {   48,     1,  4,  TXT_MODEL_FULL_SHORTCODE,   4   },  // 1/4
+    {   64,     1,  2,  TXT_MODEL_TRIPLET_SHORTCODE,    13  },  // 1/2T
+    {   72,     1,  4,  TXT_MODEL_DOTTED_SHORTCODE,    -1  },  // 1/4.
+    {   96,     1,  2,  TXT_MODEL_FULL_SHORTCODE,   5   },  // 1/2
+    {   128,    1,  1,  TXT_MODEL_TRIPLET_SHORTCODE,    14  },  // 1T
+    {   144,    1,  2,  TXT_MODEL_DOTTED_SHORTCODE,    -1  },  // 1/2.
+    {   192,    1,  1,  TXT_MODEL_FULL_SHORTCODE,   6   },  // 1
+    {   256,    2,  1,  TXT_MODEL_TRIPLET_SHORTCODE,    15  },  // 2/1T
+    {   288,    1,  1,  TXT_MODEL_DOTTED_SHORTCODE,    -1  },  // 1/1.
+    {   384,    2,  1,  TXT_MODEL_FULL_SHORTCODE,   7   },  // 2/1
+    {   512,    4,  1,  TXT_MODEL_TRIPLET_SHORTCODE,    -1  },  // 4/1T
+    {   576,    2,  1,  TXT_MODEL_DOTTED_SHORTCODE,    -1  },  // 2/1.
+    {   768,    4,  1,  TXT_MODEL_FULL_SHORTCODE,   -1  },  // 4/1
 };
 
 static const int numKnownDivisors = sizeof(knownDivisors) / sizeof(KnownDivisor);

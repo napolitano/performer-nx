@@ -26,10 +26,10 @@ public:
 
     static const char *fillModeName(FillMode fillMode) {
         switch (fillMode) {
-        case FillMode::None:        return "None";
-        case FillMode::Gates:       return "Gates";
-        case FillMode::NextPattern: return "Next Pattern";
-        case FillMode::Condition:   return "Condition";
+        case FillMode::None:        return TXT_MODEL_NONE;
+        case FillMode::Gates:       return TXT_MODEL_GATE_PLURAL;
+        case FillMode::NextPattern: return TXT_MODEL_NEXT_PATTERN;
+        case FillMode::Condition:   return TXT_MODEL_NOTE_CONDITION;
         case FillMode::Last:        break;
         }
         return nullptr;
@@ -45,8 +45,8 @@ public:
 
     static const char *cvUpdateModeName(CvUpdateMode mode) {
         switch (mode) {
-        case CvUpdateMode::Gate:    return "Gate";
-        case CvUpdateMode::Always:  return "Always";
+        case CvUpdateMode::Gate:    return TXT_MODEL_GATE;
+        case CvUpdateMode::Always:  return TXT_MODEL_ALWAYS;
         case CvUpdateMode::Last:    break;
         }
         return nullptr;
@@ -131,7 +131,7 @@ public:
 
     void printSlideTime(StringBuilder &str) const {
         printRouted(str, Routing::Target::SlideTime);
-        str("%d%%", slideTime());
+        str(TXT_MODEL_SLIDE_TIME, slideTime());
     }
 
     // octave
@@ -149,7 +149,7 @@ public:
 
     void printOctave(StringBuilder &str) const {
         printRouted(str, Routing::Target::Octave);
-        str("%+d", octave());
+        str(TXT_MODEL_OCTAVE, octave());
     }
 
     // transpose
@@ -167,7 +167,7 @@ public:
 
     void printTranspose(StringBuilder &str) const {
         printRouted(str, Routing::Target::Transpose);
-        str("%+d", transpose());
+        str(TXT_MODEL_TRANSPOSE, transpose());
     }
 
     // rotate
@@ -185,7 +185,7 @@ public:
 
     void printRotate(StringBuilder &str) const {
         printRouted(str, Routing::Target::Rotate);
-        str("%+d", rotate());
+        str(TXT_MODEL_ROTATION, rotate());
     }
 
     // gateProbabilityBias
@@ -203,7 +203,7 @@ public:
 
     void printGateProbabilityBias(StringBuilder &str) const {
         printRouted(str, Routing::Target::GateProbabilityBias);
-        str("%+.1f%%", gateProbabilityBias() * 12.5f);
+        str(TXT_MODEL_GATE_PROBABILITY_BIAS, gateProbabilityBias() * 12.5f);
     }
 
     // retriggerProbabilityBias
@@ -221,7 +221,7 @@ public:
 
     void printRetriggerProbabilityBias(StringBuilder &str) const {
         printRouted(str, Routing::Target::RetriggerProbabilityBias);
-        str("%+.1f%%", retriggerProbabilityBias() * 12.5f);
+        str(TXT_MODEL_RETRIGGER_PROBABILITY_BIAS, retriggerProbabilityBias() * 12.5f);
     }
 
     // lengthBias
@@ -239,7 +239,7 @@ public:
 
     void printLengthBias(StringBuilder &str) const {
         printRouted(str, Routing::Target::LengthBias);
-        str("%+.1f%%", lengthBias() * 12.5f);
+        str(TXT_MODEL_LENGTH_BIAS, lengthBias() * 12.5f);
     }
 
     // noteProbabilityBias
@@ -257,7 +257,7 @@ public:
 
     void printNoteProbabilityBias(StringBuilder &str) const {
         printRouted(str, Routing::Target::NoteProbabilityBias);
-        str("%+.1f%%", noteProbabilityBias() * 12.5f);
+        str(TXT_MODEL_NOTE_PROBABILITY_BIAS, noteProbabilityBias() * 12.5f);
     }
 
     // sequences

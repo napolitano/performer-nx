@@ -1,3 +1,4 @@
+#include "Config.h"
 #include "TempoPage.h"
 
 #include "ui/painters/WindowPainter.h"
@@ -23,17 +24,17 @@ void TempoPage::draw(Canvas &canvas) {
 
     canvas.setBlendMode(BlendMode::Set);
     canvas.setFont(Font::Small);
-    canvas.setColor(0xf);
+    canvas.setColor(UI_COLOR_ACTIVE);
 
     switch (_mode) {
     case Mode::Tempo: {
-        FixedStringBuilder<16> tempoString("Tempo: ");
+        FixedStringBuilder<16> tempoString(TXT_TEMPO);
         _project.printTempo(tempoString);
         canvas.drawText(50, 34, tempoString);
 
         float nudgeTempoStrength = _engine.nudgeTempoStrength();
 
-        FixedStringBuilder<16> nudgeString("%.1f%%", nudgeTempoStrength * 10.f);
+        FixedStringBuilder<16> nudgeString(TXT_INFO_TEMPO_QUICK_ADJUST, nudgeTempoStrength * 10.f);
 
         canvas.setFont(Font::Tiny);
 
@@ -49,7 +50,7 @@ void TempoPage::draw(Canvas &canvas) {
         break;
     }
     case Mode::Swing: {
-        FixedStringBuilder<16> swingString("Swing: ");
+        FixedStringBuilder<16> swingString(TXT_SWING);
         _project.printSwing(swingString);
         canvas.drawText(50, 34, swingString);
         break;

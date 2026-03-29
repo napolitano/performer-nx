@@ -1,3 +1,4 @@
+#include "Config.h"
 #include "Track.h"
 #include "Project.h"
 
@@ -50,7 +51,7 @@ void Track::gateOutputName(int index, StringBuilder &str) const {
     switch (_trackMode) {
     case TrackMode::Note:
     case TrackMode::Curve:
-        str("Gate");
+        str(TXT_LIST_LABEL_GATE);
         break;
     case TrackMode::MidiCv:
         _track.midiCv->gateOutputName(index, str);
@@ -64,7 +65,7 @@ void Track::cvOutputName(int index, StringBuilder &str) const {
     switch (_trackMode) {
     case TrackMode::Note:
     case TrackMode::Curve:
-        str("CV");
+        str(TXT_LIST_LABEL_CV);
         break;
     case TrackMode::MidiCv:
         _track.midiCv->cvOutputName(index, str);

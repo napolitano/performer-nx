@@ -24,14 +24,14 @@ public:
 
     virtual void cell(int row, int column, StringBuilder &str) const override {
         if (column == 0) {
-            str("CV%d", row + 1);
+            str(TXT_LIST_LABEL_CV_VALUE, row + 1);
         } else if (column == 1) {
             int trackIndex = _project.cvOutputTrack(row);
             int outputIndex = 0;
             for (int i = 0; i < row; ++i) {
                 outputIndex += _project.cvOutputTrack(i) == trackIndex ? 1 : 0;
             }
-            str("Track%d:", trackIndex + 1);
+            str(TXT_LIST_LABEL_TRACK, trackIndex + 1);
             _project.track(trackIndex).cvOutputName(outputIndex, str);
         }
     }

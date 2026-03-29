@@ -37,11 +37,7 @@ private:
     int activeFunctionKey();
 
     void updateMonitorStep();
-#ifdef CONFIG_ENABLE_CURVE_EDIT_ENHANCEMENTS
     void drawDetail(Canvas &canvas, const CurveSequence::Step &step, int stepIndex);
-#else
-    void drawDetail(Canvas &canvas, const CurveSequence::Step &step);
-#endif
 
     void contextShow();
     void contextAction(int index);

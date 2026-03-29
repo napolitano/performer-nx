@@ -1,3 +1,4 @@
+#include "Config.h"
 #include "ContextMenuPage.h"
 
 #include "ui/painters/WindowPainter.h"
@@ -20,13 +21,13 @@ void ContextMenuPage::draw(Canvas &canvas) {
 
     const int BarHeight = 12;
 
-    canvas.setColor(0x0);
+    canvas.setColor(UI_COLOR_BLACK);
     canvas.fillRect(0, Height - BarHeight - 1, Width, BarHeight + 1);
 
-    canvas.setColor(0xf);
+    canvas.setColor(UI_COLOR_ACTIVE);
     canvas.hline(0, Height - BarHeight, Width);
     for (int i = 1; i < 5; ++i) {
-        canvas.vline((Width * i) / 5, Height - BarHeight, BarHeight);
+        //canvas.vline((Width * i) / 5, Height - BarHeight, BarHeight);
     }
 
     for (int i = 0; i < 5; ++i) {
@@ -43,7 +44,7 @@ void ContextMenuPage::draw(Canvas &canvas) {
             // canvas.drawRect(x + (w - iconSize) / 2, 32 + 4, iconSize, iconSize);
 
             if (item.title) {
-                canvas.setColor(enabled ? 0xf : 0x7);
+                canvas.setColor(enabled ? UI_COLOR_ACTIVE : UI_COLOR_DIM);
                 canvas.drawText(x + (w - canvas.textWidth(item.title) + 1) / 2, Height - 4, item.title);
             }
         }

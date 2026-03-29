@@ -42,7 +42,7 @@ public:
         }
 
         void printFillAmount(StringBuilder &str) const {
-            str("%d%%", fillAmount());
+            str(TXT_MODEL_FILL_AMOUNT, fillAmount());
         }
 
         //----------------------------------------

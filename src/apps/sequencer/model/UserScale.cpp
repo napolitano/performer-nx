@@ -1,3 +1,4 @@
+#include "Config.h"
 #include "UserScale.h"
 #include "ProjectVersion.h"
 
@@ -10,7 +11,7 @@ UserScale::UserScale() :
 }
 
 void UserScale::clear() {
-    StringUtils::copy(_name, "INIT", sizeof(_name));
+    StringUtils::copy(_name, TXT_LIST_LABEL_INIT, sizeof(_name));
     setMode(Mode::Chromatic);
     clearItems();
 }

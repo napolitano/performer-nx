@@ -66,7 +66,7 @@ public:
     }
 
     void print(StringBuilder &str) const {
-        str("%d/%d", beats(), note());
+        str(TXT_MODEL_BEATS_STEPS, beats(), note());
     }
 
     uint32_t noteDivisor() const {

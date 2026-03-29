@@ -1,3 +1,4 @@
+#include "Config.h"
 #include "MonitorPage.h"
 
 #include "ui/painters/WindowPainter.h"
@@ -14,60 +15,66 @@ enum class Function {
     Stats   = 3,
 };
 
-static const char *functionNames[] = { "CV IN", "CV OUT", "MIDI", "STATS", nullptr };
+static const char *functionNames[] = {
+    TXT_FUNCTION_MONITOR_CV_IN,
+    TXT_FUNCTION_MONITOR_CV_OUT,
+    TXT_FUNCTION_MONITOR_MIDI,
+    TXT_FUNCTION_MONITOR_STATS,
+    nullptr
+};
 
 static void formatMidiMessage(StringBuilder &eventStr, StringBuilder &dataStr, const MidiMessage &msg) {
     if (msg.isChannelMessage()) {
         int channel = msg.channel() + 1;
         switch (msg.channelMessage()) {
         case MidiMessage::NoteOff:
-            eventStr("NOTE OFF");
-            dataStr("CH=%d NOTE=%d VEL=%d", channel, msg.note(), msg.velocity());
+            eventStr(TXT_EVENT_NOTE_OFF);
+            dataStr(TXT_INFO_MONITOR_DATA_NOTE_OFF, channel, msg.note(), msg.velocity());
             return;
         case MidiMessage::NoteOn:
-            eventStr("NOTE ON");
-            dataStr("CH=%d NOTE=%d VEL=%d", channel, msg.note(), msg.velocity());
+            eventStr(TXT_EVENT_NOTE_ON);
+            dataStr(TXT_INFO_MONITOR_DATA_NOTE_ON, channel, msg.note(), msg.velocity());
             return;
         case MidiMessage::KeyPressure:
-            eventStr("KEY PRESSURE");
-            dataStr("CH=%d NOTE=%d PRE=%d", channel, msg.note(), msg.keyPressure());
+            eventStr(TXT_EVENT_KEY_PRESSURE);
+            dataStr(TXT_INFO_MONITOR_DATA_KEY_PRESSURE, channel, msg.note(), msg.keyPressure());
             return;
         case MidiMessage::ControlChange:
-            eventStr("CONTROL CHANGE");
-            dataStr("CH=%d NUM=%d VAL=%d", channel, msg.controlNumber(), msg.controlValue());
+            eventStr(TXT_EVENT_CONTROL_CHANGE);
+            dataStr(TXT_INFO_MONITOR_DATA_CONTROL_CHANGE, channel, msg.controlNumber(), msg.controlValue());
             return;
         case MidiMessage::ProgramChange:
-            eventStr("PROGRAM CHANGE");
-            dataStr("CH=%d NUM=%d", channel, msg.programNumber());
+            eventStr(TXT_EVENT_PROGRAM_CHANGE);
+            dataStr(TXT_INFO_MONITOR_DATA_PROGRAM_CHANGE, channel, msg.programNumber());
             return;
         case MidiMessage::ChannelPressure:
-            eventStr("CHANNEL PRESSURE");
-            dataStr("CH=%d PRE=%d", channel, msg.channelPressure());
+            eventStr(TXT_EVENT_CHANNEL_PRESSURE);
+            dataStr(TXT_INFO_MONITOR_DATA_CHANNEL_PRESSURE, channel, msg.channelPressure());
             return;
         case MidiMessage::PitchBend:
-            eventStr("PITCH BEND");
-            dataStr("CH=%d VAL=%d", channel, msg.pitchBend());
+            eventStr(TXT_EVENT_PITCH_BEND);
+            dataStr(TXT_INFO_MONITOR_DATA_PITCH_BEND, channel, msg.pitchBend());
             return;
         }
     } else if (msg.isSystemMessage()) {
         switch (msg.systemMessage()) {
         case MidiMessage::SystemExclusive:
-            eventStr("SYSEX");
+            eventStr(TXT_EVENT_SYSEX);
             return;
         case MidiMessage::TimeCode:
-            eventStr("TIME CODE");
-            dataStr("DATA=%02x", msg.data0());
+            eventStr(TXT_EVENT_TIME_CODE);
+            dataStr(TXT_INFO_MONITOR_DATA_TIME_CODE, msg.data0());
             return;
         case MidiMessage::SongPosition:
-            eventStr("SONG POSITION");
-            dataStr("POS=%d", msg.songPosition());
+            eventStr(TXT_EVENT_SONG_POSITION);
+            dataStr(TXT_INFO_MONITOR_DATA_SONG_POSITION, msg.songPosition());
             return;
         case MidiMessage::SongSelect:
-            eventStr("SONG SELECT");
-            dataStr("NUM=%d", msg.songNumber());
+            eventStr(TXT_EVENT_SONG_SELECT);
+            dataStr(TXT_INFO_MONITOR_DATA_SONG_NUMBER, msg.songNumber());
             return;
         case MidiMessage::TuneRequest:
-            eventStr("TUNE REQUEST");
+            eventStr(TXT_EVENT_TUNE_REQUEST);
             return;
         default: break;
         }
@@ -86,13 +93,13 @@ void MonitorPage::exit() {
 
 void MonitorPage::draw(Canvas &canvas) {
     WindowPainter::clear(canvas);
-    WindowPainter::drawHeader(canvas, _model, _engine, "MONITOR");
+    WindowPainter::drawHeader(canvas, _model, _engine, TXT_MODE_MONITOR);
     WindowPainter::drawActiveFunction(canvas, functionNames[int(_mode)]);
     WindowPainter::drawFooter(canvas, functionNames, pageKeyState(), int(_mode));
 
     canvas.setBlendMode(BlendMode::Set);
     canvas.setFont(Font::Tiny);
-    canvas.setColor(0xf);
+    canvas.setColor(UI_COLOR_ACTIVE);
 
     switch (_mode) {
     case Mode::CvIn:
@@ -158,11 +165,11 @@ void MonitorPage::drawCvIn(Canvas &canvas) {
         int y = 32;
 
         str.reset();
-        str("CV%d", i + 1);
+        str(TXT_INFO_CV_VALUE, i + 1);
         canvas.drawTextCentered(x, y - h, w, h, str);
 
         str.reset();
-        str("%.2fV", _engine.cvInput().channel(i));
+        str(TXT_INFO_VOLTAGE, _engine.cvInput().channel(i));
         canvas.drawTextCentered(x, y, w, h, str);
     }
 }
@@ -178,11 +185,11 @@ void MonitorPage::drawCvOut(Canvas &canvas) {
         int y = 20 + (i / 4) * 20;
 
         str.reset();
-        str("CV%d", i + 1);
+        str(TXT_INFO_CV_VALUE, i + 1);
         canvas.drawTextCentered(x, y - h, w, h, str);
 
         str.reset();
-        str("%.2fV", _engine.cvOutput().channel(i));
+        str(TXT_INFO_VOLTAGE, _engine.cvOutput().channel(i));
         canvas.drawTextCentered(x, y, w, h, str);
     }
 }
@@ -211,18 +218,18 @@ void MonitorPage::drawStats(Canvas &canvas) {
         int seconds = stats.uptime;
         int minutes = seconds / 60;
         int hours = minutes / 60;
-        FixedStringBuilder<16> str("%d:%02d:%02d", hours, minutes % 60, seconds % 60);
-        drawValue(0, "UPTIME:", str);
+        FixedStringBuilder<16> str(TXT_INFO_MONITOR_DATA_UPTIME, hours, minutes % 60, seconds % 60);
+        drawValue(0, TXT_STAT_UPTIME, str);
     }
 
     {
-        FixedStringBuilder<16> str("%d", stats.midiRxOverflow);
-        drawValue(1, "MIDI OVF:", str);
+        FixedStringBuilder<16> str(TXT_INFO_MONITOR_DATA_MIDI_OVF, stats.midiRxOverflow);
+        drawValue(1, TXT_STAT_MIDI_OVF, str);
     }
 
     {
-        FixedStringBuilder<16> str("%d", stats.usbMidiRxOverflow);
-        drawValue(2, "USBMIDI OVF:", str);
+        FixedStringBuilder<16> str(TXT_INFO_MONITOR_DATA_USBMIDI_OVF, stats.usbMidiRxOverflow);
+        drawValue(2, TXT_STAT_USBMIDI_OVF, str);
     }
 
 }

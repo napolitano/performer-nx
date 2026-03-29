@@ -76,18 +76,18 @@ private:
 
     static const char *itemName(Item item) {
         switch (item) {
-        case PlayMode:  return "Play Mode";
-        case FillMode:  return "Fill Mode";
-        case FillMuted: return "Fill Muted";
-        case CvUpdateMode:  return "CV Update Mode";
-        case SlideTime: return "Slide Time";
-        case Octave:    return "Octave";
-        case Transpose: return "Transpose";
-        case Rotate:    return "Rotate";
-        case GateProbabilityBias: return "Gate P. Bias";
-        case RetriggerProbabilityBias: return "Retrig P. Bias";
-        case LengthBias: return "Length Bias";
-        case NoteProbabilityBias: return "Note P. Bias";
+        case PlayMode:  return TXT_LIST_LABEL_PLAY_MODE;
+        case FillMode:  return TXT_LIST_LABEL_FILL_MODE;
+        case FillMuted: return TXT_LIST_LABEL_FILL_MUTED;
+        case CvUpdateMode:  return TXT_LIST_LABEL_CV_UPDATE_MODE;
+        case SlideTime: return TXT_LIST_LABEL_SLIDE_TIME;
+        case Octave:    return TXT_LIST_LABEL_OCTAVE;
+        case Transpose: return TXT_LIST_LABEL_TRANSPOSE;
+        case Rotate:    return TXT_LIST_LABEL_ROTATE;
+        case GateProbabilityBias: return TXT_LIST_LABEL_GATE_PROBABILITY_BIAS;
+        case RetriggerProbabilityBias: return TXT_LIST_LABEL_GATE_RETRIGGER_PROBABILITY_BIAS;
+        case LengthBias: return TXT_LIST_LABEL_GATE_LENGTH_BIAS;
+        case NoteProbabilityBias: return TXT_LIST_LABEL_GATE_NOTE_PROBABILITY_BIAS;
         case Last:      break;
         }
         return nullptr;

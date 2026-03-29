@@ -1,3 +1,4 @@
+#include "Config.h"
 #include "ConfirmationPage.h"
 
 #include "ui/painters/WindowPainter.h"
@@ -7,7 +8,13 @@ enum class Function {
     Yes = 4,
 };
 
-static const char *functionNames[] = { nullptr, nullptr, nullptr, "NO", "YES" };
+static const char *functionNames[] = {
+	nullptr,
+	nullptr,
+	nullptr,
+	TXT_MENU_NO,
+	TXT_MENU_YES
+};
 
 
 ConfirmationPage::ConfirmationPage(PageManager &manager, PageContext &context) :
@@ -32,7 +39,7 @@ void ConfirmationPage::draw(Canvas &canvas) {
 
     canvas.setFont(Font::Tiny);
     canvas.setBlendMode(BlendMode::Set);
-    canvas.setColor(0xf);
+    canvas.setColor(UI_COLOR_ACTIVE);
 
     canvas.drawTextCentered(0, 32 - 4, Width, 8, _text);
 }

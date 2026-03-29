@@ -1,3 +1,4 @@
+#include "Config.h"
 #include "ProjectPage.h"
 
 #include "ui/LedPainter.h"
@@ -18,11 +19,11 @@ enum class ContextAction {
 };
 
 static const ContextMenuModel::Item contextMenuItems[] = {
-    { "INIT" },
-    { "LOAD" },
-    { "SAVE" },
-    { "SAVE AS" },
-    { "ROUTE" }
+    { TXT_MENU_INIT },
+    { TXT_MENU_LOAD },
+    { TXT_MENU_SAVE },
+    { TXT_MENU_SAVE_AS },
+    { TXT_MENU_ROUTE }
 };
 
 ProjectPage::ProjectPage(PageManager &manager, PageContext &context) :
@@ -38,7 +39,7 @@ void ProjectPage::exit() {
 
 void ProjectPage::draw(Canvas &canvas) {
     WindowPainter::clear(canvas);
-    WindowPainter::drawHeader(canvas, _model, _engine, "PROJECT");
+    WindowPainter::drawHeader(canvas, _model, _engine, TXT_MODE_PROJECT);
     WindowPainter::drawFooter(canvas);
 
     ListPage::draw(canvas);
@@ -66,7 +67,7 @@ void ProjectPage::keyPress(KeyPressEvent &event) {
     }
 
     if (key.is(Key::Encoder) && selectedRow() == 0) {
-        _manager.pages().textInput.show("NAME:", _project.name(), Project::NameLength, [this] (bool result, const char *text) {
+        _manager.pages().textInput.show(TXT_ENTER_NAME_PREFIX, _project.name(), Project::NameLength, [this] (bool result, const char *text) {
             if (result) {
                 _project.setName(text);
             }
@@ -127,20 +128,20 @@ bool ProjectPage::contextActionEnabled(int index) const {
 }
 
 void ProjectPage::initProject() {
-    _manager.pages().confirmation.show("ARE YOU SURE?", [this] (bool result) {
+    _manager.pages().confirmation.show(TXT_ARE_YOU_SURE, [this] (bool result) {
         if (result) {
             _engine.suspend();
             _project.clear();
-            showMessage("PROJECT INITIALIZED");
+            showMessage(TXT_MESSAGE_PROJECT_INITIALIZED);
             _engine.resume();
         }
     });
 }
 
 void ProjectPage::loadProject() {
-    _manager.pages().fileSelect.show("LOAD PROJECT", FileType::Project, _project.slotAssigned() ? _project.slot() : 0, false, [this] (bool result, int slot) {
+    _manager.pages().fileSelect.show(TXT_FUNCTION_LOAD_PROJECT, FileType::Project, _project.slotAssigned() ? _project.slot() : 0, false, [this] (bool result, int slot) {
         if (result) {
-            _manager.pages().confirmation.show("ARE YOU SURE?", [this, slot] (bool result) {
+            _manager.pages().confirmation.show(TXT_ARE_YOU_SURE, [this, slot] (bool result) {
                 if (result) {
                     loadProjectFromSlot(slot);
                 }
@@ -159,10 +160,10 @@ void ProjectPage::saveProject() {
 }
 
 void ProjectPage::saveAsProject() {
-    _manager.pages().fileSelect.show("SAVE PROJECT", FileType::Project, _project.slotAssigned() ? _project.slot() : 0, true, [this] (bool result, int slot) {
+    _manager.pages().fileSelect.show(TXT_FUNCTION_SAVE_PROJECT, FileType::Project, _project.slotAssigned() ? _project.slot() : 0, true, [this] (bool result, int slot) {
         if (result) {
             if (FileManager::slotUsed(FileType::Project, slot)) {
-                _manager.pages().confirmation.show("ARE YOU SURE?", [this, slot] (bool result) {
+                _manager.pages().confirmation.show(TXT_ARE_YOU_SURE, [this, slot] (bool result) {
                     if (result) {
                         saveProjectToSlot(slot);
                     }
@@ -180,15 +181,15 @@ void ProjectPage::initRoute() {
 
 void ProjectPage::saveProjectToSlot(int slot) {
     _engine.suspend();
-    _manager.pages().busy.show("SAVING PROJECT ...");
+    _manager.pages().busy.show(TXT_STATUS_SAVING_PROJECT);
 
     FileManager::task([this, slot] () {
         return FileManager::writeProject(_project, slot);
     }, [this] (fs::Error result) {
         if (result == fs::OK) {
-            showMessage("PROJECT SAVED");
+            showMessage(TXT_MESSAGE_PROJECT_SAVED);
         } else {
-            showMessage(FixedStringBuilder<32>("FAILED (%s)", fs::errorToString(result)));
+            showMessage(FixedStringBuilder<32>(TXT_ERROR_FAILED, fs::errorToString(result)));
         }
         // TODO lock ui mutex
         _manager.pages().busy.close();
@@ -198,18 +199,18 @@ void ProjectPage::saveProjectToSlot(int slot) {
 
 void ProjectPage::loadProjectFromSlot(int slot) {
     _engine.suspend();
-    _manager.pages().busy.show("LOADING PROJECT ...");
+    _manager.pages().busy.show(TXT_STATUS_LOADING_PROJECT);
 
     FileManager::task([this, slot] () {
         // TODO this is running in file manager thread but model notification affect ui
         return FileManager::readProject(_project, slot);
     }, [this] (fs::Error result) {
         if (result == fs::OK) {
-            showMessage("PROJECT LOADED");
+            showMessage(TXT_MESSAGE_PROJECT_LOADED);
         } else if (result == fs::INVALID_CHECKSUM) {
-            showMessage("INVALID PROJECT FILE");
+            showMessage(TXT_ERROR_INVALID_PROJECT_FILE);
         } else {
-            showMessage(FixedStringBuilder<32>("FAILED (%s)", fs::errorToString(result)));
+            showMessage(FixedStringBuilder<32>(TXT_ERROR_FAILED, fs::errorToString(result)));
         }
         // TODO lock ui mutex
         _manager.pages().busy.close();

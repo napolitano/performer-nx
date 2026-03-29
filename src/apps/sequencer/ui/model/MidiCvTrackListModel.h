@@ -69,23 +69,23 @@ private:
 
     static const char *itemName(Item item) {
         switch (item) {
-        case Source:                return "Source";
-        case Voices:                return "Voices";
-        case VoiceConfig:           return "Voice Config";
-        case NotePriority:          return "Note Priority";
-        case LowNote:               return "Low Note";
-        case HighNote:              return "High Note";
-        case PitchBendRange:        return "Pitch Bend";
-        case ModulationRange:       return "Mod Range";
-        case Retrigger:             return "Retrigger";
-        case SlideTime:             return "Slide Time";
-        case Transpose:             return "Transpose";
-        case ArpeggiatorEnabled:    return "Arpeggiator";
-        case ArpeggiatorHold:       return "Hold";
-        case ArpeggiatorMode:       return "Mode";
-        case ArpeggiatorDivisor:    return "Divisor";
-        case ArpeggiatorGateLength: return "Gate Length";
-        case ArpeggiatorOctaves:    return "Octaves";
+        case Source:                return TXT_LIST_LABEL_SOURCE;
+        case Voices:                return TXT_LIST_LABEL_VOICES;
+        case VoiceConfig:           return TXT_LIST_LABEL_VOICE_CONFIG;
+        case NotePriority:          return TXT_LIST_LABEL_NOTE_PRIORITY;
+        case LowNote:               return TXT_LIST_LABEL_LOW_NOTE;
+        case HighNote:              return TXT_LIST_LABEL_HIGH_NOTE;
+        case PitchBendRange:        return TXT_LIST_LABEL_PITCH_BEND;
+        case ModulationRange:       return TXT_LIST_LABEL_MOD_RANGE;
+        case Retrigger:             return TXT_LIST_LABEL_RETRIGGER;
+        case SlideTime:             return TXT_LIST_LABEL_SLIDE_TIME;
+        case Transpose:             return TXT_LIST_LABEL_TRANSPOSE;
+        case ArpeggiatorEnabled:    return TXT_LIST_LABEL_ARPEGGIATOR;
+        case ArpeggiatorHold:       return TXT_LIST_LABEL_HOLD;
+        case ArpeggiatorMode:       return TXT_LIST_LABEL_MODE;
+        case ArpeggiatorDivisor:    return TXT_LIST_LABEL_DIVISOR;
+        case ArpeggiatorGateLength: return TXT_LIST_LABEL_GATE_LENGTH;
+        case ArpeggiatorOctaves:    return TXT_LIST_LABEL_OCTAVE_PLURAL;
         case Last:                  break;
         }
         return nullptr;

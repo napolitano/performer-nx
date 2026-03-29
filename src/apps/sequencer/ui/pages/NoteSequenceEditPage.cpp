@@ -1,3 +1,4 @@
+#include "Config.h"
 #include "NoteSequenceEditPage.h"
 
 #include "Pages.h"
@@ -22,11 +23,11 @@ enum class ContextAction {
 };
 
 static const ContextMenuModel::Item contextMenuItems[] = {
-    { "INIT" },
-    { "COPY" },
-    { "PASTE" },
-    { "DUPL" },
-    { "GEN" },
+    { TXT_MENU_INIT },
+    { TXT_MENU_COPY },
+    { TXT_MENU_PASTE },
+    { TXT_MENU_DUPLICATE },
+    { TXT_MENU_GENERATORS },
 };
 
 enum class Function {
@@ -37,7 +38,13 @@ enum class Function {
     Condition     = 4,
 };
 
-static const char *functionNames[] = { "GATE", "RETRIG", "LENGTH", "NOTE", "COND" };
+static const char *functionNames[] = {
+	TXT_MENU_GATES,
+	TXT_MENU_RETRIGGERS,
+	TXT_MENU_LENGTHS,
+	TXT_MENU_NOTES,
+	TXT_MENU_CONDITIONS
+};
 
 static const NoteSequenceListModel::Item quickEditItems[8] = {
     NoteSequenceListModel::Item::FirstStep,
@@ -72,7 +79,7 @@ void NoteSequenceEditPage::exit() {
 
 void NoteSequenceEditPage::draw(Canvas &canvas) {
     WindowPainter::clear(canvas);
-    WindowPainter::drawHeader(canvas, _model, _engine, "STEPS");
+    WindowPainter::drawHeader(canvas, _model, _engine, TXT_MODE_STEPS);
     WindowPainter::drawActiveFunction(canvas, NoteSequence::layerName(layer()));
     WindowPainter::drawFooter(canvas, functionNames, pageKeyState(), activeFunctionKey());
 
@@ -89,7 +96,7 @@ void NoteSequenceEditPage::draw(Canvas &canvas) {
 
     // draw loop points
     canvas.setBlendMode(BlendMode::Set);
-    canvas.setColor(0xf);
+    canvas.setColor(UI_COLOR_ACTIVE);
     SequencePainter::drawLoopStart(canvas, (sequence.firstStep() - stepOffset) * stepWidth + 1, loopY, stepWidth - 2);
     SequencePainter::drawLoopEnd(canvas, (sequence.lastStep() - stepOffset) * stepWidth + 1, loopY, stepWidth - 2);
 
@@ -102,252 +109,154 @@ void NoteSequenceEditPage::draw(Canvas &canvas) {
 
         // loop
         if (stepIndex > sequence.firstStep() && stepIndex <= sequence.lastStep()) {
-            canvas.setColor(0xf);
+            canvas.setColor(UI_COLOR_ACTIVE);
             canvas.point(x, loopY);
         }
 
-#ifdef CONFIG_ENABLE_NOTE_EDIT_ENHANCEMENTS
-        int stepColor = BasePage::UI_COLOR_ACTIVE;
+        int stepColor = UI_COLOR_ACTIVE;
 
         if ((stepIndex < sequence.firstStep() || stepIndex > sequence.lastStep()) && stepIndex != currentStep) {
-            stepColor = UiColor::UI_COLOR_INACTIVE;
+            stepColor = UI_COLOR_INACTIVE;
         } else if (_stepSelection[stepIndex] || stepIndex != currentStep) {
             if (stepIndex % 4 == 0) {
-                stepColor = UiColor::UI_COLOR_NORMAL;
+                stepColor = UI_COLOR_NORMAL;
             } else {
-                stepColor = UiColor::UI_COLOR_DIM;
+                stepColor = UI_COLOR_DIM;
             }
         }
-#endif
         // step index
         {
-#ifdef CONFIG_ENABLE_NOTE_EDIT_ENHANCEMENTS
             canvas.setColor(stepColor);
-#else
-            canvas.setColor(stepIndex == currentStep ? 0xf : 0x7);
-#endif
-            FixedStringBuilder<8> str("%d", stepIndex + 1);
+            FixedStringBuilder<8> str(TXT_INFO_STEP_INDEX, stepIndex + 1);
             canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y - 2, str);
         }
 
         // step gate
-#ifdef CONFIG_ENABLE_NOTE_EDIT_ENHANCEMENTS
         canvas.setColor(stepColor);
-#else
-        canvas.setColor(stepIndex == currentStep ? 0xf : 0x7);
-#endif
         canvas.drawRect(x + 2, y + 2, stepWidth - 4, stepWidth - 4);
         if (step.gate()) {
-#ifdef CONFIG_ENABLE_NOTE_EDIT_ENHANCEMENTS
             // Dim filled gates outside the active loop range.
-            canvas.setColor(stepIndex >= sequence.firstStep() && stepIndex <= sequence.lastStep() ? BasePage::UI_COLOR_ACTIVE : BasePage::UI_COLOR_INACTIVE);
-#else
-            canvas.setColor(0xf);
-#endif
+            canvas.setColor(stepIndex >= sequence.firstStep() && stepIndex <= sequence.lastStep() ? UI_COLOR_ACTIVE : UI_COLOR_INACTIVE);
             canvas.fillRect(x + 4, y + 4, stepWidth - 8, stepWidth - 8);
         }
 
         // record step
         if (stepIndex == currentRecordStep) {
             // draw circle
-            canvas.setColor(step.gate() ? 0x0 : 0xf);
+            canvas.setColor(step.gate() ? UI_COLOR_BLACK : UI_COLOR_ACTIVE);
             canvas.fillRect(x + 6, y + 6, stepWidth - 12, stepWidth - 12);
-            canvas.setColor(0x7);
+            canvas.setColor(UI_COLOR_DIM);
             canvas.hline(x + 7, y + 5, 2);
             canvas.hline(x + 7, y + 10, 2);
             canvas.vline(x + 5, y + 7, 2);
             canvas.vline(x + 10, y + 7, 2);
         }
 
-        int baseColor = (stepIndex >= sequence.firstStep() && stepIndex <= sequence.lastStep()) ? BasePage::UI_COLOR_NORMAL : BasePage::UI_COLOR_INACTIVE;;
+        int baseColor = (stepIndex >= sequence.firstStep() && stepIndex <= sequence.lastStep()) ? UI_COLOR_NORMAL : UI_COLOR_INACTIVE;;
 
         switch (layer()) {
         case Layer::Gate:
             break;
         case Layer::GateProbability:
-#ifdef CONFIG_ENABLE_NOTE_EDIT_ENHANCEMENTS
             SequencePainter::drawProbability(
                 canvas,
                 baseColor,
                 x + 2, y + 18, stepWidth - 4, 2,
                 step.gateProbability() + 1, NoteSequence::GateProbability::Range
             );
-#else
-            SequencePainter::drawProbability(
-                canvas,
-                x + 2, y + 18, stepWidth - 4, 2,
-                step.gateProbability() + 1, NoteSequence::GateProbability::Range
-            );
-#endif
             break;
         case Layer::GateOffset:
-#ifdef CONFIG_ENABLE_NOTE_EDIT_ENHANCEMENTS
             SequencePainter::drawOffset(
                 canvas,
                 baseColor,
                 x + 2, y + 18, stepWidth - 4, 2,
                 step.gateOffset(), NoteSequence::GateOffset::Min - 1, NoteSequence::GateOffset::Max + 1
             );
-#else
-            SequencePainter::drawOffset(
-                canvas,
-                x + 2, y + 18, stepWidth - 4, 2,
-                step.gateOffset(), NoteSequence::GateOffset::Min - 1, NoteSequence::GateOffset::Max + 1
-            );
-#endif
             break;
         case Layer::Retrigger:
-#ifdef CONFIG_ENABLE_NOTE_EDIT_ENHANCEMENTS
             SequencePainter::drawRetrigger(
                 canvas,
                 baseColor,
                 x, y + 18, stepWidth, 2,
                 step.retrigger() + 1, NoteSequence::Retrigger::Range
             );
-#else
-            SequencePainter::drawRetrigger(
-                canvas,
-                x, y + 18, stepWidth, 2,
-                step.retrigger() + 1, NoteSequence::Retrigger::Range
-            );
-#endif
             break;
         case Layer::RetriggerProbability:
-#ifdef CONFIG_ENABLE_NOTE_EDIT_ENHANCEMENTS
             SequencePainter::drawProbability(
                 canvas,
                 baseColor,
                 x + 2, y + 18, stepWidth - 4, 2,
                 step.retriggerProbability() + 1, NoteSequence::RetriggerProbability::Range
             );
-#else
-            SequencePainter::drawProbability(
-                canvas,
-                x + 2, y + 18, stepWidth - 4, 2,
-                step.retriggerProbability() + 1, NoteSequence::RetriggerProbability::Range
-            );
-#endif
             break;
         case Layer::Length:
-#ifdef CONFIG_ENABLE_NOTE_EDIT_ENHANCEMENTS
             SequencePainter::drawLength(
                 canvas,
                 baseColor,
                 x + 2, y + 18, stepWidth - 4, 6,
                 step.length() + 1, NoteSequence::Length::Range
             );
-#else
-            SequencePainter::drawLength(
-                canvas,
-                x + 2, y + 18, stepWidth - 4, 6,
-                step.length() + 1, NoteSequence::Length::Range
-            );
-#endif
             break;
         case Layer::LengthVariationRange:
-#ifdef CONFIG_ENABLE_NOTE_EDIT_ENHANCEMENTS
             SequencePainter::drawLengthRange(
                 canvas,
                 baseColor,
                 x + 2, y + 18, stepWidth - 4, 6,
                 step.length() + 1, step.lengthVariationRange(), NoteSequence::Length::Range
             );
-#else
-            SequencePainter::drawLengthRange(
-                canvas,
-                x + 2, y + 18, stepWidth - 4, 6,
-                step.length() + 1, step.lengthVariationRange(), NoteSequence::Length::Range
-            );
-#endif
             break;
         case Layer::LengthVariationProbability:
-#ifdef CONFIG_ENABLE_NOTE_EDIT_ENHANCEMENTS
             SequencePainter::drawProbability(
                 canvas,
                 baseColor,
                 x + 2, y + 18, stepWidth - 4, 2,
                 step.lengthVariationProbability() + 1, NoteSequence::LengthVariationProbability::Range
             );
-#else
-            SequencePainter::drawProbability(
-                canvas,
-                x + 2, y + 18, stepWidth - 4, 2,
-                step.lengthVariationProbability() + 1, NoteSequence::LengthVariationProbability::Range
-            );
-#endif
             break;
         case Layer::Note: {
             int rootNote = sequence.selectedRootNote(_model.project().rootNote());
-#ifdef CONFIG_ENABLE_NOTE_EDIT_ENHANCEMENTS
             canvas.setColor(baseColor);
-#else
-            canvas.setColor(0xf);
-#endif
             FixedStringBuilder<8> str;
             scale.noteName(str, step.note(), rootNote, Scale::Short1);
             canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 20, str);
             str.reset();
             scale.noteName(str, step.note(), rootNote, Scale::Short2);
-#ifdef CONFIG_ENABLE_NOTE_EDIT_ENHANCEMENTS
             int octaveColor = baseColor;
             int octave = roundDownDivide(step.note(), scale.notesPerOctave());
             if (octave == 0) {
-                octaveColor = UiColor::UI_COLOR_INACTIVE;
+                octaveColor = UI_COLOR_INACTIVE;
             } else {
-                octaveColor = UiColor::UI_COLOR_DIM;
+                octaveColor = UI_COLOR_DIM;
             }
             canvas.setColor(octaveColor);
-#endif
             canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 27, str);
             break;
         }
         case Layer::NoteVariationRange: {
-            canvas.setColor(0xf);
-            FixedStringBuilder<8> str("%d", step.noteVariationRange());
-#ifdef CONFIG_ENABLE_NOTE_EDIT_ENHANCEMENTS
+            canvas.setColor(UI_COLOR_ACTIVE);
+            FixedStringBuilder<8> str(TXT_INFO_NOTE_VARIATION_RANGE, step.noteVariationRange());
             canvas.setColor(baseColor);
-#endif
             canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 20, str);
             break;
         }
         case Layer::NoteVariationProbability:
-#ifdef CONFIG_ENABLE_NOTE_EDIT_ENHANCEMENTS
             SequencePainter::drawProbability(
                 canvas,
                 baseColor,
                 x + 2, y + 18, stepWidth - 4, 2,
                 step.noteVariationProbability() + 1, NoteSequence::NoteVariationProbability::Range
             );
-#else
-            SequencePainter::drawProbability(
-                canvas,
-                x + 2, y + 18, stepWidth - 4, 2,
-                step.noteVariationProbability() + 1, NoteSequence::NoteVariationProbability::Range
-            );
-#endif
             break;
         case Layer::Slide:
-#ifdef CONFIG_ENABLE_NOTE_EDIT_ENHANCEMENTS
             SequencePainter::drawSlide(
                 canvas,
                 baseColor,
                 x + 4, y + 18, stepWidth - 8, 4,
                 step.slide()
             );
-#else
-            SequencePainter::drawSlide(
-                canvas,
-                x + 4, y + 18, stepWidth - 8, 4,
-                step.slide()
-            );
-#endif
             break;
         case Layer::Condition: {
-#ifdef CONFIG_ENABLE_NOTE_EDIT_ENHANCEMENTS
             canvas.setColor(baseColor);
-#else
-            canvas.setColor(0xf);
-#endif
             FixedStringBuilder<8> str;
             Types::printCondition(str, step.condition(), Types::ConditionFormat::Short1);
             canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 20, str);
@@ -373,11 +282,7 @@ void NoteSequenceEditPage::draw(Canvas &canvas) {
     }
 
     if (_showDetail) {
-#ifdef CONFIG_ENABLE_NOTE_EDIT_ENHANCEMENTS
         drawDetail(canvas, sequence.step(_stepSelection.first()), _stepSelection.first());
-#else
-        drawDetail(canvas, sequence.step(_stepSelection.first()));
-#endif
     }
 }
 
@@ -409,24 +314,6 @@ void NoteSequenceEditPage::updateLeds(Leds &leds) {
 void NoteSequenceEditPage::keyDown(KeyEvent &event) {
     _stepSelection.keyDown(event, stepOffset());
     updateMonitorStep();
-
-#ifdef CONFIG_ENABLE_NOTE_EDIT_ENHANCEMENTS
-    /*
-    // Quick edit of first step and last step
-    const auto &key = event.key();
-    if (globalKeyState()[Key::Page] && !globalKeyState()[Key::Shift] && globalKeyState()[Key::Encoder]) {
-        quickEdit(NoteSequenceListModel::Item::FirstStep); // First Step
-        event.consume();
-        return;
-    }
-
-    if (globalKeyState()[Key::Shift] && !globalKeyState()[Key::Page] && globalKeyState()[Key::Encoder]) {
-        quickEdit(NoteSequenceListModel::Item::LastStep); // Last Step
-        event.consume();
-        return;
-    }
-*/
-#endif
 }
 
 void NoteSequenceEditPage::keyUp(KeyEvent &event) {
@@ -709,11 +596,7 @@ void NoteSequenceEditPage::updateMonitorStep() {
         trackEngine.setMonitorStep(-1);
     }
 }
-#ifdef CONFIG_ENABLE_NOTE_EDIT_ENHANCEMENTS
 void NoteSequenceEditPage::drawDetail(Canvas &canvas, const NoteSequence::Step &step, int stepIndex) {
-#else
-void NoteSequenceEditPage::drawDetail(Canvas &canvas, const NoteSequence::Step &step) {
-#endif
 
     const auto &sequence = _project.selectedNoteSequence();
     const auto &scale = sequence.selectedScale(_project.scale());
@@ -723,26 +606,25 @@ void NoteSequenceEditPage::drawDetail(Canvas &canvas, const NoteSequence::Step &
     WindowPainter::drawFrame(canvas, 64, 16, 128, 32);
 
     canvas.setBlendMode(BlendMode::Set);
-    canvas.setColor(0xf);
+    canvas.setColor(UI_COLOR_ACTIVE);
     canvas.vline(64 + 32, 16, 32);
 
     canvas.setFont(Font::Small);
-    str("%d", _stepSelection.first() + 1);
+    str(TXT_INFO_STEP_INDEX, _stepSelection.first() + 1);
     if (_stepSelection.count() > 1) {
-        str("*");
+        str(TXT_INFO_STEP_SELECTION_MARKER);
     }
     canvas.drawTextCentered(64, 16, 32, 32, str);
 
     canvas.setFont(Font::Tiny);
 
-    int baseColor = (stepIndex >= sequence.firstStep() && stepIndex <= sequence.lastStep()) ? BasePage::UI_COLOR_ACTIVE : BasePage::UI_COLOR_INACTIVE;
+    int baseColor = (stepIndex >= sequence.firstStep() && stepIndex <= sequence.lastStep()) ? UI_COLOR_ACTIVE : UI_COLOR_INACTIVE;
 
     switch (layer()) {
     case Layer::Gate:
     case Layer::Slide:
         break;
     case Layer::GateProbability:
-#ifdef CONFIG_ENABLE_NOTE_EDIT_ENHANCEMENTS
         SequencePainter::drawProbability(
             canvas,
             baseColor,
@@ -750,23 +632,11 @@ void NoteSequenceEditPage::drawDetail(Canvas &canvas, const NoteSequence::Step &
             step.gateProbability() + 1, NoteSequence::GateProbability::Range
         );
         str.reset();
-        str("%.1f%%", 100.f * (step.gateProbability() + 1.f) / NoteSequence::GateProbability::Range);
+        str(TXT_INFO_STEP_PROBABILITY, 100.f * (step.gateProbability() + 1.f) / NoteSequence::GateProbability::Range);
         canvas.setColor(baseColor);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
-#else
-        SequencePainter::drawProbability(
-            canvas,
-            64 + 32 + 8, 32 - 4, 64 - 16, 8,
-            step.gateProbability() + 1, NoteSequence::GateProbability::Range
-        );
-        str.reset();
-        str("%.1f%%", 100.f * (step.gateProbability() + 1.f) / NoteSequence::GateProbability::Range);
-        canvas.setColor(0xf);
-        canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
-#endif
         break;
     case Layer::GateOffset:
-#ifdef CONFIG_ENABLE_NOTE_EDIT_ENHANCEMENTS
         SequencePainter::drawOffset(
             canvas,
             baseColor,
@@ -774,23 +644,11 @@ void NoteSequenceEditPage::drawDetail(Canvas &canvas, const NoteSequence::Step &
             step.gateOffset(), NoteSequence::GateOffset::Min - 1, NoteSequence::GateOffset::Max + 1
         );
         str.reset();
-        str("%.1f%%", 100.f * step.gateOffset() / float(NoteSequence::GateOffset::Max + 1));
+        str(TXT_INFO_STEP_OFFSET, 100.f * step.gateOffset() / float(NoteSequence::GateOffset::Max + 1));
         canvas.setColor(baseColor);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
-#else
-        SequencePainter::drawOffset(
-            canvas,
-            64 + 32 + 8, 32 - 4, 64 - 16, 8,
-            step.gateOffset(), NoteSequence::GateOffset::Min - 1, NoteSequence::GateOffset::Max + 1
-        );
-        str.reset();
-        str("%.1f%%", 100.f * step.gateOffset() / float(NoteSequence::GateOffset::Max + 1));
-        canvas.setColor(0xf);
-        canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
-#endif
         break;
     case Layer::Retrigger:
-#ifdef CONFIG_ENABLE_NOTE_EDIT_ENHANCEMENTS
         SequencePainter::drawRetrigger(
             canvas,
             baseColor,
@@ -798,23 +656,11 @@ void NoteSequenceEditPage::drawDetail(Canvas &canvas, const NoteSequence::Step &
             step.retrigger() + 1, NoteSequence::Retrigger::Range
         );
         str.reset();
-        str("%d", step.retrigger() + 1);
+        str(TXT_INFO_STEP_RETRIGGER, step.retrigger() + 1);
         canvas.setColor(baseColor);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
-#else
-        SequencePainter::drawRetrigger(
-            canvas,
-            64+ 32 + 8, 32 - 4, 64 - 16, 8,
-            step.retrigger() + 1, NoteSequence::Retrigger::Range
-        );
-        str.reset();
-        str("%d", step.retrigger() + 1);
-        canvas.setColor(0xf);
-        canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
-#endif
         break;
     case Layer::RetriggerProbability:
-#ifdef CONFIG_ENABLE_NOTE_EDIT_ENHANCEMENTS
         SequencePainter::drawProbability(
             canvas,
             baseColor,
@@ -822,23 +668,11 @@ void NoteSequenceEditPage::drawDetail(Canvas &canvas, const NoteSequence::Step &
             step.retriggerProbability() + 1, NoteSequence::RetriggerProbability::Range
         );
         str.reset();
-        str("%.1f%%", 100.f * (step.retriggerProbability() + 1.f) / NoteSequence::RetriggerProbability::Range);
+        str(TXT_INFO_STEP_RETRIGGER_PROBABILITY, 100.f * (step.retriggerProbability() + 1.f) / NoteSequence::RetriggerProbability::Range);
         canvas.setColor(baseColor);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
-#else
-        SequencePainter::drawProbability(
-            canvas,
-            64 + 32 + 8, 32 - 4, 64 - 16, 8,
-            step.retriggerProbability() + 1, NoteSequence::RetriggerProbability::Range
-        );
-        str.reset();
-        str("%.1f%%", 100.f * (step.retriggerProbability() + 1.f) / NoteSequence::RetriggerProbability::Range);
-        canvas.setColor(0xf);
-        canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
-#endif
         break;
     case Layer::Length:
-#ifdef CONFIG_ENABLE_NOTE_EDIT_ENHANCEMENTS
         SequencePainter::drawLength(
             canvas,
             baseColor,
@@ -846,23 +680,11 @@ void NoteSequenceEditPage::drawDetail(Canvas &canvas, const NoteSequence::Step &
             step.length() + 1, NoteSequence::Length::Range
         );
         str.reset();
-        str("%.1f%%", 100.f * (step.length() + 1.f) / NoteSequence::Length::Range);
+        str(TXT_INFO_STEP_LENGTH, 100.f * (step.length() + 1.f) / NoteSequence::Length::Range);
         canvas.setColor(baseColor);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
-#else
-        SequencePainter::drawLength(
-            canvas,
-            64 + 32 + 8, 32 - 4, 64 - 16, 8,
-            step.length() + 1, NoteSequence::Length::Range
-        );
-        str.reset();
-        str("%.1f%%", 100.f * (step.length() + 1.f) / NoteSequence::Length::Range);
-        canvas.setColor(0xf);
-        canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
-#endif
         break;
     case Layer::LengthVariationRange:
-#ifdef CONFIG_ENABLE_NOTE_EDIT_ENHANCEMENTS
         SequencePainter::drawLengthRange(
             canvas,
             baseColor,
@@ -870,23 +692,11 @@ void NoteSequenceEditPage::drawDetail(Canvas &canvas, const NoteSequence::Step &
             step.length() + 1, step.lengthVariationRange(), NoteSequence::Length::Range
         );
         str.reset();
-        str("%.1f%%", 100.f * (step.lengthVariationRange()) / NoteSequence::Length::Range);
+        str(TXT_INFO_STEP_LENGTH_VARIATION_RANGE, 100.f * (step.lengthVariationRange()) / NoteSequence::Length::Range);
         canvas.setColor(baseColor);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
-#else
-        SequencePainter::drawLengthRange(
-            canvas,
-            64 + 32 + 8, 32 - 4, 64 - 16, 8,
-            step.length() + 1, step.lengthVariationRange(), NoteSequence::Length::Range
-        );
-        str.reset();
-        str("%.1f%%", 100.f * (step.lengthVariationRange()) / NoteSequence::Length::Range);
-        canvas.setColor(0xf);
-        canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
-#endif
         break;
     case Layer::LengthVariationProbability:
-#ifdef CONFIG_ENABLE_NOTE_EDIT_ENHANCEMENTS
         SequencePainter::drawProbability(
             canvas,
             baseColor,
@@ -894,41 +704,25 @@ void NoteSequenceEditPage::drawDetail(Canvas &canvas, const NoteSequence::Step &
             step.lengthVariationProbability() + 1, NoteSequence::LengthVariationProbability::Range
         );
         str.reset();
-        str("%.1f%%", 100.f * (step.lengthVariationProbability() + 1.f) / NoteSequence::LengthVariationProbability::Range);
+        str(TXT_INFO_STEP_LENGTH_VARIATION_PROBABILITY, 100.f * (step.lengthVariationProbability() + 1.f) / NoteSequence::LengthVariationProbability::Range);
         canvas.setColor(baseColor);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
-#else
-        SequencePainter::drawProbability(
-            canvas,
-            64 + 32 + 8, 32 - 4, 64 - 16, 8,
-            step.lengthVariationProbability() + 1, NoteSequence::LengthVariationProbability::Range
-        );
-        str.reset();
-        str("%.1f%%", 100.f * (step.lengthVariationProbability() + 1.f) / NoteSequence::LengthVariationProbability::Range);
-        canvas.setColor(0xf);
-        canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
-#endif
         break;
     case Layer::Note:
-#ifdef CONFIG_ENABLE_NOTE_EDIT_ENHANCEMENTS
         canvas.setColor(baseColor);
-#endif
         str.reset();
         scale.noteName(str, step.note(), sequence.selectedRootNote(_model.project().rootNote()), Scale::Long);
         canvas.setFont(Font::Small);
         canvas.drawTextCentered(64 + 32, 16, 64, 32, str);
         break;
     case Layer::NoteVariationRange:
-#ifdef CONFIG_ENABLE_NOTE_EDIT_ENHANCEMENTS
         canvas.setColor(baseColor);
-#endif
         str.reset();
-        str("%d", step.noteVariationRange());
+        str(TXT_INFO_NOTE_VARIATION_RANGE, step.noteVariationRange());
         canvas.setFont(Font::Small);
         canvas.drawTextCentered(64 + 32, 16, 64, 32, str);
         break;
     case Layer::NoteVariationProbability:
-#ifdef CONFIG_ENABLE_NOTE_EDIT_ENHANCEMENTS
         SequencePainter::drawProbability(
             canvas,
             baseColor,
@@ -936,25 +730,12 @@ void NoteSequenceEditPage::drawDetail(Canvas &canvas, const NoteSequence::Step &
             step.noteVariationProbability() + 1, NoteSequence::NoteVariationProbability::Range
         );
         str.reset();
-        str("%.1f%%", 100.f * (step.noteVariationProbability() + 1.f) / NoteSequence::NoteVariationProbability::Range);
+        str(TXT_INFO_NOTE_VARIATION_PROBABILITY, 100.f * (step.noteVariationProbability() + 1.f) / NoteSequence::NoteVariationProbability::Range);
         canvas.setColor(baseColor);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
-#else
-        SequencePainter::drawProbability(
-            canvas,
-            64 + 32 + 8, 32 - 4, 64 - 16, 8,
-            step.noteVariationProbability() + 1, NoteSequence::NoteVariationProbability::Range
-        );
-        str.reset();
-        str("%.1f%%", 100.f * (step.noteVariationProbability() + 1.f) / NoteSequence::NoteVariationProbability::Range);
-        canvas.setColor(0xf);
-        canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
-#endif
         break;
     case Layer::Condition:
-#ifdef CONFIG_ENABLE_NOTE_EDIT_ENHANCEMENTS
         canvas.setColor(baseColor);
-#endif
         str.reset();
         Types::printCondition(str, step.condition(), Types::ConditionFormat::Long);
         canvas.setFont(Font::Small);
@@ -1007,22 +788,22 @@ bool NoteSequenceEditPage::contextActionEnabled(int index) const {
 
 void NoteSequenceEditPage::initSequence() {
     _project.selectedNoteSequence().clearSteps();
-    showMessage("STEPS INITIALIZED");
+    showMessage(TXT_MESSAGE_STEPS_INITIALIZED);
 }
 
 void NoteSequenceEditPage::copySequence() {
     _model.clipBoard().copyNoteSequenceSteps(_project.selectedNoteSequence(), _stepSelection.selected());
-    showMessage("STEPS COPIED");
+    showMessage(TXT_MESSAGE_STEPS_COPIED);
 }
 
 void NoteSequenceEditPage::pasteSequence() {
     _model.clipBoard().pasteNoteSequenceSteps(_project.selectedNoteSequence(), _stepSelection.selected());
-    showMessage("STEPS PASTED");
+    showMessage(TXT_MESSAGE_STEPS_PASTED);
 }
 
 void NoteSequenceEditPage::duplicateSequence() {
     _project.selectedNoteSequence().duplicateSteps();
-    showMessage("STEPS DUPLICATED");
+    showMessage(TXT_MESSAGE_STEPS_DUPLICATED);
 }
 
 void NoteSequenceEditPage::generateSequence() {

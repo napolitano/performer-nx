@@ -36,9 +36,9 @@ public:
 
         static const char *eventName(Event event) {
             switch (event) {
-            case Event::None:           return "None";
-            case Event::Note:           return "Note";
-            case Event::ControlChange:  return "CC";
+            case Event::None:           return TXT_MODEL_NONE;
+            case Event::Note:           return TXT_MODEL_NOTE;
+            case Event::ControlChange:  return TXT_MODEL_CC;
             case Event::Last:           break;
             }
             return nullptr;
@@ -151,7 +151,7 @@ public:
 
         void printVelocitySource(StringBuilder &str) const {
             if (!printTrackSource(str, velocitySource())) {
-                str("%d", int(velocitySource()) - int(VelocitySource::FirstVelocity));
+                str(TXT_MODEL_VELOCITY, int(velocitySource()) - int(VelocitySource::FirstVelocity));
             }
         }
 
@@ -167,7 +167,7 @@ public:
         }
 
         void printControlNumber(StringBuilder &str) const {
-            str("%d", controlNumber());
+            str(TXT_MODEL_CONTROL_NUMBER, controlNumber());
         }
 
         // controlSource
@@ -225,7 +225,7 @@ public:
         template<typename Enum>
         static bool printTrackSource(StringBuilder &str, Enum value) {
             if (int(value) >= int(Enum::FirstTrack) && int(value) <= int(Enum::LastTrack)) {
-                str("Track %d", int(value) - int(Enum::FirstTrack) + 1);
+                str(TXT_MODEL_TRACK, int(value) - int(Enum::FirstTrack) + 1);
                 return true;
             }
             return false;

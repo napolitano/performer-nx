@@ -1,13 +1,14 @@
+#include "Config.h"
 #include "Types.h"
 
 const Types::ConditionInfo Types::conditionInfos[] = {
-    [int(Types::Condition::Off)]        = { "Off",      "-",    ""  },
-    [int(Types::Condition::Fill)]       = { "Fill",     "F",    ""  },
-    [int(Types::Condition::NotFill)]    = { "!Fill",    "!F",   ""  },
-    [int(Types::Condition::Pre)]        = { "Pre",      "P",    ""  },
-    [int(Types::Condition::NotPre)]     = { "!Pre",     "!P",   ""  },
-    [int(Types::Condition::First)]      = { "First",    "1",    ""  },
-    [int(Types::Condition::NotFirst)]   = { "!First",   "!1",   ""  },
+    [int(Types::Condition::Off)]        = { TXT_LIST_LABEL_CONDITION_OFF,         TXT_LIST_LABEL_CONDITION_OFF_SHORT,    ""  },
+    [int(Types::Condition::Fill)]       = { TXT_LIST_LABEL_CONDITION_FILL,        TXT_LIST_LABEL_CONDITION_FILL_SHORT,    ""  },
+    [int(Types::Condition::NotFill)]    = { TXT_LIST_LABEL_CONDITION_NOT_FILL,    TXT_LIST_LABEL_CONDITION_NOT_FILL_SHORT,   ""  },
+    [int(Types::Condition::Pre)]        = { TXT_LIST_LABEL_CONDITION_PRE,         TXT_LIST_LABEL_CONDITION_PRE_SHORT,    ""  },
+    [int(Types::Condition::NotPre)]     = { TXT_LIST_LABEL_CONDITION_NOT_PRE,     TXT_LIST_LABEL_CONDITION_NOT_PRE_SHORT,   ""  },
+    [int(Types::Condition::First)]      = { TXT_LIST_LABEL_CONDITION_FIRST,       TXT_LIST_LABEL_CONDITION_FIRST_SHORT,    ""  },
+    [int(Types::Condition::NotFirst)]   = { TXT_LIST_LABEL_CONDITION_NOT_FIRST,   TXT_LIST_LABEL_CONDITION_NOT_FIRST_SHORT,   ""  },
 };
 
 const Types::VoltageRangeInfo Types::voltageRangeInfos[] = {

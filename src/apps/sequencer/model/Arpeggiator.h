@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Config.h"
 #include "Serialize.h"
 #include "ModelUtils.h"
 
@@ -29,16 +30,16 @@ public:
 
     static const char *modeName(Mode mode) {
         switch (mode) {
-        case Mode::PlayOrder:   return "Play Order";
-        case Mode::Up:          return "Up";
-        case Mode::Down:        return "Down";
-        case Mode::UpDown:      return "Up Down";
-        case Mode::DownUp:      return "Down Up";
-        case Mode::UpAndDown:   return "Up & Down";
-        case Mode::DownAndUp:   return "Down & Up";
-        case Mode::Converge:    return "Converge";
-        case Mode::Diverge:     return "Diverge";
-        case Mode::Random:      return "Random";
+        case Mode::PlayOrder:   return TXT_MODEL_MODE_PLAY_ORDER;
+        case Mode::Up:          return TXT_MODEL_MODE_UP;
+        case Mode::Down:        return TXT_MODEL_MODE_DOWN;
+        case Mode::UpDown:      return TXT_MODEL_MODE_UP_DOWN;
+        case Mode::DownUp:      return TXT_MODEL_MODE_DOWN_UP;
+        case Mode::UpAndDown:   return TXT_MODEL_MODE_UP_AND_DOWN;
+        case Mode::DownAndUp:   return TXT_MODEL_MODE_DOWN_AND_UP;
+        case Mode::Converge:    return TXT_MODEL_MODE_CONVERGE;
+        case Mode::Diverge:     return TXT_MODEL_MODE_DIVERGE;
+        case Mode::Random:      return TXT_MODEL_MODE_RANDOM;
         case Mode::Last:        break;
         }
         return nullptr;
@@ -137,7 +138,7 @@ public:
     }
 
     void printGateLength(StringBuilder &str) const {
-        str("%d%%", gateLength());
+        str(TXT_MODEL_GATE_LENGTH, gateLength());
     }
 
     // octaves
@@ -154,15 +155,15 @@ public:
     void printOctaves(StringBuilder &str) const {
         int value = octaves();
         if (value > 5) {
-            str("Up Down %d", value - 5);
+            str(TXT_MODEL_PRINT_OCTAVE_UP_DOWN, value - 5);
         } else if (value > 0) {
-            str("Up %d", value);
+            str(TXT_MODEL_PRINT_OCTAVE_UP, value);
         } else if (value == 0) {
-            str("Off");
+            str(TXT_MODEL_PRINT_OCTAVE_OFF);
         } else if (value >= -5) {
-            str("Down %d", -value);
+            str(TXT_MODEL_PRINT_OCTAVE_DOWN, -value);
         } else if (value >= -10) {
-            str("Down Up %d", -(value + 5));
+            str(TXT_MODEL_PRINT_OCTAVE_DOWN_UP, -(value + 5));
         }
     }
 

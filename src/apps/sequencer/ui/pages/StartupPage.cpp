@@ -1,3 +1,4 @@
+#include "Config.h"
 #include "StartupPage.h"
 
 #include "ui/pages/Pages.h"
@@ -30,11 +31,10 @@ void StartupPage::draw(Canvas &canvas) {
         close();
     }
 
-#ifdef CONFIG_ENABLE_STARTPAGE_ENHANCEMENTS
     canvas.setColor(0);
     canvas.fill();
 
-    canvas.setColor(UiColor::UI_COLOR_ACTIVE);
+    canvas.setColor(UI_COLOR_ACTIVE);
     canvas.setFont(Font::Small);
     canvas.drawTextCentered(0, 2, Width, 32, CONFIG_VERSION_NAME);
 
@@ -50,27 +50,11 @@ void StartupPage::draw(Canvas &canvas) {
 
     drawActivityIndicator(canvas, yStart, minWidth, maxWidth, distance, indicatorCount, throttle, filled, modulateColor, direction);
 
-    canvas.setColor(UiColor::UI_COLOR_DIM_MORE);
+    canvas.setColor(UI_COLOR_DIM_MORE);
     canvas.setFont(Font::Tiny);
     FixedStringBuilder<32> versionString;
-    versionString("%d.%d.%d", CONFIG_VERSION_MAJOR, CONFIG_VERSION_MINOR, CONFIG_VERSION_REVISION);
+    versionString(TXT_INFO_VERSION_NUMBER, CONFIG_VERSION_MAJOR, CONFIG_VERSION_MINOR, CONFIG_VERSION_REVISION);
     canvas.drawTextCentered(0, 35, Width, 40, versionString);
-#else
-    canvas.setColor(0);
-    canvas.fill();
-
-    canvas.setColor(0xf);
-
-    canvas.setFont(Font::Small);
-    canvas.drawTextCentered(0, 0, Width, 32, "PERFORMER");
-
-    canvas.setFont(Font::Tiny);
-    canvas.drawTextCentered(0, 32, Width, 32, "LOADING ...");
-
-    int w = std::floor(relTime() * Width);
-    canvas.fillRect(0, 32 - 2, w, 4);
-#endif
-
 }
 
 void StartupPage::updateLeds(Leds &leds) {
@@ -89,7 +73,6 @@ float StartupPage::time() const {
     return (os::ticks() - _startTicks) / float(os::time::ms(1000));
 }
 
-#ifdef CONFIG_ENABLE_STARTPAGE_ENHANCEMENTS
 void StartupPage::drawActivityIndicator(Canvas &canvas, int yStart, int minWidth, int maxWidth, int distance, int indicatorCount, int throttle,bool filled, bool modulateColor, IndicatorDirection direction) {
    if (indicatorCount <= 0 || minWidth <= 0 || maxWidth < minWidth) {
         return;
@@ -172,7 +155,7 @@ void StartupPage::drawActivityIndicator(Canvas &canvas, int yStart, int minWidth
         int color = UI_COLOR_ACTIVE;
 
         if (modulateColor) {
-            const int minColor = UiColor::UI_COLOR_INACTIVE;
+            const int minColor = UI_COLOR_INACTIVE;
             const int maxColor = 0xf;
 
             float brightness = pulse * pulse;
@@ -190,5 +173,3 @@ void StartupPage::drawActivityIndicator(Canvas &canvas, int yStart, int minWidth
         }
     }
 }
-
-#endif

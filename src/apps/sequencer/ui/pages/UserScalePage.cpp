@@ -1,3 +1,4 @@
+#include "Config.h"
 #include "UserScalePage.h"
 
 #include "ui/pages/Pages.h"
@@ -15,14 +16,20 @@ enum class ContextAction {
 };
 
 static const ContextMenuModel::Item contextMenuItems[] = {
-    { "INIT" },
-    { "COPY" },
-    { "PASTE" },
-    { "LOAD" },
-    { "SAVE" },
+    { TXT_MENU_INIT },
+    { TXT_MENU_COPY },
+    { TXT_MENU_PASTE },
+    { TXT_MENU_LOAD },
+    { TXT_MENU_SAVE },
 };
 
-static const char *functionNames[] = { "USER1", "USER2", "USER3", "USER4", nullptr };
+static const char *functionNames[] = {
+    TXT_MENU_USER_SCALE_1,
+    TXT_MENU_USER_SCALE_2,
+    TXT_MENU_USER_SCALE_3,
+    TXT_MENU_USER_SCALE_4,
+    nullptr
+};
 
 UserScalePage::UserScalePage(PageManager &manager, PageContext &context) :
     ListPage(manager, context, _listModel)
@@ -38,8 +45,8 @@ void UserScalePage::exit() {
 
 void UserScalePage::draw(Canvas &canvas) {
     WindowPainter::clear(canvas);
-    WindowPainter::drawHeader(canvas, _model, _engine, "USER SCALE");
-    FixedStringBuilder<8> str("USER%d", _selectedIndex + 1);
+    WindowPainter::drawHeader(canvas, _model, _engine, TXT_MODE_USER_SCALE);
+    FixedStringBuilder<8> str(TXT_FUNCTION_USER_SCALE_NUMBER, _selectedIndex + 1);
     WindowPainter::drawActiveFunction(canvas, str);
     WindowPainter::drawFooter(canvas, functionNames, pageKeyState(), _selectedIndex);
 
@@ -63,7 +70,7 @@ void UserScalePage::keyPress(KeyPressEvent &event) {
     }
 
     if (key.is(Key::Encoder) && selectedRow() == 0) {
-        _manager.pages().textInput.show("NAME:", _userScale->name(), UserScale::NameLength, [this] (bool result, const char *text) {
+        _manager.pages().textInput.show(TXT_ENTER_NAME_PREFIX, _userScale->name(), UserScale::NameLength, [this] (bool result, const char *text) {
             if (result) {
                 _userScale->setName(text);
             }
@@ -129,23 +136,23 @@ bool UserScalePage::contextActionEnabled(int index) const {
 
 void UserScalePage::initUserScale() {
     _userScale->clear();
-    showMessage("USER SCALE INITIALIZED");
+    showMessage(TXT_MESSAGE_USER_SCALE_INITIALIZED);
 }
 
 void UserScalePage::copyUserScale() {
     _model.clipBoard().copyUserScale(*_userScale);
-    showMessage("USER SCALE COPIED");
+    showMessage(TXT_MESSAGE_USER_SCALE_COPIED);
 }
 
 void UserScalePage::pasteUserScale() {
     _model.clipBoard().pasteUserScale(*_userScale);
-    showMessage("USER SCALE PASTED");
+    showMessage(TXT_MESSAGE_USER_SCALE_PASTED);
 }
 
 void UserScalePage::loadUserScale() {
-    _manager.pages().fileSelect.show("LOAD SCALE", FileType::UserScale, 0, false, [this] (bool result, int slot) {
+    _manager.pages().fileSelect.show(TXT_FUNCTION_USER_SCLAE_LOAD, FileType::UserScale, 0, false, [this] (bool result, int slot) {
         if (result) {
-            _manager.pages().confirmation.show("ARE YOU SURE?", [this, slot] (bool result) {
+            _manager.pages().confirmation.show(TXT_ARE_YOU_SURE, [this, slot] (bool result) {
                 if (result) {
                     loadUserScaleFromSlot(slot);
                 }
@@ -155,10 +162,10 @@ void UserScalePage::loadUserScale() {
 }
 
 void UserScalePage::saveUserScale() {
-    _manager.pages().fileSelect.show("SAVE SCALE", FileType::UserScale, 0, true, [this] (bool result, int slot) {
+    _manager.pages().fileSelect.show(TXT_FUNCTION_USER_SCALE_SAVE, FileType::UserScale, 0, true, [this] (bool result, int slot) {
         if (result) {
             if (FileManager::slotUsed(FileType::UserScale, slot)) {
-                _manager.pages().confirmation.show("ARE YOU SURE?", [this, slot] (bool result) {
+                _manager.pages().confirmation.show(TXT_ARE_YOU_SURE, [this, slot] (bool result) {
                     if (result) {
                         saveUserScaleToSlot(slot);
                     }
@@ -172,15 +179,15 @@ void UserScalePage::saveUserScale() {
 
 void UserScalePage::saveUserScaleToSlot(int slot) {
     _engine.suspend();
-    _manager.pages().busy.show("SAVING USER SCALE ...");
+    _manager.pages().busy.show(TXT_STATUS_SAVING_USER_SCALE);
 
     FileManager::task([this, slot] () {
         return FileManager::writeUserScale(*_userScale, slot);
     }, [this] (fs::Error result) {
         if (result == fs::OK) {
-            showMessage("USER SCALE SAVED");
+            showMessage(TXT_MESSAGE_USER_SCALE_SAVED);
         } else {
-            showMessage(FixedStringBuilder<32>("FAILED (%s)", fs::errorToString(result)));
+            showMessage(FixedStringBuilder<32>(TXT_ERROR_FAILED, fs::errorToString(result)));
         }
         // TODO lock ui mutex
         _manager.pages().busy.close();
@@ -190,17 +197,17 @@ void UserScalePage::saveUserScaleToSlot(int slot) {
 
 void UserScalePage::loadUserScaleFromSlot(int slot) {
     _engine.suspend();
-    _manager.pages().busy.show("LOADING USER SCALE ...");
+    _manager.pages().busy.show(TXT_STATUS_LOADING_USER_SCALE);
 
     FileManager::task([this, slot] () {
         return FileManager::readUserScale(*_userScale, slot);
     }, [this] (fs::Error result) {
         if (result == fs::OK) {
-            showMessage("USER SCALE LOADED");
+            showMessage(TXT_MESSAGE_USER_SCALE_LOADED);
         } else if (result == fs::INVALID_CHECKSUM) {
-            showMessage("INVALID USER SCALE FILE");
+            showMessage(TXT_ERROR_INVALID_USER_SCALE_FILE);
         } else {
-            showMessage(FixedStringBuilder<32>("FAILED (%s)", fs::errorToString(result)));
+            showMessage(FixedStringBuilder<32>(TXT_ERROR_FAILED, fs::errorToString(result)));
         }
         // TODO lock ui mutex
         _manager.pages().busy.close();

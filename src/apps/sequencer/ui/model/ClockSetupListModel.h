@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Config.h"
+
 #include "ListModel.h"
 
 #include "model/ClockSetup.h"
@@ -51,18 +53,18 @@ private:
 
     static const char *itemName(Item item) {
         switch (item) {
-        case Mode:              return "Mode";
-        case ShiftMode:         return "Shift Mode";
-        case ClockInputDivisor: return "Input Divisor";
-        case ClockInputMode:    return "Input Mode";
-        case ClockOutputDivisor:return "Output Divisor";
-        case ClockOutputSwing:  return "Output Swing";
-        case ClockOutputPulse:  return "Output Pulse";
-        case ClockOutputMode:   return "Output Mode";
-        case MidiRx:            return "MIDI RX";
-        case MidiTx:            return "MIDI TX";
-        case UsbRx:             return "USB RX";
-        case UsbTx:             return "USB TX";
+        case Mode:              return TXT_LIST_LABEL_MODE;
+        case ShiftMode:         return TXT_LIST_LABEL_SHIFT_MODE;
+        case ClockInputDivisor: return TXT_LIST_LABEL_INPUT_DIVISOR;
+        case ClockInputMode:    return TXT_LIST_LABEL_INPUT_MODE;
+        case ClockOutputDivisor:return TXT_LIST_LABEL_OUTPUT_DIVISOR;
+        case ClockOutputSwing:  return TXT_LIST_LABEL_OUTPUT_SWING;
+        case ClockOutputPulse:  return TXT_LIST_LABEL_OUTPUT_PULSE;
+        case ClockOutputMode:   return TXT_LIST_LABEL_OUTPUT_MODE;
+        case MidiRx:            return TXT_LIST_LABEL_MIDI_RX;
+        case MidiTx:            return TXT_LIST_LABEL_MIDI_TX;
+        case UsbRx:             return TXT_LIST_LABEL_USB_RX;
+        case UsbTx:             return TXT_LIST_LABEL_USB_TX;
         case Last:              break;
         }
         return nullptr;

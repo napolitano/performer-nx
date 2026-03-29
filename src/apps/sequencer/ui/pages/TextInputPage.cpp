@@ -1,3 +1,4 @@
+#include "Config.h"
 #include "TextInputPage.h"
 
 #include "ui/LedPainter.h"
@@ -8,11 +9,7 @@
 
 #include <cstring>
 
-static const char characterSet[] = {
-    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-    '-', ' '
-};
+static const char characterSet[] = TXT_CHARACTER_SET;
 
 enum class Function {
     Backspace   = 0,
@@ -22,7 +19,13 @@ enum class Function {
     OK          = 4,
 };
 
-static const char *functionNames[] = { "BS", "DEL", "CLEAR", "CANCEL", "OK" };
+static const char *functionNames[] = {
+    TXT_MENU_BACKSPACE,
+    TXT_MENU_DELETE,
+    TXT_MENU_CLEAR,
+    TXT_MENU_CANCEL,
+    TXT_MENU_OK
+};
 
 
 TextInputPage::TextInputPage(PageManager &manager, PageContext &context) :
@@ -53,7 +56,7 @@ void TextInputPage::draw(Canvas &canvas) {
     WindowPainter::drawFooter(canvas, functionNames, pageKeyState());
 
     canvas.setBlendMode(BlendMode::Set);
-    canvas.setColor(0xf);
+    canvas.setColor(UI_COLOR_ACTIVE);
     canvas.setFont(Font::Small);
 
     const int titleX = 28;
@@ -78,7 +81,7 @@ void TextInputPage::draw(Canvas &canvas) {
     }
 
     if (os::ticks() % os::time::ms(300) < os::time::ms(150)) {
-        canvas.setColor(0x7);
+        canvas.setColor(UI_COLOR_DIM);
         canvas.fillRect(titleX + titleWidth + offset, titleY - 8, width - 1, 12);
         const char str[2] = { _text[_cursorIndex], '\0' };
         canvas.setBlendMode(BlendMode::Sub);
@@ -87,16 +90,16 @@ void TextInputPage::draw(Canvas &canvas) {
     }
 
     canvas.setFont(Font::Tiny);
-    canvas.setColor(0xf);
+    canvas.setColor(UI_COLOR_ACTIVE);
 
     int ix = 0;
     int iy = 0;
     for (int i = 0; i < int(sizeof(characterSet)); ++i) {
         canvas.drawTextCentered(charsX + ix * 10, charsY + iy * 10, 10, 10, FixedStringBuilder<2>("%c", characterSet[i]));
         if (_selectedIndex == i) {
-            canvas.setColor(pageKeyState()[Key::Encoder] ? 0xf : 0x7);
+            canvas.setColor(pageKeyState()[Key::Encoder] ? UI_COLOR_ACTIVE : UI_COLOR_DIM);
             canvas.drawRect(charsX + ix * 10, charsY + iy * 10 + 1, 9, 9);
-            canvas.setColor(0xf);
+            canvas.setColor(UI_COLOR_ACTIVE);
         }
         ++ix;
         if (ix % 20 == 0) {

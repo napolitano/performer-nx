@@ -33,7 +33,7 @@ public:
         } else {
             int index = row - int(Item::Last);
             if (column == 0) {
-                str("Item%d", index + 1);
+                str(TXT_LIST_LABEL_ITEM, index + 1);
             } else if (column == 1) {
                 _userScale->printItem(index, str);
             }
@@ -63,9 +63,9 @@ private:
 
     const char *itemName(Item item) const {
         switch (item) {
-        case Name:  return "Name";
-        case Mode:  return "Mode";
-        case Size:  return "Size";
+        case Name:  return TXT_LIST_LABEL_NAME;
+        case Mode:  return TXT_LIST_LABEL_MODE;
+        case Size:  return TXT_LIST_LABEL_SIZE;
         case Last:  break;
         }
         return nullptr;

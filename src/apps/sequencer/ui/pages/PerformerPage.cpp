@@ -32,10 +32,16 @@ void PerformerPage::exit() {
 void PerformerPage::draw(Canvas &canvas) {
     const auto &playState = _project.playState();
     bool hasCancel = playState.hasSyncedRequests() || playState.hasLatchedRequests();
-    const char *functionNames[] = { "LATCH", "SYNC", "UNMUTE", "FILL", hasCancel ? "CANCEL" : nullptr };
+    const char *functionNames[] = {
+        TXT_MENU_LATCH,
+        TXT_MENU_SYNC,
+        TXT_MENU_UNMUTE,
+        TXT_MENU_FILL,
+        hasCancel ? TXT_MENU_CANCEL : nullptr
+    };
 
     WindowPainter::clear(canvas);
-    WindowPainter::drawHeader(canvas, _model, _engine, "PERFORMER");
+    WindowPainter::drawHeader(canvas, _model, _engine, TXT_MODE_PERFORMANCE);
     WindowPainter::drawFooter(canvas, functionNames, pageKeyState());
 
     constexpr int Border = 4;
@@ -59,17 +65,17 @@ void PerformerPage::draw(Canvas &canvas) {
         x += 8;
 
         // draw track number (highlight when fill is active)
-        canvas.setColor(trackState.fill() ? 0xf : 0x7);
-        canvas.drawTextCentered(x, y - 2, w, 8, FixedStringBuilder<8>("T%d", trackIndex + 1));
+        canvas.setColor(trackState.fill() ? UI_COLOR_ACTIVE : UI_COLOR_DIM);
+        canvas.drawTextCentered(x, y - 2, w, 8, FixedStringBuilder<8>(TXT_INFO_TRACK, trackIndex + 1));
 
         y += 8;
 
         // draw outer rectangle (track activity)
-        canvas.setColor(trackEngine.activity() ? 0xf : 0x7);
+        canvas.setColor(trackEngine.activity() ? UI_COLOR_ACTIVE : UI_COLOR_DIM);
         canvas.drawRect(x, y, w, h);
 
         // draw mutes and mute requests
-        canvas.setColor(0xf);
+        canvas.setColor(UI_COLOR_ACTIVE);
         if (trackState.hasMuteRequest() && trackState.mute() != trackState.requestedMute()) {
             hasRequested = true;
             canvas.fillRect(x + BorderRequested, y + BorderRequested, w - 2 * BorderRequested, h - 2 * BorderRequested);
@@ -78,22 +84,18 @@ void PerformerPage::draw(Canvas &canvas) {
         }
 
         // draw sequence progress
-#ifdef CONFIG_ENABLE_NOTE_EDIT_ENHANCEMENTS
-        SequencePainter::drawSequenceProgress(canvas, 0xf, x, y + h + 2, w, 2, trackEngine.sequenceProgress());
-#else
-        SequencePainter::drawSequenceProgress(canvas, x, y + h + 2, w, 2, trackEngine.sequenceProgress());
-#endif
+        SequencePainter::drawSequenceProgress(canvas, UI_COLOR_ACTIVE, x, y + h + 2, w, 2, trackEngine.sequenceProgress());
 
         // draw fill & fill amount amount
         bool pressed = pageKeyState()[MatrixMap::fromStep(trackIndex)];
-        canvas.setColor(pressed ? 0x7 : 0x3);
+        canvas.setColor(pressed ? UI_COLOR_DIM : UI_COLOR_DIM_MORE);
         canvas.fillRect(x, y + h + 6, w, 4);
-        canvas.setColor(pressed ? 0xf : 0x7);
+        canvas.setColor(pressed ? UI_COLOR_ACTIVE : UI_COLOR_DIM);
         canvas.fillRect(x, y + h + 6, (trackState.fillAmount() * w) / 100, 4);
     }
 
     if (playState.hasSyncedRequests() && hasRequested) {
-        canvas.setColor(0xf);
+        canvas.setColor(UI_COLOR_ACTIVE);
         canvas.hline(0, 10, _engine.syncFraction() * Width);
     }
 }

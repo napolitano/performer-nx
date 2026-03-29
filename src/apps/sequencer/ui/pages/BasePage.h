@@ -24,15 +24,6 @@ struct PageContext {
 
 class BasePage : public Page {
 public:
-    // UI
-    enum UiColor {
-        UI_COLOR_ACTIVE   = 0xf,
-        UI_COLOR_NORMAL   = 0xc,
-        UI_COLOR_DIM      = 0x8,
-        UI_COLOR_DIM_MORE = 0x5,
-        UI_COLOR_INACTIVE = 0x2
-    };
-
     BasePage(PageManager &manager, PageContext &context);
 
 

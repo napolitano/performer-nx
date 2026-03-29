@@ -40,9 +40,9 @@ public:
 
     static const char *trackModeName(TrackMode trackMode) {
         switch (trackMode) {
-        case TrackMode::Note:   return "Note";
-        case TrackMode::Curve:  return "Curve";
-        case TrackMode::MidiCv: return "MIDI/CV";
+        case TrackMode::Note:   return TXT_LIST_LABEL_NOTE;
+        case TrackMode::Curve:  return TXT_LIST_LABEL_CURVE;
+        case TrackMode::MidiCv: return TXT_LIST_LABEL_MIDI_CV;
         case TrackMode::Last:   break;
         }
         return nullptr;
@@ -88,9 +88,9 @@ public:
 
     void printLinkTrack(StringBuilder &str) const {
         if (linkTrack() == -1) {
-            str("None");
+            str(TXT_LIST_LABEL_NONE);
         } else {
-            str("Track%d", linkTrack() + 1);
+            str(TXT_LIST_LABEL_TRACK, linkTrack() + 1);
         }
     }
 

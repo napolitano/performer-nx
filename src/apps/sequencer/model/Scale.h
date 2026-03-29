@@ -96,12 +96,12 @@ public:
             if (isChromatic()) {
                 Types::printNote(str, noteIndex);
             } else {
-                str("%d", noteIndex);
+                str(TXT_MODEL_GENERIC_VALUE, noteIndex);
             }
         }
 
         if (printOctave) {
-            str("%+d", octave);
+            str(TXT_MODEL_OCTAVE, octave);
         }
     }
 
@@ -166,13 +166,13 @@ public:
 #endif
         switch (format) {
         case Short1:
-            str("%.1f", std::abs(note * _interval));
+            str(TXT_MODEL_NOTE_OCTAVE, std::abs(note * _interval));
             break;
         case Short2:
-            str("%c", note < 0 ? '-' : '+');
+            str(TXT_MODEL_GENERIC_CHAR, note < 0 ? '-' : '+');
             break;
         case Long:
-            str("%+.2fV", note * _interval);
+            str(TXT_MODEL_NOTE_LONG, note * _interval);
             break;
         }
     }

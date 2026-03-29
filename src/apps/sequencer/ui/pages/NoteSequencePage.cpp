@@ -1,3 +1,4 @@
+#include "Config.h"
 #include "NoteSequencePage.h"
 
 #include "Pages.h"
@@ -17,11 +18,11 @@ enum class ContextAction {
 };
 
 static const ContextMenuModel::Item contextMenuItems[] = {
-    { "INIT" },
-    { "COPY" },
-    { "PASTE" },
-    { "DUPL" },
-    { "ROUTE" },
+    { TXT_MENU_INIT },
+    { TXT_MENU_COPY },
+    { TXT_MENU_PASTE },
+    { TXT_MENU_DUPLICATE },
+    { TXT_MENU_ROUTE },
 };
 
 
@@ -39,7 +40,7 @@ void NoteSequencePage::exit() {
 
 void NoteSequencePage::draw(Canvas &canvas) {
     WindowPainter::clear(canvas);
-    WindowPainter::drawHeader(canvas, _model, _engine, "SEQUENCE");
+    WindowPainter::drawHeader(canvas, _model, _engine, TXT_MODE_SEQUENCE);
     WindowPainter::drawActiveFunction(canvas, Track::trackModeName(_project.selectedTrack().trackMode()));
     WindowPainter::drawFooter(canvas);
 
@@ -112,22 +113,22 @@ bool NoteSequencePage::contextActionEnabled(int index) const {
 
 void NoteSequencePage::initSequence() {
     _project.selectedNoteSequence().clear();
-    showMessage("SEQUENCE INITIALIZED");
+    showMessage(TXT_MESSAGE_SEQUENCE_INITIALIZED);
 }
 
 void NoteSequencePage::copySequence() {
     _model.clipBoard().copyNoteSequence(_project.selectedNoteSequence());
-    showMessage("SEQUENCE COPIED");
+    showMessage(TXT_MESSAGE_SEQUENCE_COPIED);
 }
 
 void NoteSequencePage::pasteSequence() {
     _model.clipBoard().pasteNoteSequence(_project.selectedNoteSequence());
-    showMessage("SEQUENCE PASTED");
+    showMessage(TXT_MESSAGE_SEQUENCE_PASTED);
 }
 
 void NoteSequencePage::duplicateSequence() {
     if (_project.selectedTrack().duplicatePattern(_project.selectedPatternIndex())) {
-        showMessage("SEQUENCE DUPLICATED");
+        showMessage(TXT_MESSAGE_SEQUENCE_DUPLICATED);
     }
 }
 

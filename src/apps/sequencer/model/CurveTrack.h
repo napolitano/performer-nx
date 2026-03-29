@@ -26,10 +26,10 @@ public:
 
     static const char *fillModeName(FillMode fillMode) {
         switch (fillMode) {
-        case FillMode::None:        return "None";
-        case FillMode::Variation:   return "Variation";
-        case FillMode::NextPattern: return "Next Pattern";
-        case FillMode::Invert:      return "Invert";
+        case FillMode::None:        return TXT_MODEL_NONE;
+        case FillMode::Variation:   return TXT_MODEL_VARIATION;
+        case FillMode::NextPattern: return TXT_MODEL_NEXT_PATTERN;
+        case FillMode::Invert:      return TXT_MODEL_INVERT;
         case FillMode::Last:        break;
         }
         return nullptr;
@@ -45,10 +45,10 @@ public:
 
     static const char *muteModeName(MuteMode muteMode) {
         switch (muteMode) {
-        case MuteMode::LastValue:   return "Last Value";
-        case MuteMode::Zero:        return "0V";
-        case MuteMode::Min:         return "Min";
-        case MuteMode::Max:         return "Max";
+        case MuteMode::LastValue:   return TXT_MODEL_LAST_VALUE;
+        case MuteMode::Zero:        return TXT_MODEL_ZERO_VOLT;
+        case MuteMode::Min:         return TXT_MODEL_MINIMUM;
+        case MuteMode::Max:         return TXT_MODEL_MAXIMUM;
         case MuteMode::Last:        break;
         }
         return nullptr;
@@ -118,7 +118,7 @@ public:
 
     void printSlideTime(StringBuilder &str) const {
         printRouted(str, Routing::Target::SlideTime);
-        str("%d%%", slideTime());
+        str(TXT_MODEL_SLIDE_TIME, slideTime());
     }
 
     // offset
@@ -137,7 +137,7 @@ public:
 
     void printOffset(StringBuilder &str) const {
         printRouted(str, Routing::Target::Offset);
-        str("%+.2fV", offsetVolts());
+        str(TXT_MODEL_OFFSET_VOLTAGE, offsetVolts());
     }
 
     // rotate
@@ -155,7 +155,7 @@ public:
 
     void printRotate(StringBuilder &str) const {
         printRouted(str, Routing::Target::Rotate);
-        str("%+d", rotate());
+        str(TXT_MODEL_ROTATION, rotate());
     }
 
     // shapeProbabilityBias
@@ -173,7 +173,7 @@ public:
 
     void printShapeProbabilityBias(StringBuilder &str) const {
         printRouted(str, Routing::Target::ShapeProbabilityBias);
-        str("%+.1f%%", shapeProbabilityBias() * 12.5f);
+        str(TXT_MODEL_SHAPE_PROBABILITY_BIAS, shapeProbabilityBias() * 12.5f);
     }
 
     // gateProbabilityBias
@@ -191,7 +191,7 @@ public:
 
     void printGateProbabilityBias(StringBuilder &str) const {
         printRouted(str, Routing::Target::GateProbabilityBias);
-        str("%+.1f%%", gateProbabilityBias() * 12.5f);
+        str(TXT_MODEL_GATE_PROBABILITY_BIAS, gateProbabilityBias() * 12.5f);
     }
 
     // sequences

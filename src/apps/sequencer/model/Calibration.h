@@ -31,7 +31,7 @@ public:
         }
 
         static void itemName(StringBuilder &str, int index) {
-            str("%+.1fV", itemToVolts(index));
+            str(TXT_MODEL_ITEM_TO_VOLTS_NAME, itemToVolts(index));
         }
 
         const ItemArray &items() const { return _items; }
@@ -56,9 +56,9 @@ public:
         void printItem(int index, StringBuilder &str) const {
             // inverted to improve usability
             if (userDefined(index)) {
-                str("%d", 0x7fff - item(index));
+                str(TXT_MODEL_ITEM_VALUE, 0x7fff - item(index));
             } else {
-                str("%d (auto)", 0x7fff - item(index));
+                str(TXT_MODEL_ITEM_VALUE_AUTO, 0x7fff - item(index));
             }
         }
 

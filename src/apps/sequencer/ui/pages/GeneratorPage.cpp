@@ -1,3 +1,4 @@
+#include "Config.h"
 #include "GeneratorPage.h"
 
 #include "ui/painters/WindowPainter.h"
@@ -19,11 +20,11 @@ enum class ContextAction {
 };
 
 static const ContextMenuModel::Item contextMenuItems[] = {
-    { "INIT" },
+    { TXT_MENU_INIT },
     { nullptr },
     { nullptr },
-    { "REVERT" },
-    { "COMMIT" },
+    { TXT_MENU_REVERT },
+    { TXT_MENU_COMMIT },
 };
 
 GeneratorPage::GeneratorPage(PageManager &manager, PageContext &context) :
@@ -51,13 +52,13 @@ void GeneratorPage::draw(Canvas &canvas) {
     }
 
     WindowPainter::clear(canvas);
-    WindowPainter::drawHeader(canvas, _model, _engine, "GENERATOR");
+    WindowPainter::drawHeader(canvas, _model, _engine, TXT_MODE_GENERATOR);
     WindowPainter::drawActiveFunction(canvas, _generator->name());
     WindowPainter::drawFooter(canvas, functionNames, pageKeyState());
 
     canvas.setFont(Font::Small);
     canvas.setBlendMode(BlendMode::Set);
-    canvas.setColor(0xf);
+    canvas.setColor(UI_COLOR_ACTIVE);
 
     auto drawValue = [&] (int index, const char *str) {
         int w = Width / 5;
@@ -82,11 +83,9 @@ void GeneratorPage::draw(Canvas &canvas) {
     case Generator::Mode::Random:
         drawRandomGenerator(canvas, *static_cast<const RandomGenerator *>(_generator));
         break;
-#ifdef CONFIG_ACID_BASS_GENERATOR
     case Generator::Mode::AcidBassline:
         drawAcidBasslineGenerator(canvas, *static_cast<const AcidBasslineGenerator *>(_generator));
         break;
-#endif
     case Generator::Mode::Last:
         break;
     }
@@ -193,10 +192,10 @@ void GeneratorPage::drawEuclideanGenerator(Canvas &canvas, const EuclideanGenera
     int y = Height / 2 - stepHeight / 2;
 
     for (int i = 0; i < steps; ++i) {
-        canvas.setColor(0x7);
+        canvas.setColor(UI_COLOR_DIM);
         canvas.drawRect(x + 1, y + 1, stepWidth - 2, stepHeight - 2);
         if (pattern[i]) {
-            canvas.setColor(0xf);
+            canvas.setColor(UI_COLOR_ACTIVE);
             canvas.fillRect(x + 1, y + 1, stepWidth - 2, stepHeight - 2);
         }
         x += stepWidth;
@@ -215,16 +214,15 @@ void GeneratorPage::drawRandomGenerator(Canvas &canvas, const RandomGenerator &g
     for (int i = 0; i < steps; ++i) {
         int h = stepHeight - 2;
         int h2 = (h * pattern[i]) / 255;
-        canvas.setColor(0x3);
+        canvas.setColor(UI_COLOR_DIM_MORE);
         canvas.drawRect(x + 1, y + 1, stepWidth - 2, h);
-        canvas.setColor(0xf);
+        canvas.setColor(UI_COLOR_ACTIVE);
         canvas.hline(x + 1, y + 1 + h - h2, stepWidth - 2);
         // canvas.fillRect(x + 1, y + 1 + h - h2 , stepWidth - 2, h2);
         x += stepWidth;
     }
 }
 
-#ifdef CONFIG_ACID_BASS_GENERATOR
 void GeneratorPage::drawAcidBasslineGenerator(Canvas &canvas, const AcidBasslineGenerator &generator) const {
     const auto &pattern = generator.pattern();
     int steps = pattern.size();
@@ -237,15 +235,14 @@ void GeneratorPage::drawAcidBasslineGenerator(Canvas &canvas, const AcidBassline
     for (int i = 0; i < steps; ++i) {
         int h = stepHeight - 2;
         int h2 = (h * pattern[i]) / 255;
-        canvas.setColor(0x3);
+        canvas.setColor(UI_COLOR_DIM_MORE);
         canvas.drawRect(x + 1, y + 1, stepWidth - 2, h);
-        canvas.setColor(0xf);
+        canvas.setColor(UI_COLOR_ACTIVE);
         canvas.hline(x + 1, y + 1 + h - h2, stepWidth - 2);
         // canvas.fillRect(x + 1, y + 1 + h - h2 , stepWidth - 2, h2);
         x += stepWidth;
     }
 }
-#endif
 
 void GeneratorPage::contextShow() {
     showContextMenu(ContextMenu(
