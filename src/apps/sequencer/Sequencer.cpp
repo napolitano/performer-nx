@@ -148,9 +148,12 @@ static void assert_handler(const char *filename, int line, const char *msg) {
     }
 }
 
+
 int main(void) {
     System::init();
+#ifndef CONFIG_DISABLE_WATCHDOG
     System::startWatchdog(1000);
+#endif
     Console::init();
     HighResolutionTimer::init();
 
