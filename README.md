@@ -1,103 +1,235 @@
 ![Build Status](https://github.com/westlicht/performer/actions/workflows/ci.yml/badge.svg?branch=master)
 
-# PER|FORMER
+# PERFORMER NX
 
 <a href="doc/sequencer.jpg"><img src="doc/sequencer.jpg"/></a>
 
-## Overview
+Firmware for the **PERFORMER NX** Eurorack sequencer.
 
-This repository contains the firmware for the **PER|FORMER** eurorack sequencer.
+- Fork software repository: [napolitano/performer-nx](https://github.com/napolitano/performer-nx/)
+- Fork hardware repository: [napolitano/performer-nx-hardware](https://github.com/napolitano/performer-nx-hardware/)
+- Original project page: [westlicht.github.io/performer](https://westlicht.github.io/performer)
+- Original hardware repository: [westlicht/performer-hardware](https://github.com/westlicht/performer-hardware)
 
-For more information on the project go [here](https://westlicht.github.io/performer).
+## Table of contents
 
-The hardware design files are hosted in a separate repository [here](https://github.com/westlicht/performer-hardware).
+- [About this fork](#about-this-fork)
+  - [Scope and philosophy](#scope-and-philosophy)
+  - [What this fork is not](#what-this-fork-is-not)
+- [At a glance](#at-a-glance)
+- [How to use this README](#how-to-use-this-readme)
+- [Quick start](#quick-start)
+- [Platform support](#platform-support)
+- [Development setup](#development-setup)
+  - [Linux / macOS](#linux--macos)
+  - [Windows (WSL)](#windows-wsl)
+- [Build directories](#build-directories)
+- [Hardware workflow](#hardware-workflow)
+  - [Flashing during development](#flashing-during-development)
+- [Simulator workflow](#simulator-workflow)
+- [Troubleshooting](#troubleshooting)
+- [Source tree overview](#source-tree-overview)
+- [Third-party libraries](#third-party-libraries)
+- [License](#license)
 
-## Development
+## About this fork
 
-If you want to do development on the firmware, the following is a quick guide on how to setup the development environment to get you going.
+This repository is a continuation fork of the original project.
 
-### Setup on macOS and Linux
+The project name was changed from **PER|FORMER** to **PERFORMER NX** for better readability.
+The `NX` suffix indicates continued development and a "New Experience" direction, while still aiming to avoid breaking existing workflows where possible.
 
-First you have to clone this repository (make sure to add the `--recursive` option to also clone all the submodules):
+The original firmware has seen limited development activity for several years. This fork exists to keep the project alive and improve it in a practical, user-focused way:
 
+- fix long-standing issues
+- improve UX and day-to-day reliability
+- add useful features
+- preserve existing user workflows and compatibility where possible
+- improve maintainability of the code base
+- modernize parts of the toolchain where it is necessary and where it makes sense
+
+In short: make the instrument better and smoother without unnecessary disruption.
+
+This distinguishes the fork from more radical directions (for example **PEW|FORMER**), which focus on larger architectural and feature-set changes.
+
+### Scope and philosophy
+
+This fork follows an **evolutionary** approach:
+
+- improve behavior users notice every day (stability, UX, workflow friction)
+- keep changes understandable and reviewable
+- prefer incremental improvements over large rewrites
+- modernize tooling only when it improves reliability, maintainability, or contributor experience
+
+When trade-offs exist, the default is to preserve existing workflows unless there is a strong reason to change them.
+
+### What this fork is not
+
+This fork is **not** trying to redefine the instrument from scratch.
+
+- it is not a "break everything and redesign all assumptions" project
+- it is not focused on novelty at the cost of usability
+- it is not a compatibility-breaking experiment branch
+
+The goal is practical progress: smoother development, better maintainability, and better day-to-day use.
+
+### What you can expect
+
+If you are new to the project, expect steady and understandable improvements rather than abrupt rewrites. The focus is on:
+
+- compatibility-minded evolution
+- clear development workflows
+- maintainable code that is easier to understand, test, and extend
+
+For contributors, this means code and tooling changes should be explainable, justified, and useful in real-world workflows.
+For users, it means updates should feel like improvements, not surprises.
+
+## At a glance
+
+This repository contains:
+
+- firmware for the STM32 hardware target
+- a desktop simulator for fast UI/engine iteration
+- unit and integration tests
+- helper scripts and tools for building and flashing
+
+Verified top-level setup targets from the repository `Makefile`:
+
+- `make tools_install`
+- `make setup_stm32`
+- `make setup_sim`
+
+## How to use this README
+
+This guide is written for both first-time contributors and existing maintainers.
+
+If you are new, follow this order:
+
+1. `Quick start`
+2. Your platform subsection in `Development setup`
+3. `Hardware workflow` and/or `Simulator workflow`
+4. `Troubleshooting` if anything fails
+
+If you already know the project, use the table of contents as a quick command/reference index.
+
+Suggested paths:
+
+- **Simulator-first contributors**: `Quick start` -> your platform setup -> `Simulator workflow` -> `Troubleshooting`
+- **Hardware-focused contributors**: `Quick start` -> your platform setup -> `Hardware workflow` -> flashing section
+- **WSL/Windows users**: read the full `Windows (WSL)` section and the WSLg pitfalls before first build
+
+## Quick start
+
+Clone with submodules:
+
+```bash
+git clone --recursive https://github.com/napolitano/performer-nx.git
+cd performer-nx
 ```
-git clone --recursive https://github.com/westlicht/performer.git
-```
 
-After cloning, enter the performer directory:
+> Windows + WSL users: clone inside the Linux filesystem (for example `/home/<user>/projects`), not under `/mnt/c/...`, to avoid major compile-time slowdowns.
 
-```
-cd performer
-```
+Typical first-time setup:
 
-Make sure you have a recent version of CMake installed. If you are on Linux, you might also want to install a few other packages. For Debian based systems, use:
-
-```
-sudo apt-get install libtool autoconf cmake libusb-1.0.0-dev libftdi-dev pkg-config
-```
-
-To compile for the hardware and allow flashing firmware you have to install the ARM toolchain and build OpenOCD:
-
-```
+```bash
 make tools_install
-```
-
-Next, you have to setup the build directories:
-
-```
 make setup_stm32
-```
-
-If you also want to compile/run the simulator use:
-
-```
 make setup_sim
 ```
 
-The simulator is great when developing new features. It allows for a faster development cycle and a better debugging experience.
+Expected result after setup:
 
-### Setup on Windows
+- the `build/stm32/{debug,release}` directories exist and are configured
+- the `build/sim/{debug,release}` directories exist and are configured
+- the toolchain/OpenOCD tools are available under `tools/`
 
-#### Windows Setup (WSL)
+Then:
 
-**Important:**  
-Do not clone the repository into a path that contains spaces. This can break builds and tooling.
+- build firmware from `build/stm32/release`
+- build and run the simulator from `build/sim/debug`
 
----
+You can run only the parts you need. For example, simulator-only development does not require hardware flashing.
 
-#### 1. Install WSL (Windows Subsystem for Linux)
+## Platform support
 
-Open PowerShell as Administrator:
+| Platform | Hardware build | Simulator build | Simulator audio/graphics | Simulator MIDI |
+|---|---:|---:|---:|---:|
+| Linux | Yes | Yes | Yes | Yes |
+| macOS | Yes | Yes | Yes | Yes |
+| Windows 11 via WSL2/WSLg | Yes | Yes | Usually yes with WSLg | No |
+
+WSL is good for building firmware and for basic simulator work. Native Linux or macOS remains the better choice if you need full simulator functionality, especially MIDI.
+
+## Development setup
+
+### Linux / macOS
+
+Make sure you have a recent CMake and a standard C/C++ build toolchain installed.
+
+If you only want simulator work at first, you can start with `make setup_sim` and defer hardware tooling until needed.
+
+On Debian/Ubuntu, a reasonable base setup is:
+
+```bash
+sudo apt-get update
+sudo apt-get install libtool autoconf cmake libusb-1.0.0-dev libftdi-dev pkg-config
+```
+
+Install the embedded toolchain and OpenOCD:
+
+```bash
+make tools_install
+```
+
+Generate build directories:
+
+```bash
+make setup_stm32
+make setup_sim
+```
+
+After this, continue with `Hardware workflow` and/or `Simulator workflow`.
+
+### Windows (WSL)
+
+This section targets **Windows 11 + WSL2 + WSLg**.
+
+> Important: do not clone the repository into a path that contains spaces.
+
+> Important for performance: keep the repository in the Linux filesystem (for example `~/projects/performer-nx`). Building from `/mnt/c/...` is significantly slower.
+
+Recommended directory layout for Windows 11 users:
+
+```text
+/home/<user>/projects/performer-nx
+```
+
+This avoids the common slow-path where source lives on the Windows filesystem.
+
+#### 1. Install WSL
+
+Run in PowerShell as Administrator:
 
 ```powershell
 wsl --install
 ```
 
-Verify installation:
-
-```powershell
-wsl -l -v
-```
-
-If Ubuntu is not installed yet:
+If needed:
 
 ```powershell
 wsl --install -d Ubuntu
+wsl -l -v
 ```
 
-Launch WSL once and complete the initial setup.
+#### 2. Recommended WSL configuration
 
----
-
-#### 2. Configure WSL (Networking and Integration)
-
-WSL networking is a common source of issues.
-
-Edit:
+Open:
 
 ```powershell
 notepad %USERPROFILE%\.wslconfig
 ```
+
+Use:
 
 ```ini
 [wsl2]
@@ -105,270 +237,314 @@ networkingMode=mirrored
 localhostForwarding=true
 ```
 
-Ensure in WSL settings:
-
-- Networking mode: Mirrored
-- Localhost forwarding: Enabled
-- Host address loopback: Enabled
-- DNS tunneling: Disabled
-
-Apply:
+Then restart WSL:
 
 ```powershell
 wsl --shutdown
 ```
 
-Note: With this configuration, `/etc/resolv.conf` should not require manual changes.
-
----
-
-#### 3. Install Build Toolchain
+#### 3. Install build dependencies inside WSL
 
 ```bash
 sudo apt update
-sudo apt install build-essential gdb cmake git pkg-config
-```
-
----
-
-#### 4. Install Simulator Dependencies
-
-```bash
+sudo apt install build-essential gdb cmake git pkg-config openocd linux-tools-common linux-tools-standard-WSL2
 sudo apt install libsdl2-dev python3-dev pybind11-dev mesa-utils libgl1-mesa-dri libglx-mesa0 alsa-utils
 ```
 
----
-
-#### 5. Graphics Configuration (Mesa / D3D12)
+#### 4. Optional graphics hint for WSLg / Mesa
 
 ```bash
 export GALLIUM_DRIVER=d3d12
-```
-
-Persist:
-
-```bash
 echo 'export GALLIUM_DRIVER=d3d12' >> ~/.bashrc
 source ~/.bashrc
 ```
 
----
-
-#### 6. Development Workflow
-
-Start WSL before each session:
-
-```powershell
-wsl
-```
-
-All build steps must run inside WSL:
+#### 5. First-time setup inside WSL
 
 ```bash
-# First-time setup
 make tools_install
 make setup_stm32
 make setup_sim
-
-# Build firmware for hardware
-cd build/stm32/<debug|release>/
-make -j
-
-# The resulting UPDATE.DAT is located in:
-#   src/apps/sequencer/
-# Copy it to the root directory of the SD card.
-
-# Build and run the simulator
-cd build/sim/debug/
-make -j
-./src/apps/sequencer/sequencer
 ```
 
----
+#### WSL notes
 
-#### Audio
+- Graphics and audio usually work through WSLg.
+- MIDI is not available in the simulator under WSLg because the ALSA sequencer interface (`/dev/snd/seq`) is not exposed.
 
-##### WSLg (Preferred)
+### Recommended Windows 11 + WSLg + CLion workflow
 
-WSLg provides:
+1. Install/verify WSL2 + Ubuntu and complete the setup steps above.
+2. Clone the repository inside WSL (for example under `~/projects`).
+3. Open the project in CLion using the WSL toolchain.
+4. Use WSL-based CMake profiles (sim/stm32) for configure/build.
+5. Run simulator/debug tasks from those WSL profiles.
 
-- Audio (PulseAudio-compatible)
-- Graphics (Wayland/X11)
+Why this matters:
 
-Verify:
+- keeps file I/O fast
+- keeps compiler/toolchain paths consistent
+- avoids subtle host/guest path and environment mismatches
+
+### Windows 11 / WSLg pitfalls and best practices
+
+#### 1) File-system location matters (a lot)
+
+- Prefer: `/home/<user>/projects/performer-nx`
+- Avoid for active builds: `/mnt/c/...`
+
+Reason: cross-filesystem I/O between Windows and Linux layers is slower and can dramatically increase CMake/build times.
+
+#### 2) Use WSL terminal for build commands
+
+Run all setup/build commands inside WSL:
+
+```bash
+make tools_install
+make setup_stm32
+make setup_sim
+```
+
+#### 3) Expect no MIDI in WSLg simulator
+
+This is a platform limitation, not a project bug.
+
+#### 4) Restart WSL after network/config changes
+
+```powershell
+wsl --shutdown
+```
+
+#### 5) Verify WSLg session when graphics/audio are odd
 
 ```bash
 echo $WAYLAND_DISPLAY
 ```
 
-Test audio:
+If this is empty, restart WSL and launch a fresh session.
+
+## IDE / editor workflow
+
+Main development is currently done in **JetBrains CLion**.
+
+- Recommended on Windows: run CLion with the WSL toolchain and open the project from the WSL path (for example `\\wsl$\Ubuntu\home\<user>\projects\performer-nx`).
+- Source code can still be edited with any IDE or text editor.
+
+Using other editors is fine; just keep build/configure tasks in WSL for consistency.
+
+If you use CLion, preferred defaults are:
+
+- toolchain: WSL
+- generator: Ninja (if available) or default Makefiles
+- build directories: existing `build/sim/debug` and `build/stm32/release` (or matching profile-specific paths)
+
+If you hit line-ending or shebang issues in submodules, this recovery sequence can help:
 
 ```bash
-paplay /usr/share/sounds/alsa/Front_Center.wav
+git submodule foreach --recursive 'git reset --hard'
+git submodule foreach --recursive 'git clean -fdx'
+git submodule foreach --recursive 'git config core.autocrlf false'
+git submodule foreach --recursive 'git rm --cached -r . || true'
+git submodule foreach --recursive 'git reset --hard'
 ```
 
-No configuration required.
-
----
-
-##### PulseAudio (Manual Setup)
-
-Only required if WSLg is unavailable.
-
-Start server on Windows:
-
-```powershell
-pulseaudio.exe --load=module-native-protocol-tcp --exit-idle-time=-1
-```
-
-WSL:
+Then rerun setup:
 
 ```bash
-export PULSE_SERVER=tcp:localhost
+make setup_stm32
+make setup_sim
 ```
 
----
+## Build directories
 
-#### MIDI
+Generated build trees live under:
 
-Not supported in WSL.
+- `build/stm32/debug`
+- `build/stm32/release`
+- `build/sim/debug`
+- `build/sim/release`
 
-- No `/dev/snd/seq`
-- ALSA sequencer unavailable
-- RtMidi ALSA backend fails
+In general:
 
----
+- use `release` for hardware builds
+- use `debug` for simulator work and debugging
 
-#### Simulator Status
+Recommended defaults:
 
-- Build: works
-- Graphics: works
-- Audio: works (WSLg or PulseAudio)
-- MIDI: not available
+- hardware: `build/stm32/release`
+- simulator: `build/sim/debug`
 
----
+## Hardware workflow
 
-#### Recommendation
+Enter the STM32 release build directory:
 
-WSL is suitable for:
-
-- Building firmware
-- Basic simulator use
-
-Use native Linux or macOS for full functionality.
-
-
-### Build directories
-
-After successfully setting up the development environment you should now have a list of build directories found under `build/[stm32|sim]/[release|debug]`. The `release` targets are used for compiling releases (more code optimization, smaller binaries) whereas the `debug` targets are used for compiling debug releases (less code optimization, larger binaries, better debugging support).
-
-### Developing for the hardware
-
-You will typically use the `release` target when building for the hardware. So you first have to enter the release build directory:
-
-```
+```bash
 cd build/stm32/release
 ```
 
-To compile everything, simply use:
+Build everything:
 
-```
+```bash
 make -j
 ```
 
-Using the `-j` option is generally a good idea as it enables parallel building for faster build times.
+Build only one target when iterating:
 
-To compile individual applications, use the following make targets:
-
-- `make -j sequencer` - Main sequencer application
-- `make -j sequencer_standalone` - Main sequencer application running without bootloader
-- `make -j bootloader` - Bootloader
-- `make -j tester` - Hardware tester application
-- `make -j tester_standalone` - Hardware tester application running without bootloader
-
-Building a target generates a list of files. For example, after building the sequencer application you should find the following files in the `src/apps/sequencer` directory relative to the build directory:
-
-- `sequencer` - ELF binary (containing debug symbols)
-- `sequencer.bin` - Raw binary
-- `sequencer.hex` - Intel HEX file (for flashing)
-- `sequencer.srec` - Motorola SREC file (for flashing)
-- `sequencer.list` - List file containing full disassembly
-- `sequencer.map` - Map file containing section/offset information of each symbol
-- `sequencer.size` - Size file containing size of each section
-
-If compiling the sequencer, an additional `UPDATE.DAT` file is generated which can be used for flashing the firmware using the bootloader.
-
-To simplify flashing an application to the hardware during development, each application has an associated `flash` target. For example, to flash the bootloader followed by the sequencer application use:
-
+```bash
+make -j sequencer
 ```
+
+Useful targets:
+
+- `make -j sequencer`
+- `make -j sequencer_standalone`
+- `make -j bootloader`
+- `make -j tester`
+- `make -j tester_standalone`
+
+Typical output files for `sequencer` are written below `src/apps/sequencer` in the build tree:
+
+- `sequencer` – ELF with debug symbols
+- `sequencer.bin` – raw binary
+- `sequencer.hex` – Intel HEX
+- `sequencer.srec` – Motorola SREC
+- `sequencer.list` – disassembly listing
+- `sequencer.map` – linker map
+- `sequencer.size` – section sizes
+- `UPDATE.DAT` – bootloader update file
+
+`UPDATE.DAT` is the file you copy to the SD card root for bootloader-based firmware update.
+
+Typical update flow:
+
+1. Build `sequencer`
+2. Copy `UPDATE.DAT` to SD card root
+3. Boot device into bootloader/update mode
+4. Apply update on device
+
+### Flashing during development
+
+Example:
+
+```bash
 make -j flash_bootloader
 make -j flash_sequencer
 ```
 
-Flashing to the hardware is done using OpenOCD. By default, this expects an Olimex ARM-USB-OCD-H JTAG to be attached to the USB port. You can easily reconfigure this to use a different JTAG by editing the `OPENOCD_INTERFACE` variable in the `src/platform/stm32/CMakeLists.txt` file. Make sure to change both occurrences. A list of available interfaces can be found in the `tools/openocd/share/openocd/scripts/interface` directory (or `/home/vagrant/tools/openocd/share/openocd/scripts/interface` when running the virtual machine).
+Flashing uses OpenOCD. The default setup expects an Olimex ARM-USB-OCD-H. To change the adapter, edit `OPENOCD_INTERFACE` in `src/platform/stm32/CMakeLists.txt`.
 
-### Developing for the simulator
+Available OpenOCD interface scripts can be found under:
 
-Note that the simulator is only supported on macOS and Linux and does not currently run in the virtual machine required on Windows.
-
-You will typically use the `debug` target when building for the simulator. So you first have to enter the debug build directory:
-
+```text
+tools/openocd/share/openocd/scripts/interface
 ```
+
+## Simulator workflow
+
+Enter the simulator debug build directory:
+
+```bash
 cd build/sim/debug
 ```
 
-To compile everything, simply use:
+Build:
 
-```
+```bash
 make -j
 ```
 
-To run the simulator, use the following:
+Run:
 
-```
+```bash
 ./src/apps/sequencer/sequencer
 ```
 
-Note that you have to start the simulator from the build directory in order for it to find all the assets.
+Start the simulator from the build directory so it can find its assets correctly.
 
-### Source code directory structure
+Typical simulator loop:
 
-The following is a quick overview of the source code directory structure:
+1. Edit code
+2. Rebuild in `build/sim/debug`
+3. Run simulator
+4. Repeat
 
-- `src` - Top level source directory
-- `src/apps` - Applications
-- `src/apps/bootloader` - Bootloader application
-- `src/apps/hwconfig` - Hardware configuration files
-- `src/apps/sequencer` - Main sequencer application
-- `src/apps/tester` - Hardware tester application
-- `src/core` - Core library used by both the sequencer and hardware tester application
-- `src/libs` - Third party libraries
-- `src/os` - Shared OS helpers
-- `src/platform` - Platform abstractions
-- `src/platform/sim` - Simulator platform
-- `src/platform/stm32` - STM32 platform
-- `src/test` - Test infrastructure
-- `src/tests` - Unit and integration tests
+## Troubleshooting
 
-The two platforms both have a common subdirectories:
+### Build configuration issues
 
-- `drivers` - Device drivers
-- `libs` - Third party libraries
-- `os` - OS abstraction layer
-- `test` - Test runners
+- If CMake configuration is stale, rerun:
 
-The main sequencer application has the following structure:
+```bash
+make setup_stm32
+make setup_sim
+```
 
-- `asteroids` - Asteroids game
-- `engine` - Engine responsible for running the sequencer core
-- `model` - Data model storing the live state of the sequencer and many methods to change that state
-- `python` - Python bindings for running tests using python
-- `tests` - Python based tests
-- `ui` - User interface
+- If toolchain binaries are missing, rerun:
 
-## Third Party Libraries
+```bash
+make tools_install
+```
 
-The following third party libraries are used in this project.
+### WSL-specific issues
+
+- If graphics are unstable, verify WSLg is active and retry with:
+
+```bash
+echo $WAYLAND_DISPLAY
+```
+
+- MIDI is expected to be unavailable in WSL simulator (ALSA sequencer limitation).
+
+### Submodule / line-ending issues
+
+Use the recovery block in the WSL section, then rerun setup.
+
+### "It still fails"
+
+When reporting issues, include:
+
+- platform (Linux/macOS/WSL)
+- build directory used (`build/stm32/...` or `build/sim/...`)
+- full command run
+- full error output
+
+## Source tree overview
+
+### Top-level source layout
+
+- `src/apps` – applications
+- `src/core` – shared core code used across applications
+- `src/libs` – third-party source bundled in the tree
+- `src/os` – shared OS helpers
+- `src/platform` – simulator and STM32 platform implementations
+- `src/test` – test infrastructure
+- `src/tests` – unit and integration tests
+
+### Applications
+
+- `src/apps/bootloader` – bootloader
+- `src/apps/hwconfig` – hardware configuration assets/code
+- `src/apps/sequencer` – main sequencer application
+- `src/apps/tester` – hardware test application
+
+### Sequencer application layout
+
+- `asteroids` – Asteroids mini-game
+- `engine` – timing, sequencing, routing, outputs
+- `model` – runtime data model and state transitions
+- `python` – Python bindings for simulator/test tooling
+- `tests` – Python-based tests
+- `ui` – pages, painters, controllers, and general UI logic
+
+For deeper implementation details, see the documents in `doc/`, especially:
+
+- `doc/DesignDocument.md`
+- `doc/MemoryMap.md`
+- `doc/PinMap.md`
+
+## Third-party libraries
+
+This project uses, among others:
 
 - [FreeRTOS](http://www.freertos.org)
 - [libopencm3](https://github.com/libopencm3/libopencm3)
@@ -387,4 +563,4 @@ The following third party libraries are used in this project.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-This work is licensed under a [MIT License](https://opensource.org/licenses/MIT).
+This work is licensed under the [MIT License](https://opensource.org/licenses/MIT).
