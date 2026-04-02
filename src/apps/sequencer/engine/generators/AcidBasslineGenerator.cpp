@@ -44,6 +44,12 @@ const AcidBasslineGenerator::TimingFeel AcidBasslineGenerator::kTightFeel = {
     {  0,  0,  1,  0 }   // slide
 };
 
+/**
+ * Constructor for AcidBasslineGenerator.
+ * Initializes the generator with a sequence builder and parameters, then updates the pattern.
+ * @param builder The sequence builder to use for generating the pattern.
+ * @param params The parameters for the acid bassline generation.
+ */
 AcidBasslineGenerator::AcidBasslineGenerator(SequenceBuilder &builder, Params &params) :
     Generator(builder),
     _params(params)
@@ -51,10 +57,19 @@ AcidBasslineGenerator::AcidBasslineGenerator(SequenceBuilder &builder, Params &p
     update();
 }
 
+/**
+ * Returns the number of parameters for this generator.
+ * @return The count of parameters.
+ */
 int AcidBasslineGenerator::paramCount() const {
     return int(Param::Last);
 }
 
+/**
+ * Returns the name of the parameter at the given index.
+ * @param index The parameter index.
+ * @return The parameter name string, or nullptr if invalid.
+ */
 const char *AcidBasslineGenerator::paramName(int index) const {
     switch (Param(index)) {
     case Param::Seed:          return TXT_MENU_SEED;
@@ -67,6 +82,12 @@ const char *AcidBasslineGenerator::paramName(int index) const {
     return nullptr;
 }
 
+/**
+ * Edits a parameter at the given index by the specified value, with optional shift for coarse adjustments.
+ * @param index The parameter index to edit.
+ * @param value The value to add to the parameter.
+ * @param shift If true, applies coarse adjustments (e.g., multiples of 4 or 25).
+ */
 void AcidBasslineGenerator::editParam(int index, int value, bool shift) {
     int step = shift ? 4 : 1;
 
@@ -138,6 +159,11 @@ void AcidBasslineGenerator::editParam(int index, int value, bool shift) {
     }
 }
 
+/**
+ * Prints the value of the parameter at the given index to a string builder.
+ * @param index The parameter index.
+ * @param str The string builder to append the formatted value to.
+ */
 void AcidBasslineGenerator::printParam(int index, StringBuilder &str) const {
     switch (Param(index)) {
     case Param::Seed:
@@ -160,11 +186,19 @@ void AcidBasslineGenerator::printParam(int index, StringBuilder &str) const {
     }
 }
 
+/**
+ * Initializes the generator with default parameters and updates the pattern.
+ */
 void AcidBasslineGenerator::init() {
     _params = Params();
     update();
 }
 
+/**
+ * Computes a 32-bit hash value for the given input.
+ * @param x The input value to hash.
+ * @return The hashed value.
+ */
 uint32_t AcidBasslineGenerator::hash32(uint32_t x) {
     x ^= x >> 16;
     x *= 0x7feb352dU;
@@ -174,11 +208,22 @@ uint32_t AcidBasslineGenerator::hash32(uint32_t x) {
     return x;
 }
 
+/**
+ * Checks if the given step is an anchor step (every 4th step starting from 0).
+ * @param step The step index to check.
+ * @return True if the step is an anchor step, false otherwise.
+ */
 bool AcidBasslineGenerator::isAnchorStep(int step) const {
     int local = step & 0x0f;
     return local == 0 || local == 4 || local == 8 || local == 12;
 }
 
+/**
+ * Determines if the previous note should be repeated based on the score and step.
+ * @param score The score value to compare against the chance.
+ * @param step The step index.
+ * @return True if the previous note should be repeated, false otherwise.
+ */
 bool AcidBasslineGenerator::shouldRepeatPrevious(int score, int step) const {
     int chance = 30;
     if ((step & 1) == 1) {
@@ -187,6 +232,12 @@ bool AcidBasslineGenerator::shouldRepeatPrevious(int score, int step) const {
     return score < chance;
 }
 
+/**
+ * Determines if an approach note should be used based on the score and step.
+ * @param score The score value to compare against the chance.
+ * @param step The step index.
+ * @return True if an approach note should be used, false otherwise.
+ */
 bool AcidBasslineGenerator::shouldUseApproach(int score, int step) const {
     int chance = 10;
     if ((step & 1) == 1) {
@@ -195,6 +246,11 @@ bool AcidBasslineGenerator::shouldUseApproach(int score, int step) const {
     return score < chance;
 }
 
+/**
+ * Chooses a base degree from the preferred degrees based on the pick value.
+ * @param pick The pick value used to select the degree.
+ * @return The selected degree.
+ */
 int AcidBasslineGenerator::chooseBaseDegree(int pick) const {
     int totalWeight = 0;
     for (int i = 0; i < kPreferredDegreeCount; ++i) {
@@ -213,6 +269,12 @@ int AcidBasslineGenerator::chooseBaseDegree(int pick) const {
     return 0;
 }
 
+/**
+ * Chooses an approach degree relative to the target degree based on the pick value.
+ * @param pick The pick value used to select the approach.
+ * @param targetDegree The target degree to approach.
+ * @return The approach degree.
+ */
 int AcidBasslineGenerator::chooseApproachDegree(int pick, int targetDegree) const {
     switch (pick % 4) {
     case 0:  return targetDegree - 1;
@@ -222,6 +284,11 @@ int AcidBasslineGenerator::chooseApproachDegree(int pick, int targetDegree) cons
     }
 }
 
+/**
+ * Chooses an octave offset based on the pick value.
+ * @param pick The pick value used to select the octave offset.
+ * @return The octave offset in semitones.
+ */
 int AcidBasslineGenerator::chooseOctaveOffset(int pick) const {
     if (pick < 74) {
         return 0;
@@ -235,14 +302,25 @@ int AcidBasslineGenerator::chooseOctaveOffset(int pick) const {
     return -12;
 }
 
+/**
+ * Returns the density threshold value.
+ * @return The density threshold.
+ */
 int AcidBasslineGenerator::densityThreshold() const {
     return int(_params.density);
 }
 
+/**
+ * Returns the legato threshold value.
+ * @return The legato threshold.
+ */
 int AcidBasslineGenerator::legatoThreshold() const {
     return int(_params.legatoMix);
 }
 
+/**
+ * Clears the state of the blueprint and steps arrays.
+ */
 void AcidBasslineGenerator::clearState() {
     for (auto &step : _blueprint) {
         step = StepBlueprint();
@@ -473,6 +551,12 @@ void AcidBasslineGenerator::realizePhrase(int length) {
     }
 }
 
+/**
+ * Applies the generated steps to the note sequence and renders the preview for the current layer.
+ * @param sequence The note sequence to apply the steps to.
+ * @param currentLayer The current layer being edited.
+ * @param length The length of the pattern to apply.
+ */
 void AcidBasslineGenerator::applyToNoteSequence(NoteSequence &sequence, NoteSequence::Layer currentLayer, int length) {
     sequence.clearSteps();
     sequence.setFirstStep(0);
@@ -492,6 +576,11 @@ void AcidBasslineGenerator::applyToNoteSequence(NoteSequence &sequence, NoteSequ
     renderPreview(currentLayer, length);
 }
 
+/**
+ * Renders the preview pattern for the specified layer and length.
+ * @param currentLayer The layer to render the preview for.
+ * @param length The length of the pattern to render.
+ */
 void AcidBasslineGenerator::renderPreview(NoteSequence::Layer currentLayer, int length) {
     for (int i = 0; i < CONFIG_STEP_COUNT; ++i) {
         if (i < length) {
@@ -502,6 +591,13 @@ void AcidBasslineGenerator::renderPreview(NoteSequence::Layer currentLayer, int 
     }
 }
 
+/**
+ * Encodes a value into a uint8_t by scaling it from the given min and max range to 0-255.
+ * @param value The value to encode.
+ * @param minValue The minimum value of the range.
+ * @param maxValue The maximum value of the range.
+ * @return The encoded uint8_t value.
+ */
 uint8_t AcidBasslineGenerator::encodeLayerValue(int value, int minValue, int maxValue) {
     if (maxValue <= minValue) {
         return 0;
@@ -512,6 +608,11 @@ uint8_t AcidBasslineGenerator::encodeLayerValue(int value, int minValue, int max
     return uint8_t(clamp(encoded, 0, 255));
 }
 
+/**
+ * Computes the gate offset for the given step based on timing feel and other factors.
+ * @param step The step index to compute the offset for.
+ * @return The computed gate offset.
+ */
 int AcidBasslineGenerator::computeGateOffset(int step) const {
     const StepState &s = _steps[step];
 
@@ -549,6 +650,12 @@ int AcidBasslineGenerator::computeGateOffset(int step) const {
                  NoteSequence::GateOffset::Max);
 }
 
+/**
+ * Snaps the given note to the nearest note in the specified scale.
+ * @param note The note value to snap.
+ * @param scale The scale to snap to.
+ * @return The snapped note value.
+ */
 int AcidBasslineGenerator::snapNoteToScale(int note, const Scale &scale) const {
     /*
      * Keep the note in the same integer domain used by NoteSequence::Step::note().
@@ -558,6 +665,11 @@ int AcidBasslineGenerator::snapNoteToScale(int note, const Scale &scale) const {
     return scale.noteFromVolts(volts);
 }
 
+/**
+ * Applies the scale and root note to the generated steps in the sequence.
+ * @param sequence The note sequence to apply the scale to.
+ * @param length The length of the pattern to apply the scale to.
+ */
 void AcidBasslineGenerator::applyScale(NoteSequence &sequence, int length) {
     /*
      * Within the current generator context we do not have direct project access.
@@ -591,6 +703,13 @@ void AcidBasslineGenerator::applyScale(NoteSequence &sequence, int length) {
     }
 }
 
+/**
+ * Renders the value for a specific layer at the given step index and step state.
+ * @param layer The layer to render the value for.
+ * @param stepIndex The index of the step.
+ * @param step The step state.
+ * @return The rendered uint8_t value for the layer.
+ */
 uint8_t AcidBasslineGenerator::renderStepValue(NoteSequence::Layer layer, int stepIndex, const StepState &step) const {
     switch (layer) {
     case NoteSequence::Layer::Note:
@@ -653,3 +772,4 @@ void AcidBasslineGenerator::update() {
         _builder.setValue(i, _pattern[i] * (1.f / 255.f));
     }
 }
+
