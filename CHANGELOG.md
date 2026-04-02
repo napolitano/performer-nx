@@ -10,6 +10,7 @@
 - Scrollbar design (positioning, thickness, visual simplification).
 - Improved visual consistency by integrating icons directly into the bitmap font pipeline.
 - Increased expressiveness of UI through iconographic glyphs in a minimal pixel grid.
+- Added configurable screen colors for the simulator display.
 
 #### Features
 - Improved play head in song mode with a more visible and informative design.
@@ -17,6 +18,9 @@
 - Added animation in front of tempo top indicate play state.
 
 #### Development
+- Reworked `README.md` to improve structure, onboarding clarity, and maintainability.
+- Expanded unit test coverage for versioned serialization scenarios.
+- Refined existing test cases with clearer naming and intent-focused comments.
 - Centralized all UI texts and color definitions into dedicated headers (Texts.h, Colors.h)
 - Removed scattered hardcoded strings and color values from implementation files
 - Extended Tiny5x5 font with additional glyphs (arrows, transport icons, symbols).
