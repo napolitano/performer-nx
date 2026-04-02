@@ -25,7 +25,18 @@ Firmware for the **PERFORMER NX** Eurorack sequencer.
   - [Windows (WSL)](#windows-wsl)
 - [Build directories](#build-directories)
 - [Hardware workflow](#hardware-workflow)
-  - [Flashing during development](#flashing-during-development)
+  - [Bootloader target (read first)](#bootloader-target-read-first)
+  - [HWCONFIG target](#hwconfig-target)
+  - [Flashing with ST-Link V3 and JTAG](#flashing-with-st-link-v3-and-jtag)
+    - [Command-line flashing](#command-line-flashing)
+    - [STM32CubeProgrammer (GUI)](#stm32cubeprogrammer-gui)
+- [On-Device Debugging](#on-device-debugging)
+  - [Why ST-Link V3](#why-st-link-v3)
+  - [Critical safety notes (read first)](#critical-safety-notes-read-first)
+  - [Recommended debugging procedure](#recommended-debugging-procedure)
+  - [STM toolset and OpenOCD options](#stm-toolset-and-openocd-options)
+  - [Build strategy for reliable on-device debugging](#build-strategy-for-reliable-on-device-debugging)
+  - [When to debug on hardware vs simulator](#when-to-debug-on-hardware-vs-simulator)
 - [Simulator workflow](#simulator-workflow)
 - [Troubleshooting](#troubleshooting)
 - [Source tree overview](#source-tree-overview)
@@ -422,7 +433,71 @@ Typical update flow:
 3. Boot device into bootloader/update mode
 4. Apply update on device
 
-### Flashing during development
+### Bootloader target (read first)
+
+Warning: the bootloader is safety-critical. Change it only if it is truly necessary and you understand the consequences.
+
+- A broken bootloader can block normal SD-card update workflows.
+- Bootloader changes should be tested carefully with reliable SWD/JTAG access available.
+- Prefer changing the sequencer app first; touch bootloader code only when required.
+
+Build the bootloader from the STM32 release tree:
+
+```bash
+cd build/stm32/release
+make -j bootloader
+```
+
+Output artifacts are generated in `build/stm32/release/src/apps/bootloader/` including:
+
+- `bootloader`
+- `bootloader.bin`
+- `bootloader.hex`
+- `bootloader.srec`
+- `bootloader.list`
+- `bootloader.map`
+- `bootloader.size`
+
+### HWCONFIG target
+
+The HWCONFIG app writes hardware configuration values. It is useful for initial hardware setup, board variants, and recovery workflows.
+
+Build options come from `src/apps/hwconfig/CMakeLists.txt` and are exposed as dedicated targets:
+
+- `hwconfig_default`
+- `hwconfig_dac8568a`
+- `hwconfig_invert-leds`
+- `hwconfig_invert-leds_dac8568a`
+- `hwconfig_reverse-encoder`
+- `hwconfig_reverse-encoder_dac8568a`
+- `hwconfig_reverse-encoder_invert-leds`
+- `hwconfig_reverse-encoder_invert-leds_dac8568a`
+
+Example:
+
+```bash
+cd build/stm32/release
+make -j hwconfig_default
+```
+
+Pick the HWCONFIG target that matches your hardware variant; flashing the wrong variant can lead to confusing UI/IO behavior.
+
+### Flashing with ST-Link V3 and JTAG
+
+Flashing requires an SWD/JTAG debug probe (for example ST-Link V3) connected to the device debug header.
+
+Use `.hex` files when possible: they already include addresses, reducing the risk of writing to the wrong flash region.
+
+Before flashing:
+
+- verify connector orientation/polarity on the device header
+- use ESD-safe handling
+- use a stable USB port/cable
+- avoid connect/disconnect cycles while the target is powered
+
+#### Command-line flashing
+
+For standard targets, the repository already provides OpenOCD-based make targets:
 
 Example:
 
@@ -431,13 +506,163 @@ make -j flash_bootloader
 make -j flash_sequencer
 ```
 
-Flashing uses OpenOCD. The default setup expects an Olimex ARM-USB-OCD-H. To change the adapter, edit `OPENOCD_INTERFACE` in `src/platform/stm32/CMakeLists.txt`.
+You can also flash explicit `.hex` artifacts with OpenOCD. Typical pattern:
+
+```bash
+openocd \
+  -f interface/<your-interface>.cfg \
+  -f target/stm32f4x.cfg \
+  -c "program <artifact>.hex verify reset exit"
+```
+
+Flashing behavior is configured in `src/platform/stm32/CMakeLists.txt`. Default settings currently use `OPENOCD_INTERFACE=ftdi/olimex-arm-usb-ocd-h` and `OPENOCD_TARGET=stm32f4x`.
 
 Available OpenOCD interface scripts can be found under:
 
 ```text
 tools/openocd/share/openocd/scripts/interface
 ```
+
+#### STM32CubeProgrammer (GUI)
+
+For initial bootloader flashing, STM32CubeProgrammer is often the easiest and safest path.
+
+Recommended GUI flow:
+
+1. Connect ST-Link V3 to the device SWD/JTAG header.
+2. Open STM32CubeProgrammer.
+3. Select `ST-LINK` connection mode and connect.
+4. Open the `.hex` artifact you want to flash (for example `bootloader.hex`).
+5. Start programming with verify enabled.
+6. Reset/power-cycle target and confirm expected startup behavior.
+
+If you prefer CLI, use STM32CubeProgrammer's command-line tool (`STM32_Programmer_CLI`) and validate options with:
+
+```bash
+STM32_Programmer_CLI --help
+```
+
+## On-Device Debugging
+
+This section describes a practical and safety-first approach for debugging directly on the device MCU.
+
+### Why ST-Link V3
+
+For this project, ST-Link V3 is a strong default choice during development:
+
+- affordable and widely available
+- solid support in STM32 tooling
+- generally more reliable and faster than low-cost ST-Link V2 clones
+- better long-session behavior for iterative flash/debug cycles
+
+Cheap ST-Link V2 clones are often inconsistent (speed, stability, support) and are a poor fit for serious on-device development.
+
+### Critical safety notes (read first)
+
+The JTAG header on the device connects directly to MCU debug pins without additional protection stages.
+
+Treat this path as sensitive:
+
+- verify connector orientation and polarity every time
+- prevent ESD events (ground yourself, avoid synthetic surfaces, handle carefully)
+- avoid hot-plugging USB/debug cables while the target board is powered
+- avoid unstable USB ports/hubs that can cause brownouts or voltage glitches
+- prefer a known-good USB port on the host machine
+
+If something is uncertain, stop and re-check wiring and power sequencing before connecting.
+
+### Recommended debugging procedure
+
+1. Power down the target device.
+2. Connect ST-Link V3 to the bottom JTAG header with verified orientation.
+3. Connect ST-Link to a stable USB port on the host.
+4. Start your debug server/tooling (OpenOCD or STM tools).
+5. Power target and connect debugger.
+6. Flash/test/debug.
+7. Stop debug session.
+8. Power down target before disconnecting debug hardware.
+
+This conservative sequence reduces risk of accidental electrical stress on MCU pins.
+
+### STM toolset and OpenOCD options
+
+Common STM tooling choices:
+
+- STM32CubeProgrammer (flash/programming and device connectivity checks)
+- STM32CubeIDE (integrated debug workflow)
+- STM32CubeCLT / STM debug server tools (command-line and scripted workflows)
+
+OpenOCD remains a good option and is already integrated in this repository via `flash_*` targets.
+For ST-Link hardware, you may need to adjust `OPENOCD_INTERFACE` in `src/platform/stm32/CMakeLists.txt` to match your adapter and local OpenOCD interface scripts.
+
+### Build strategy for reliable on-device debugging
+
+For this firmware, pure "full debug" builds can become too large or less representative for timing-sensitive behavior.
+In practice, a release-oriented build with debug symbols is often the better compromise.
+
+Recommended approach:
+
+- start from `build/stm32/release`
+- keep symbols enabled for source-level breakpoint mapping
+- keep optimizations close to realistic runtime behavior
+
+Explicit configure parameters for symbolized release builds:
+
+```bash
+cd build/stm32/release
+
+# Reconfigure this build directory with release-like optimization + debug symbols
+cmake \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_C_FLAGS_RELEASE="-O2 -g3" \
+  -DCMAKE_CXX_FLAGS_RELEASE="-O2 -g3" \
+  .
+```
+
+Easy start (and retry) command sequence:
+
+```bash
+cd build/stm32/release
+
+# Fast iteration for on-device debug work
+make -j sequencer
+
+# If you changed shared code or want to refresh everything
+make -j
+```
+
+If a build fails after an interruption, rerun the same command first. If needed, switch to the single-target build (`make -j sequencer`) for faster feedback.
+
+Watchdog note:
+
+- stepping/halting can interact badly with watchdog behavior if watchdog is enabled
+- this codebase provides a watchdog switch via `CONFIG_DISABLE_WATCHDOG`
+- see `src/apps/sequencer/Config.h` (currently enabled in this fork)
+
+If you re-enable watchdog for testing, expect debugger halt/resume behavior to require careful timing.
+
+### When to debug on hardware vs simulator
+
+Prefer on-device debugging for:
+
+- filesystem/SD-card behavior
+- real timing and scheduling effects
+- external clocking and hardware IO interactions
+- USB/device-level behavior on real peripherals
+- performance validation under target constraints
+
+Prefer simulator for:
+
+- fast UI iteration
+- logic debugging with quicker rebuild/run cycles
+- non-hardware-dependent model/engine changes
+- early feature prototyping before hardware validation
+
+Practical workflow:
+
+1. Develop and iterate quickly in simulator.
+2. Validate hardware-sensitive behavior on real device.
+3. Keep both paths in regular use to avoid regressions.
 
 ## Simulator workflow
 
