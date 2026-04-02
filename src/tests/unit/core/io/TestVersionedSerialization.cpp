@@ -98,6 +98,7 @@ static void readVersion2(const void *buf, size_t len) {
     MemoryReader memoryReader(buf, len);
     VersionedSerializedReader reader([&memoryReader] (void *data, size_t len) { memoryReader.read(data, len); }, 2);
     Data2 data {};
+    data.field4 = 0;
     reader.read(data.field1);
     reader.read(data.field2);
     reader.read(data.field4, VERSION(2));
@@ -114,6 +115,8 @@ static void readVersion3(const void *buf, size_t len) {
     MemoryReader memoryReader(buf, len);
     VersionedSerializedReader reader([&memoryReader] (void *data, size_t len) { memoryReader.read(data, len); }, 3);
     Data3 data {};
+    data.field4 = 0;
+    data.field5 = 0;
     reader.read(data.field1);
     reader.read(data.field2);
     reader.read(data.field4, VERSION(2));
@@ -132,6 +135,7 @@ static void readVersion4(const void *buf, size_t len) {
     MemoryReader memoryReader(buf, len);
     VersionedSerializedReader reader([&memoryReader] (void *data, size_t len) { memoryReader.read(data, len); }, 4);
     Data4 data {};
+    data.field5 = 0;
     reader.read(data.field1);
     reader.read(data.field2);
     reader.skip<int8_t>(VERSION(2), VERSION(4));
@@ -153,15 +157,27 @@ static void clear() {
 
 UNIT_TEST("VersionedSerialization") {
 
-    CASE("version 1") {
-        // version 1 reader
+    // Scope:
+    // - This test validates generic versioned serialization on an in-memory byte stream (buf).
+    // - It does NOT test Project or Settings file formats.
+    //
+    // Serialized stream layout written by VersionedSerializedWriter:
+    // [uint32_t dataVersion][field bytes for that dataVersion][uint32_t checksum]
+    //
+    // Schema evolution in this synthetic test model:
+    // - field4 is introduced in data version 2
+    // - field5 is introduced in data version 3
+    // - field4 is removed again in data version 4
+
+    CASE("reader v1 decodes data version 1 stream") {
+        // Guarantee: the original v1 layout is read correctly and checksum validation passes.
         clear();
         writeVersion1(buf, sizeof(buf));
         readVersion1(buf, sizeof(buf));
     }
 
-    CASE("version 2") {
-        // version 2 reader
+    CASE("reader v2 decodes data version 1 and 2 streams") {
+        // Guarantee: v2 reader keeps field4 default for v1 data and reads field4 for v2 data.
         clear();
         writeVersion1(buf, sizeof(buf));
         readVersion2(buf, sizeof(buf));
@@ -171,8 +187,8 @@ UNIT_TEST("VersionedSerialization") {
         readVersion2(buf, sizeof(buf));
     }
 
-    CASE("version 3") {
-        // version 3 reader
+    CASE("reader v3 decodes data version 1 through 3 streams") {
+        // Guarantee: version-gated reads for field4/field5 behave correctly across v1-v3 inputs.
         clear();
         writeVersion1(buf, sizeof(buf));
         readVersion3(buf, sizeof(buf));
@@ -186,8 +202,8 @@ UNIT_TEST("VersionedSerialization") {
         readVersion3(buf, sizeof(buf));
     }
 
-    CASE("version 4") {
-        // version 4 reader
+    CASE("reader v4 decodes data version 1 through 4 streams") {
+        // Guarantee: removed field4 is skipped only for versions where it existed, and stream alignment stays correct.
         clear();
         writeVersion1(buf, sizeof(buf));
         readVersion4(buf, sizeof(buf));
@@ -203,6 +219,165 @@ UNIT_TEST("VersionedSerialization") {
         clear();
         writeVersion4(buf, sizeof(buf));
         readVersion4(buf, sizeof(buf));
+    }
+
+    CASE("field4 remains default when data version is below 2") {
+        // Guarantee: read(..., addedInVersion=2) does not consume bytes on v1 data and field4 keeps pre-set default.
+        clear();
+        writeVersion1(buf, sizeof(buf));
+
+        MemoryReader memoryReader(buf, sizeof(buf));
+        VersionedSerializedReader reader([&memoryReader] (void *data, size_t len) { memoryReader.read(data, len); }, 2);
+        Data2 data {};
+        data.field4 = 0;
+        reader.read(data.field1);
+        reader.read(data.field2);
+        reader.read(data.field4, VERSION(2));
+        reader.read(data.field3);
+
+        expectEqual(reader.dataVersion(), uint32_t(1));
+        expectEqual(data.field4, int8_t(0));
+        expectTrue(reader.checkHash());
+    }
+
+    CASE("field4 is read from stream when data version is 2") {
+        // Guarantee: read(..., addedInVersion=2) consumes field4 bytes on v2 data and restores serialized value.
+        clear();
+        writeVersion2(buf, sizeof(buf));
+
+        MemoryReader memoryReader(buf, sizeof(buf));
+        VersionedSerializedReader reader([&memoryReader] (void *data, size_t len) { memoryReader.read(data, len); }, 2);
+        Data2 data {};
+        data.field4 = 0;
+        reader.read(data.field1);
+        reader.read(data.field2);
+        reader.read(data.field4, VERSION(2));
+        reader.read(data.field3);
+
+        expectEqual(reader.dataVersion(), uint32_t(2));
+        expectEqual(data.field4, int8_t(-123));
+        expectTrue(reader.checkHash());
+    }
+
+    CASE("field5 remains default when data version is below 3") {
+        // Guarantee: read(..., addedInVersion=3) does not consume bytes on v2 data and field5 keeps pre-set default.
+        clear();
+        writeVersion2(buf, sizeof(buf));
+
+        MemoryReader memoryReader(buf, sizeof(buf));
+        VersionedSerializedReader reader([&memoryReader] (void *data, size_t len) { memoryReader.read(data, len); }, 3);
+        Data3 data {};
+        data.field4 = 0;
+        data.field5 = 0;
+        reader.read(data.field1);
+        reader.read(data.field2);
+        reader.read(data.field4, VERSION(2));
+        reader.read(data.field5, VERSION(3));
+        reader.read(data.field3);
+
+        expectEqual(reader.dataVersion(), uint32_t(2));
+        expectEqual(data.field5, int16_t(0));
+        expectTrue(reader.checkHash());
+    }
+
+    CASE("field5 is read from stream when data version is 3") {
+        // Guarantee: read(..., addedInVersion=3) consumes field5 bytes on v3 data and restores serialized value.
+        clear();
+        writeVersion3(buf, sizeof(buf));
+
+        MemoryReader memoryReader(buf, sizeof(buf));
+        VersionedSerializedReader reader([&memoryReader] (void *data, size_t len) { memoryReader.read(data, len); }, 3);
+        Data3 data {};
+        data.field4 = 0;
+        data.field5 = 0;
+        reader.read(data.field1);
+        reader.read(data.field2);
+        reader.read(data.field4, VERSION(2));
+        reader.read(data.field5, VERSION(3));
+        reader.read(data.field3);
+
+        expectEqual(reader.dataVersion(), uint32_t(3));
+        expectEqual(data.field5, int16_t(-234));
+        expectTrue(reader.checkHash());
+    }
+
+    CASE("skip consumes removed field4 bytes for data versions 2 and 3") {
+        // Guarantee: skip<int8_t>(2,4) advances stream position for historical layouts that still contain field4.
+        clear();
+        writeVersion2(buf, sizeof(buf));
+
+        MemoryReader memoryReader(buf, sizeof(buf));
+        VersionedSerializedReader reader([&memoryReader] (void *data, size_t len) { memoryReader.read(data, len); }, 4);
+        Data4 data {};
+        data.field5 = 0;
+        reader.read(data.field1);
+        reader.read(data.field2);
+        reader.skip<int8_t>(VERSION(2), VERSION(4));
+        reader.read(data.field5, VERSION(3));
+        reader.read(data.field3);
+
+        expectEqual(reader.dataVersion(), uint32_t(2));
+        expectEqual(data.field5, int16_t(0));
+        expectTrue(reader.checkHash());
+    }
+
+    CASE("skip does nothing for removed field4 at data version 4") {
+        // Guarantee: skip<int8_t>(2,4) does not consume bytes once field4 is removed from the layout.
+        clear();
+        writeVersion4(buf, sizeof(buf));
+
+        MemoryReader memoryReader(buf, sizeof(buf));
+        VersionedSerializedReader reader([&memoryReader] (void *data, size_t len) { memoryReader.read(data, len); }, 4);
+        Data4 data {};
+        data.field5 = 0;
+        reader.read(data.field1);
+        reader.read(data.field2);
+        reader.skip<int8_t>(VERSION(2), VERSION(4));
+        reader.read(data.field5, VERSION(3));
+        reader.read(data.field3);
+
+        expectEqual(reader.dataVersion(), uint32_t(4));
+        expectEqual(data.field5, int16_t(-234));
+        expectTrue(reader.checkHash());
+    }
+
+    CASE("checksum validation passes for unmodified stream") {
+        // Guarantee: checkHash() returns true when serialized bytes are read without tampering.
+        clear();
+        writeVersion3(buf, sizeof(buf));
+
+        MemoryReader memoryReader(buf, sizeof(buf));
+        VersionedSerializedReader reader([&memoryReader] (void *data, size_t len) { memoryReader.read(data, len); }, 3);
+        Data3 data {};
+        data.field4 = 0;
+        data.field5 = 0;
+        reader.read(data.field1);
+        reader.read(data.field2);
+        reader.read(data.field4, VERSION(2));
+        reader.read(data.field5, VERSION(3));
+        reader.read(data.field3);
+
+        expectTrue(reader.checkHash());
+    }
+
+    CASE("checksum validation fails after payload corruption") {
+        // Guarantee: checkHash() returns false when any payload byte changes after serialization.
+        clear();
+        writeVersion3(buf, sizeof(buf));
+        buf[4] ^= 0x01;
+
+        MemoryReader memoryReader(buf, sizeof(buf));
+        VersionedSerializedReader reader([&memoryReader] (void *data, size_t len) { memoryReader.read(data, len); }, 3);
+        Data3 data {};
+        data.field4 = 0;
+        data.field5 = 0;
+        reader.read(data.field1);
+        reader.read(data.field2);
+        reader.read(data.field4, VERSION(2));
+        reader.read(data.field5, VERSION(3));
+        reader.read(data.field3);
+
+        expectFalse(reader.checkHash());
     }
 
 }
