@@ -43,7 +43,7 @@ void ListPage::draw(Canvas &canvas) {
         }
     }
 
-    WindowPainter::drawScrollbar(canvas, Width - 8, 12, 4, LineCount * LineHeight, _listModel->rows(), LineCount, displayRow);
+    WindowPainter::drawScrollbar(canvas, _listModel->rows(), LineCount, displayRow);
 }
 
 void ListPage::updateLeds(Leds &leds) {
