@@ -5,5 +5,6 @@
 #define UI_COLOR_NORMAL                 0xa
 #define UI_COLOR_DIM                    0x7
 #define UI_COLOR_DIM_MORE               0x4
+#define UI_COLOR_FOOTER_BACK            0x2
 #define UI_COLOR_INACTIVE               0x2
 #define UI_COLOR_BLACK					0x0
