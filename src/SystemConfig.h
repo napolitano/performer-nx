@@ -33,6 +33,15 @@
 #define CONFIG_LCD_WIDTH                256
 #define CONFIG_LCD_HEIGHT               64
 
+// Simulator display color
+#define DISPLAY_YELLOW                  0
+#define DISPLAY_WHITE                   1
+#define DISPLAY_CYAN                    2
+
+#ifndef CONFIG_SIMULATOR_DISPLAY_COLOR
+#define CONFIG_SIMULATOR_DISPLAY_COLOR  DISPLAY_YELLOW
+#endif
+
 // Shift registers
 #define CONFIG_NUM_SR                   3
 

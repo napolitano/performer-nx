@@ -39,6 +39,7 @@ Firmware for the **PERFORMER NX** Eurorack sequencer.
   - [Build strategy for reliable on-device debugging](#build-strategy-for-reliable-on-device-debugging)
   - [When to debug on hardware vs simulator](#when-to-debug-on-hardware-vs-simulator)
 - [Simulator workflow](#simulator-workflow)
+  - [Simulator display color configuration](#simulator-display-color-configuration)
 - [Troubleshooting](#troubleshooting)
 - [Source tree overview](#source-tree-overview)
 - [Third-party libraries](#third-party-libraries)
@@ -725,6 +726,39 @@ Typical simulator loop:
 2. Rebuild in `build/sim/debug`
 3. Run simulator
 4. Repeat
+
+### Simulator display color configuration
+
+The simulator display tint is controlled by `CONFIG_SIMULATOR_DISPLAY_COLOR` in `src/SystemConfig.h`.
+
+Available values are:
+
+- `DISPLAY_YELLOW`
+- `DISPLAY_WHITE`
+- `DISPLAY_CYAN`
+
+Current default fallback in `src/SystemConfig.h` is:
+
+```cpp
+#ifndef CONFIG_SIMULATOR_DISPLAY_COLOR
+#define CONFIG_SIMULATOR_DISPLAY_COLOR  DISPLAY_YELLOW
+#endif
+```
+
+You can change the color in two common ways:
+
+1. **Project-wide default**: edit `src/SystemConfig.h` and set `CONFIG_SIMULATOR_DISPLAY_COLOR` to your preferred value.
+2. **Build-local override**: pass a compiler define when configuring/building the simulator.
+
+Example (build-local override to white):
+
+```bash
+cd build/sim/debug
+cmake -DCMAKE_CXX_FLAGS="-DCONFIG_SIMULATOR_DISPLAY_COLOR=DISPLAY_WHITE" .
+make -j
+```
+
+If an unsupported value is used, the simulator frontend intentionally fails at compile time.
 
 ## Troubleshooting
 

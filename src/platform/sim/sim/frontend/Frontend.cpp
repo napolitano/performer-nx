@@ -13,6 +13,8 @@
 #include "sim/TargetConfig.h"
 #include "sim/TargetUtils.h"
 
+#include "SystemConfig.h"
+
 #include "args.hxx"
 #include "tinyformat.h"
 
@@ -25,6 +27,18 @@
 #endif
 
 namespace sim {
+
+static Color simDisplayColor() {
+#if CONFIG_SIMULATOR_DISPLAY_COLOR == DISPLAY_YELLOW
+    return Color(0.8f, 0.9f, 0.f, 1.f);
+#elif CONFIG_SIMULATOR_DISPLAY_COLOR == DISPLAY_WHITE
+    return Color(0.9f, 0.9f, 0.9f, 1.f);
+#elif CONFIG_SIMULATOR_DISPLAY_COLOR == DISPLAY_CYAN
+    return Color(0.f, 0.85f, 0.85f, 1.f);
+#else
+#error "Invalid CONFIG_SIMULATOR_DISPLAY_COLOR"
+#endif
+}
 
 #ifdef __EMSCRIPTEN__
 static Frontend *g_instance;
@@ -276,7 +290,7 @@ void Frontend::setupFrontpanel() {
         }
         case Frontpanel::Widget::Lcd: {
             Vector2i resolution(TargetConfig::LcdWidth, TargetConfig::LcdHeight);
-            _lcd = _window->createWidget<Display>(origin, size, resolution);
+            _lcd = _window->createWidget<Display>(origin, size, resolution, simDisplayColor());
             break;
         }
         }
