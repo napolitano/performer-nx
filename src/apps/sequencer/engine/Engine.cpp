@@ -8,6 +8,18 @@
 
 #include "os/os.h"
 
+/**
+ * Constructs the Engine with references to all necessary components.
+ * Initializes member variables and sets up USB MIDI handlers.
+ * @param model The model containing project data.
+ * @param clockTimer The clock timer for timing.
+ * @param adc The ADC for CV inputs.
+ * @param dac The DAC for CV outputs.
+ * @param dio The DIO for digital I/O.
+ * @param gateOutput The gate output handler.
+ * @param midi The MIDI interface.
+ * @param usbMidi The USB MIDI interface.
+ */
 Engine::Engine(Model &model, ClockTimer &clockTimer, Adc &adc, Dac &dac, Dio &dio, GateOutput &gateOutput, Midi &midi, UsbMidi &usbMidi) :
     _model(model),
     _project(model.project()),
@@ -30,6 +42,10 @@ Engine::Engine(Model &model, ClockTimer &clockTimer, Adc &adc, Dac &dac, Dio &di
     _midiMonitoring.inputChanged(_project);
 }
 
+/**
+ * Initializes the Engine components.
+ * Sets up CV inputs/outputs, clock, track engines, and resets the system.
+ */
 void Engine::init() {
     _cvInput.init();
     _cvOutput.init();
@@ -45,6 +61,11 @@ void Engine::init() {
     _lastSystemTicks = os::ticks();
 }
 
+/**
+ * Main update loop of the Engine.
+ * Handles locking, suspending, clock events, tempo updates, track setups, play state, MIDI reception, and output updates.
+ * This method is called periodically to advance the engine's state.
+ */
 void Engine::update() {
     // locking
     _locked = _requestLock;
@@ -115,6 +136,7 @@ void Engine::update() {
 #else
     _clock.setMasterBpm(_project.tempo() * (1.f + _nudgeTempo.strength() * 0.1f));
 #endif
+    // TODO: Investigate and fix the broken slave clock BPM calculation issue.
     // update clock setup
     updateClockSetup();
 
