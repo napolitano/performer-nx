@@ -1,6 +1,6 @@
 #pragma once
 
-// Character Set
+// === Character Set ===
 #define TXT_CHARACTER_SET                               { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', \
                                                           'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', \
                                                           'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', \
@@ -11,7 +11,33 @@
 
 #define TXT_NOTE_NAMES                                  { "C", "C#", "D", "D#", "E", "F", "F#", \
                                                           "G", "G#", "A", "A#", "B" }
-// Messages
+
+// === Glyphs in Tiny Font ===
+#define GLYPH_TINY_PAUSE                               "\x01"
+#define GLYPH_TINY_CLOCK                               "\x02"
+#define GLYPH_TINY_THIN_ARROW_RIGHT                    "\x03"
+#define GLYPH_TINY_THIN_ARROW_LEFT                     "\x04"
+#define GLYPH_TINY_METRONOME_LEFT                      "\x05"
+#define GLYPH_TINY_METRONOME_MIDDLE                    "\x06"
+#define GLYPH_TINY_METRONOME_RIGHT                     "\x07"
+#define GLYPH_TINY_BIG_ARROW_LEFT                      "\x08"
+#define GLYPH_TINY_BIG_ARROW_DOWN                      "\x09"
+#define GLYPH_TINY_BIG_ARROW_RIGHT                     "\x14"
+#define GLYPH_TINY_BIG_ARROW_UP                        "\x0b"
+#define GLYPH_TINY_PLAY_FORWARD_BACKWARD               "\x0c"
+#define GLYPH_TINY_PLAY_LOOP                           "\x0d"
+#define GLYPH_TINY_PLAY_FORWARD                        "\x0e"
+#define GLYPH_TINY_PLAY_BACKWARD                       "\x0f"
+#define GLYPH_TINY_PLAY_RANDOM                         "\x10"
+#define GLYPH_TINY_STOP                                "\x11"
+#define GLYPH_TINY_PLAY                                "\x12"
+#define GLYPH_TINY_RECORD                              "\x13"
+#define GLYPH_TINY_SMALL_ARROW_RIGHT                   "\x12"
+#define GLYPH_TINY_SMALL_ARROW_LEFT                    "\x15"
+#define GLYPH_TINY_SMALL_ARROW_DOWN                    "\x16"
+#define GLYPH_TINY_SMALL_ARROW_UP                      "\x17"
+
+// === Messages ===
 #define TXT_MESSAGE_MIDI_DEVICE_CONNECTED               "USB MIDI DEVICE CONNECTED"
 #define TXT_MESSAGE_MIDI_DEVICE_DISCONNECTED            "USB MIDI DEVICE DISCONNECTED"
 #define TXT_MESSAGE_USER_SCALE_INITIALIZED              "USER SCALE INITIALIZED"
@@ -50,7 +76,7 @@
 #define TXT_MESSAGE_MIDI_OUTPUT_CHANGED                 "OUTPUT CHANGED"
 #define TXT_MESSAGE_LAYOUT_CHANGED                      "LAYOUT CHANGED"
 
-// List labels
+// === List Labels ===
 #define TXT_LIST_LABEL_FORMAT_SD_CARD                   "Format SD card"
 #define TXT_LIST_LABEL_NAME                             "Name"
 #define TXT_LIST_LABEL_MODE                             "Mode"
@@ -230,10 +256,7 @@
 #define TXT_LIST_LABEL_EUCLIDEAN                        "Euclidean"
 #define TXT_LIST_LABEL_RANDOM                           "Random"
 #define TXT_LIST_LABEL_ACID_BASSLINE                    "Acid Bassline"
-
-
-
-// Models
+// === Models ===
 #define TXT_MODEL_MODE_PLAY_ORDER                       "Play Order"
 #define TXT_MODEL_MODE_UP                               "Up"
 #define TXT_MODEL_MODE_DOWN                             "Down"
@@ -353,7 +376,7 @@
 #define TXT_MODEL_BEATS_STEPS                           "%d/%d"
 
 
-// UI Status
+// === UI Status ===
 #define TXT_STATUS_FORMATTING_SD_CARD                   "FORMATTING SD CARD ..."
 #define TXT_STATUS_SAVING_SETTINGS                      "SAVING SETTINGS ..."
 #define TXT_STATUS_BACKING_UP_SETTINGS                  "BACKING UP SETTINGS ..."
@@ -363,7 +386,7 @@
 #define TXT_STATUS_LOADING_PROJECT                      "LOADING PROJECT ..."
 #define TXT_STATUS_SAVING_PROJECT                       "SAVING PROJECT ..."
 
-// UI Interaction
+// === UI Interaction ===
 #define TXT_PRESS_ENCODER_TO_RESET                      "PRESS ENCODER TO RESET"
 #define TXT_PRESS_ENCODER_TO_RESET_TO_BOOTLOADER        "PRESS AND HOLD ENCODER TO RESET TO BOOTLOADER"
 #define TXT_ENTER_NAME_PREFIX                           "NAME:"
@@ -376,14 +399,14 @@
 #define TXT_STAT_MIDI_OVF                               "MIDI OVF:"
 #define TXT_STAT_USBMIDI_OVF                            "USBMIDI OVF:"
 
-// UI Info
+// === UI Info ===
 #define TXT_INFO_CLOCK_MODE_AUTO                        "A"
 #define TXT_INFO_CLOCK_MODE_MANUAL                      "M"
 #define TXT_INFO_CLOCK_MODE_SLAVE                       "S"
 #define TXT_INFO_RECORD_MODE                            "R"
 #define TXT_INFO_SNAP_MODE                              "SNAP"
 #define TXT_INFO_SNAP_MODE_ACTIVE                       "S"
-#define TXT_INFO_TEMPO                                  "%-1s Í%.1f"
+#define TXT_INFO_TEMPO                                  "%-1s      Í%.2f"
 #define TXT_INFO_TEMPO_QUICK_ADJUST                     "%.1f%%"
 #define TXT_INFO_TRACK                                  "T%d"
 #define TXT_INFO_PATTERN                                "P%d"
@@ -428,7 +451,7 @@
 #define TXT_INFO_MONITOR_DATA_USBMIDI_OVF               "%d"
 
 // These are used on song page
-// TODO: Revise code to use a more generioc approach
+// TODO: Revise code to use a more generic approach
 #define TXT_INFO_NUMBER                                 "#"
 #define TXT_INFO_REPEATS                                "N"
 #define TXT_INFO_TRACK_1                                "T1"
@@ -440,7 +463,7 @@
 #define TXT_INFO_TRACK_7                                "T7"
 #define TXT_INFO_TRACK_8                                "T8"
 
-// UI Modes
+// === UI Modes ===
 #define TXT_MODE_USER_SCALE                             "USER SCALE"
 #define TXT_MODE_TRACK                                  "TRACK"
 #define TXT_MODE_SYSTEM                                 "SYSTEM"
@@ -457,7 +480,7 @@
 #define TXT_MODE_GENERATOR                              "GENERATOR"
 #define TXT_MODE_CLOCK                                  "CLOCK"
 
-// UI Functions
+// === UI Functions ===
 #define TXT_FUNCTION_USER_SCALE_NUMBER                  "USER%d"
 #define TXT_FUNCTION_USER_SCLAE_LOAD                    "LOAD SCALE"
 #define TXT_FUNCTION_USER_SCALE_SAVE                    "SAVE SCALE"
@@ -474,7 +497,7 @@
 #define TXT_FUNCTION_MONITOR_STATS                      "STATS"
 #define TXT_FUNCTION_MIDI_OUTPUT_INDEX                  "OUTPUT %d"
 
-// Menu Buttons
+// === Menu Buttons ===
 #define TXT_MENU_INIT                                   "INIT"
 #define TXT_MENU_COPY                                   "COPY"
 #define TXT_MENU_PASTE                                  "PASTE"
@@ -547,7 +570,7 @@
 #define TXT_MENU_SYSTEM_UTILS                           "UTILS"
 #define TXT_MENU_SYSTEM_UPDATE                          "UPDATE"
 
-// Events
+// === Events ===
 #define TXT_EVENT_NOTE_ON                               "NOTE ON"
 #define TXT_EVENT_NOTE_OFF                              "NOTE OFF"
 #define TXT_EVENT_KEY_PRESSURE                          "KEY PRESSURE"
@@ -559,16 +582,18 @@
 #define TXT_EVENT_TIME_CODE                             "TIME CODE"
 #define TXT_EVENT_SONG_POSITION                         "SONG POSITION"
 #define TXT_EVENT_SONG_SELECT                           "SONG SELECT"
+
+
 #define TXT_EVENT_TUNE_REQUEST                          "TUNE REQUEST"
 
-// Errors
+// === Errors ===
 #define TXT_ERROR_FATAL_ERROR                           "FATAL ERROR"
 #define TXT_ERROR_FAILED                                "FAILED (%s)"
 #define TXT_ERROR_INVALID_USER_SCALE_FILE               "INVALID USER SCALE FILE"
 #define TXT_ERROR_INVALID_SETTINGS_FILE                 "INVALID SETTING FILE"
 #define TXT_ERROR_INVALID_PROJECT_FILE                  "INVALID PROJECT FILE"
 
-// Asteroids Easter Egg
+// === Asteroids Easter Egg ===
 #define TXT_ASTEROIDS_INTRO                             "ASTEROIDS", "Press any f-key to continue"
 #define TXT_ASTEROIDS_LEVEL                             "LEVEL %d"
 #define TXT_ASTEROIDS_PRESS_ANY_KEY                     "Press any f-key to continue"
