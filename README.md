@@ -24,6 +24,7 @@ Firmware for the **PERFORMER NX** Eurorack sequencer.
   - [Linux / macOS](#linux--macos)
   - [Windows (WSL)](#windows-wsl)
 - [Build directories](#build-directories)
+- [Build targets and purpose](#build-targets-and-purpose)
 - [Hardware workflow](#hardware-workflow)
   - [Bootloader target (read first)](#bootloader-target-read-first)
   - [HWCONFIG target](#hwconfig-target)
@@ -41,6 +42,7 @@ Firmware for the **PERFORMER NX** Eurorack sequencer.
 - [Troubleshooting](#troubleshooting)
 - [Source tree overview](#source-tree-overview)
 - [Third-party libraries](#third-party-libraries)
+  - [Dependency roles at a glance](#dependency-roles-at-a-glance)
 - [License](#license)
 
 ## About this fork
@@ -384,6 +386,37 @@ Recommended defaults:
 
 - hardware: `build/stm32/release`
 - simulator: `build/sim/debug`
+
+## Build targets and purpose
+
+This section gives a quick map of the most relevant `make` targets and what they are used for.
+
+### Main firmware/app targets
+
+- `sequencer`: Main application firmware (normal bootloader-based workflow).
+- `sequencer_standalone`: Main application without bootloader dependency (development/recovery use).
+- `bootloader`: Device bootloader firmware (safety-critical, change only when necessary).
+- `tester`: Hardware test application.
+- `tester_standalone`: Tester without bootloader dependency.
+
+### Hardware configuration targets
+
+- `hwconfig_default` and other `hwconfig_*` variants: Programs hardware configuration defaults (for board variants and setup/recovery tasks).
+
+### Flashing helper targets
+
+- `flash_sequencer`, `flash_bootloader`, and other `flash_*`: OpenOCD-backed convenience targets that build and flash in one step.
+
+### Setup and tooling targets
+
+- `tools_install`: Installs/builds embedded toolchain dependencies used by this repository.
+- `setup_stm32`: Configures STM32 build trees.
+- `setup_sim`: Configures simulator build trees.
+
+### Notes
+
+- Target names can differ by platform/build tree, but the groups above cover the most common workflow.
+- For variant-specific or less common targets, check the app CMake files in `src/apps/*/CMakeLists.txt`.
 
 ## Hardware workflow
 
@@ -770,6 +803,17 @@ For deeper implementation details, see the documents in `doc/`, especially:
 ## Third-party libraries
 
 This project uses, among others:
+
+### Dependency roles at a glance
+
+- `FreeRTOS` and `libopencm3`: core MCU runtime and low-level hardware access on STM32.
+- `FatFs`: SD-card filesystem support for project data and update workflows.
+- `libusbhost`: USB host stack used for external USB MIDI devices on hardware.
+- `NanoVG`, `soloud`, `RtMidi`, `SDL`-related libs: simulator UI/audio/MIDI stack on desktop builds.
+- `stb_*`, `tinyformat`, `args`: lightweight utility libraries for formatting, image/export helpers, and CLI parsing.
+- `pybind11`: Python bindings used by simulator-side tooling/tests.
+
+Not every dependency is used on every target. STM32 and simulator builds intentionally pull different subsets.
 
 - [FreeRTOS](http://www.freertos.org)
 - [libopencm3](https://github.com/libopencm3/libopencm3)
