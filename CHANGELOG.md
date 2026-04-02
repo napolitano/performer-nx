@@ -1,4 +1,39 @@
 # Changelog
+## v0.1.45 (02 April 2026)
+
+#### Fixes
+- Fix UI page initialization order by breaking PageManager/Pages ctor cycle
+
+#### Improvements
+
+- UI/UX refinements: header/footer structure, information density, emphasis.
+- Scrollbar design (positioning, thickness, visual simplification).
+- Improved visual consistency by integrating icons directly into the bitmap font pipeline.
+- Increased expressiveness of UI through iconographic glyphs in a minimal pixel grid.
+
+#### Features
+- Improved play head in song mode with a more visible and informative design.
+- Improved range start/end in step sequence editor with clearer indicators and better visibility.
+- Added animation in front of tempo top indicate play state.
+
+#### Development
+- Centralized all UI texts and color definitions into dedicated headers (Texts.h, Colors.h)
+- Removed scattered hardcoded strings and color values from implementation files
+- Extended Tiny5x5 font with additional glyphs (arrows, transport icons, symbols).
+- Refactored WindowPainter to improve maintainability
+- Decoupled font editing from firmware
+  - Faster iteration for font/icon design
+  - Deterministic pipeline (text → bin → header)
+  - Better debugging via ASCII dump and BMP preview
+  - Complete font toolchain: header ↔ glyph text ↔ BIN ↔ header/BMP
+    - Implemented converters (bitmapfont_to_glyphtext, glyphtext_to_bin, c64font_to_bitmapfont, dump tool)
+    - ncurses-based glyph editor with full edit workflow
+      - Glyph transformations (mirror, rotate, invert)
+    - Editable glyph text format with indexed glyphs and optional size header
+      - Sparse glyph definition with dense BIN generation
+      - BMP preview generation
+      - Header generation compatible with BitmapFont
+
 ## v0.1.44 (19 March 2026)
 
 #### Fixes
