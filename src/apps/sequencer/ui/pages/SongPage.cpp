@@ -150,7 +150,7 @@ void SongPage::draw(Canvas &canvas) {
         y += rowHeight;
     }
 
-    WindowPainter::drawScrollbar(canvas, 252, tableOriginY + rowHeight + 2, 4, RowCount * rowHeight - 2, song.slotCount(), RowCount, _displayRow);
+    WindowPainter::drawScrollbar(canvas, song.slotCount(), RowCount, _displayRow);
 
     // draw play info
     if (songState.playing()) {
