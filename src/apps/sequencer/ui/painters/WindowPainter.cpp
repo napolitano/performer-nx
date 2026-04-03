@@ -171,7 +171,7 @@ void WindowPainter::drawClock(Canvas &canvas, const Engine &engine) {
     canvas.setFont(Font::Tiny);
     canvas.setColor(clockColor);
     canvas.drawText(2, 8 - 2, FixedStringBuilder<24>(TXT_INFO_TEMPO, name, engine.tempo()));
-    canvas.drawText(24, 8 - 2, animationText);
+    canvas.drawText(20, 8 - 2, animationText);
 }
 
 /**
@@ -191,9 +191,9 @@ void WindowPainter::drawActiveState(Canvas &canvas, const Engine &engine, int tr
     const int stateColor = isRunning ? UI_COLOR_ACTIVE : UI_COLOR_NORMAL;
 
     const int y = 8 - 2;
-    const int trackX = 68;
-    const int patternX = 83;
-    const int editPatternX = 98;
+    const int trackX = 74;
+    const int patternX = 89;
+    const int editPatternX = 104;
 
     canvas.setColor(stateColor);
     canvas.drawText(trackX, y, FixedStringBuilder<8>(TXT_INFO_TRACK, track + 1));
