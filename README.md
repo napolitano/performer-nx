@@ -700,6 +700,8 @@ Practical workflow:
 
 ## Simulator workflow
 
+<a href="doc/performer-simulator.png"><img src="doc/performer-simulator.png"/></a>
+
 Enter the simulator debug build directory:
 
 ```bash
