@@ -34,6 +34,12 @@
   - Configurable frontpanel PNG via `CONFIG_SIMULATOR_FRONTPANEL_SUFFIX` in `SystemConfig.h`
   - `""` (default) loads `frontpanel.png`, `"-white"` loads `frontpanel-white.png`
   - Documented with build-time override examples in `README.md`
+- **Simulator external clock (CLK IN):**
+  - Fixed default PPQN from 16 to 4 to match the default `ClockSetup::InputDivisor = 12` (1/16 note)
+  - Rule: **Simulator PPQ must equal `48 / InputDivisor`** (e.g. divisor 12→4 PPQ, 24→2, 6→8)
+  - Previously the mismatch caused 4× tempo runaway (120 BPM → 480 BPM) on first use
+  - Added reference table as comment in `ClockSource.h` and `Frontend.cpp`
+  - Added controls to allow adjusting external clock emulation PPQ and BPM inside the simulator
 - Decoupled font editing from firmware
   - Faster iteration for font/icon design
   - Deterministic pipeline (text → bin → header)
