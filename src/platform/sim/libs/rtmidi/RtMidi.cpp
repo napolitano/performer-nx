@@ -1712,10 +1712,10 @@ MidiOutAlsa :: ~MidiOutAlsa()
   if (!data) return;
 
   // Cleanup.
-  if ( data->vport >= 0 ) snd_seq_delete_port( data->seq, data->vport );
+  if ( data->seq && data->vport >= 0 ) snd_seq_delete_port( data->seq, data->vport );
   if ( data->coder ) snd_midi_event_free( data->coder );
   if ( data->buffer ) free( data->buffer );
-  snd_seq_close( data->seq );
+  if ( data->seq ) snd_seq_close( data->seq );
   delete data;
 }
 
