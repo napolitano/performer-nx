@@ -321,25 +321,80 @@ void Frontend::setupControls() {
 
     // clock input
     {
+        int controlX = x;
+        int controlY = y;
+
         auto button = _window->createWidget<Button>(
-            Vector2f(x + 10, y + 20),
+            Vector2f(controlX + 10, controlY + 20),
             Vector2f(20, 20),
             Button::Rectangle,
             SDLK_F10
         );
-        _window->createWidget<Label>(Vector2f(x, y + 60), Vector2f(40, 10), "CLK IN");
-        x += 50;
+        _window->createWidget<Label>(Vector2f(controlX, controlY + 60), Vector2f(50, 10), "CLK IN");
 
         _clockSource.reset(new ClockSource(_simulator, [this] () {
             _simulator.writeDigitalInput(0, true);
             _simulator.writeDigitalInput(0, false);
         }));
 
+        auto ppqValueLabel = _window->createWidget<Label>(Vector2f(controlX + 94, controlY + 15), Vector2f(30, 10), "");
+        auto bpmValueLabel = _window->createWidget<Label>(Vector2f(controlX + 94, controlY + 38), Vector2f(40, 10), "");
+
+        _window->createWidget<Label>(Vector2f(controlX + 46, controlY + 15), Vector2f(35, 10), "PPQ");
+        // Hint: correct PPQ = 48 / ClockSetup::InputDivisor (e.g. 48/12=4 for default 1/16)
+        _window->createWidget<Label>(Vector2f(controlX + 46, controlY + 38), Vector2f(35, 10), "BPM");
+
+        auto refreshClockLabels = [this, ppqValueLabel, bpmValueLabel] () {
+            ppqValueLabel->setText(tfm::format("%d", _clockSource->ppqn()));
+            bpmValueLabel->setText(tfm::format("%.0f", _clockSource->bpm()));
+        };
+        refreshClockLabels();
+
+        auto ppqDown = _window->createWidget<Button>(Vector2f(controlX + 78, controlY + 8), Vector2f(14, 14), Button::Rectangle);
+        auto ppqUp = _window->createWidget<Button>(Vector2f(controlX + 134, controlY + 8), Vector2f(14, 14), Button::Rectangle);
+        auto bpmDown = _window->createWidget<Button>(Vector2f(controlX + 78, controlY + 31), Vector2f(14, 14), Button::Rectangle);
+        auto bpmUp = _window->createWidget<Button>(Vector2f(controlX + 134, controlY + 31), Vector2f(14, 14), Button::Rectangle);
+
+        _window->createWidget<Label>(Vector2f(controlX + 82, controlY + 16), Vector2f(8, 8), "-");
+        _window->createWidget<Label>(Vector2f(controlX + 138, controlY + 16), Vector2f(8, 8), "+");
+        _window->createWidget<Label>(Vector2f(controlX + 82, controlY + 39), Vector2f(8, 8), "-");
+        _window->createWidget<Label>(Vector2f(controlX + 138, controlY + 39), Vector2f(8, 8), "+");
+
+        ppqDown->setCallback([this, refreshClockLabels] (bool pressed) {
+            if (pressed) {
+                _clockSource->setPpqn(_clockSource->ppqn() - 1);
+                refreshClockLabels();
+            }
+        });
+
+        ppqUp->setCallback([this, refreshClockLabels] (bool pressed) {
+            if (pressed) {
+                _clockSource->setPpqn(_clockSource->ppqn() + 1);
+                refreshClockLabels();
+            }
+        });
+
+        bpmDown->setCallback([this, refreshClockLabels] (bool pressed) {
+            if (pressed) {
+                _clockSource->setBpm(_clockSource->bpm() - 1.0);
+                refreshClockLabels();
+            }
+        });
+
+        bpmUp->setCallback([this, refreshClockLabels] (bool pressed) {
+            if (pressed) {
+                _clockSource->setBpm(_clockSource->bpm() + 1.0);
+                refreshClockLabels();
+            }
+        });
+
         button->setCallback([this] (bool pressed) {
             if (pressed) {
                 _clockSource->toggle();
             }
         });
+
+        x += 170;
     }
 
     // reset input

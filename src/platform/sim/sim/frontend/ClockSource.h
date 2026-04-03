@@ -2,6 +2,8 @@
 
 #include "sim/Simulator.h"
 
+#include <algorithm>
+
 namespace sim {
 
 class ClockSource {
@@ -18,6 +20,22 @@ public:
         if (_active) {
             _lastTicks = _simulator.ticks();
         }
+    }
+
+    int ppqn() const {
+        return _ppqn;
+    }
+
+    void setPpqn(int ppqn) {
+        _ppqn = std::max(1, ppqn);
+    }
+
+    double bpm() const {
+        return _bpm;
+    }
+
+    void setBpm(double bpm) {
+        _bpm = std::max(1.0, bpm);
     }
 
     void update() {
@@ -42,7 +60,12 @@ private:
     std::function<void()> _handler;
 
     bool _active = false;
-    int _ppqn = 16;
+    // Default PPQN must match engine expected external pulse rate.
+    // Formula: CONFIG_SEQUENCE_PPQN (48) / clockInputDivisor (default 12) = 4
+    // clockInputDivisor=12 (1/16) = 4 ext pulses per QN
+    // clockInputDivisor=24 (1/8)  = 2 ext pulses per QN
+    // clockInputDivisor=6  (1/32) = 8 ext pulses per QN
+    int _ppqn = 4;
     double _bpm = 120.0;
 
     double _lastTicks;
