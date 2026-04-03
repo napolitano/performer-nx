@@ -388,9 +388,11 @@ void Frontend::setupControls() {
             }
         });
 
-        button->setCallback([this] (bool pressed) {
+        button->setCallback([this, button] (bool pressed) {
             if (pressed) {
                 _clockSource->toggle();
+                // Reflect running state visually: filled = active, outline = inactive
+                button->setState(_clockSource->active());
             }
         });
 
