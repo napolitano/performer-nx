@@ -190,10 +190,16 @@ void Clock::slaveTick(int slave) {
         }
 
         // Subtick scheduling
-        _slaveSubTickPeriodUs = _slaveTickPeriodUs / _slaveSubTicksPending;
+        // IMPORTANT: derive cadence from the external clock divisor, not from the
+        // pending backlog. Using pending count here can effectively double tempo
+        // when backlog temporarily reaches 2*divisor.
+        _slaveSubTickPeriodUs = std::max<uint32_t>(1, _slaveTickPeriodUs / divisor);
 
-        if (_elapsedUs - _nextSlaveSubTickUs > 1000) {
-            _nextSlaveSubTickUs = _elapsedUs;
+        // Keep phase stable but recover from larger timing drifts gracefully.
+        // The old fixed 1ms threshold was too aggressive and could cause frequent
+        // phase resets with swung clocks.
+        if (_nextSlaveSubTickUs == 0 || _elapsedUs > (_nextSlaveSubTickUs + _slaveSubTickPeriodUs)) {
+            _nextSlaveSubTickUs = _elapsedUs + _slaveSubTickPeriodUs;
         } else {
             _nextSlaveSubTickUs += _slaveSubTickPeriodUs;
         }
@@ -269,9 +275,9 @@ void Clock::slaveTick(int slave) {
             _slaveTickPeriodUs = periodUs;
         }
 
-        _slaveSubTickPeriodUs = _slaveTickPeriodUs / _slaveSubTicksPending;
-        if (_elapsedUs - _nextSlaveSubTickUs > 1000) {
-            _nextSlaveSubTickUs = _elapsedUs;
+        _slaveSubTickPeriodUs = std::max<uint32_t>(1, _slaveTickPeriodUs / divisor);
+        if (_nextSlaveSubTickUs == 0 || _elapsedUs > (_nextSlaveSubTickUs + _slaveSubTickPeriodUs)) {
+            _nextSlaveSubTickUs = _elapsedUs + _slaveSubTickPeriodUs;
         } else {
             _nextSlaveSubTickUs += _slaveSubTickPeriodUs;
         }
@@ -570,6 +576,11 @@ void Clock::setupMasterTimer() {
 }
 
 void Clock::setupSlaveTimer() {
+    // Reset sub-tick schedule: prevents stale _nextSlaveSubTickUs from blocking
+    // sub-ticks after slaveStart() resets _elapsedUs to 0 (Bug: pause/resume).
+    _nextSlaveSubTickUs = 0;
+    // Force fresh BPM estimation on every start/continue.
+    _slaveTickPeriodUs = 0;
     _elapsedUs = 0;
     _lastSlaveTickUs = 0;
 
