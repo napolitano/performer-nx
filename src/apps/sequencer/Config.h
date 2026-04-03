@@ -6,7 +6,7 @@
 
 // Version tag
 #define CONFIG_VERSION_MAGIC            0xfadebabe
-#define CONFIG_VERSION_NAME             "PER|FORMER NX SEQUENCER"
+#define CONFIG_VERSION_NAME             "PERFORMER NX SEQUENCER"
 #define CONFIG_VERSION_MAJOR            0
 #define CONFIG_VERSION_MINOR            1
 #define CONFIG_VERSION_REVISION         45
