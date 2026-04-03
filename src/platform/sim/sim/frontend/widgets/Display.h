@@ -5,6 +5,8 @@
 #include "nanovg.h"
 
 #include <cstdint>
+#include <algorithm>
+#include <cmath>
 
 namespace sim {
 
@@ -42,10 +44,21 @@ public:
         auto nvg = renderer.nvg();
         const uint8_t *frameBuffer = reinterpret_cast<uint8_t *>(_frameBuffer.get());
 
+        // Integer-only scaling for pixel-perfect LCD output.
+        // This avoids fractional scaling blur and keeps each simulated LCD pixel crisp.
+        const float maxScaleX = _size.x() / std::max(1, _resolution.x());
+        const float maxScaleY = _size.y() / std::max(1, _resolution.y());
+        const int integerScale = std::max(1, static_cast<int>(std::floor(std::min(maxScaleX, maxScaleY))));
+
+        const Vector2f drawSize(_resolution.x() * integerScale, _resolution.y() * integerScale);
+        Vector2f drawPos = _pos + (_size - drawSize) * 0.5f;
+
+        // Snap to integer pixel coordinates so the nearest-neighbor sample grid stays stable.
+        drawPos = Vector2f(std::round(drawPos.x()), std::round(drawPos.y()));
+
         // update texture
         if (_image == -1) {
-            _image = nvgCreateImageRGBA(nvg, _resolution.x(), _resolution.y(), 0 /*NVG_IMAGE_NEAREST*/, frameBuffer);
-            _pattern = nvgImagePattern(nvg, _pos.x(), _pos.y(), _size.x(), _size.y(), 0.f, _image, 1.f);;
+            _image = nvgCreateImageRGBA(nvg, _resolution.x(), _resolution.y(), NVG_IMAGE_NEAREST, frameBuffer);
         } else {
             if (_frameBufferDirty) {
                 nvgUpdateImage(nvg, _image, frameBuffer);
@@ -53,8 +66,16 @@ public:
             }
         }
 
-		nvgBeginPath(nvg);
+        _pattern = nvgImagePattern(nvg, drawPos.x(), drawPos.y(), drawSize.x(), drawSize.y(), 0.f, _image, 1.f);
+
+        // Fill the LCD cavity first so centered letterbox margins blend with the panel.
+        nvgBeginPath(nvg);
         nvgRect(nvg, _pos.x(), _pos.y(), _size.x(), _size.y());
+        nvgFillColor(nvg, nvgRGBA(0, 0, 0, 255));
+        nvgFill(nvg);
+
+		nvgBeginPath(nvg);
+        nvgRect(nvg, drawPos.x(), drawPos.y(), drawSize.x(), drawSize.y());
         nvgFillPaint(nvg, _pattern);
         nvgFill(nvg);
 

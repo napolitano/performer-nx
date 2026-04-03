@@ -9,7 +9,16 @@ namespace Frontpanel {
 static double width = 172.5;
 static double height = 128.27;
 
-static double scale = 5.0;
+// Keep frontpanel and LCD visually coherent:
+// - LCD cutout is 82.0 x 20.5 panel units
+// - Native LCD is 256 x 64 pixels
+// The ratio matches exactly (82/20.5 == 256/64), so choosing a scale of
+//   (256 / 82) * N
+// makes the LCD area an exact integer factor N of the native framebuffer.
+// This avoids fractional LCD scaling blur while keeping the display embedded
+// into the panel geometry.
+static int lcdIntegerScale = 2;
+static double scale = (256.0 / 82.0) * lcdIntegerScale;
 
 static int windowWidth = std::ceil(width * scale);
 static int windowHeight = std::ceil(height * scale);
