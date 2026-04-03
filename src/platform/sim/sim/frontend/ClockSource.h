@@ -21,6 +21,9 @@ public:
             _lastTicks = _simulator.ticks();
         }
     }
+    bool active() const {
+        return _active;
+    }
 
     int ppqn() const {
         return _ppqn;
@@ -42,7 +45,7 @@ public:
         if (_active) {
             double currentTicks = _simulator.ticks();
             double interval = clockInterval() * 1000.0;
-            while (_lastTicks <= currentTicks + interval) {
+            while (_lastTicks <= currentTicks) { // fire once per interval; first fires immediately on enable
                 if (_handler) {
                     _handler();
                 }
