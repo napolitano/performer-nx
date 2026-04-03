@@ -39,7 +39,7 @@
 #define DISPLAY_CYAN                    2
 
 #ifndef CONFIG_SIMULATOR_DISPLAY_COLOR
-#define CONFIG_SIMULATOR_DISPLAY_COLOR  DISPLAY_WHITE
+#define CONFIG_SIMULATOR_DISPLAY_COLOR  DISPLAY_YELLOW
 #endif
 
 // Simulator frontpanel asset suffix.
