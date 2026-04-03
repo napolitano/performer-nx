@@ -25,6 +25,15 @@
 - Removed scattered hardcoded strings and color values from implementation files
 - Extended Tiny5x5 font with additional glyphs (arrows, transport icons, symbols).
 - Refactored WindowPainter to improve maintainability
+- **Simulator display rendering:**
+  - Pixel-perfect LCD output via integer-only scaling (no fractional/blurred scaling)
+  - Nearest-neighbor texture sampling for crisp simulation display
+  - Frontpanel scale aligned to LCD integer factors for visual coherence
+  - LCD scale factor configurable via `lcdIntegerScale` in `Frontpanel.h` (values: 1, 2, 3, ...)
+- **Simulator frontpanel skin:**
+  - Configurable frontpanel PNG via `CONFIG_SIMULATOR_FRONTPANEL_SUFFIX` in `SystemConfig.h`
+  - `""` (default) loads `frontpanel.png`, `"-white"` loads `frontpanel-white.png`
+  - Documented with build-time override examples in `README.md`
 - Decoupled font editing from firmware
   - Faster iteration for font/icon design
   - Deterministic pipeline (text → bin → header)

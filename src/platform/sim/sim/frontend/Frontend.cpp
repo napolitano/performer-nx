@@ -40,6 +40,10 @@ static Color simDisplayColor() {
 #endif
 }
 
+static const char *simFrontpanelAsset() {
+    return "assets/frontpanel" CONFIG_SIMULATOR_FRONTPANEL_SUFFIX ".png";
+}
+
 #ifdef __EMSCRIPTEN__
 static Frontend *g_instance;
 #endif
@@ -210,7 +214,7 @@ void Frontend::setupFrontpanel() {
         return Vector2f(w * scale, h * scale);
     };
 
-    _window->createWidget<Image>(Vector2f(0.f, 0.f), scaleToScreen(Frontpanel::width, Frontpanel::height), "assets/frontpanel.png");
+    _window->createWidget<Image>(Vector2f(0.f, 0.f), scaleToScreen(Frontpanel::width, Frontpanel::height), simFrontpanelAsset());
 
     for (const auto &info : Frontpanel::infos) {
         auto origin = transformToScreen(info.x, info.y);

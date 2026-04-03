@@ -39,7 +39,15 @@
 #define DISPLAY_CYAN                    2
 
 #ifndef CONFIG_SIMULATOR_DISPLAY_COLOR
-#define CONFIG_SIMULATOR_DISPLAY_COLOR  DISPLAY_YELLOW
+#define CONFIG_SIMULATOR_DISPLAY_COLOR  DISPLAY_WHITE
+#endif
+
+// Simulator frontpanel asset suffix.
+// Examples:
+//   ""        -> assets/frontpanel.png
+//   "-white"  -> assets/frontpanel-white.png
+#ifndef CONFIG_SIMULATOR_FRONTPANEL_SUFFIX
+#define CONFIG_SIMULATOR_FRONTPANEL_SUFFIX ""
 #endif
 
 // Shift registers

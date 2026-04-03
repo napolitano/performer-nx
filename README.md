@@ -760,6 +760,57 @@ make -j
 
 If an unsupported value is used, the simulator frontend intentionally fails at compile time.
 
+### Simulator display resolution (LCD integer scaling)
+
+The simulator LCD is rendered pixel-perfect by constraining scaling to integer multiples of the native 256×64 framebuffer.
+This eliminates interpolation blur and ensures each simulated display pixel maps to exactly `N×N` screen pixels.
+
+The scale factor `N` is controlled by `lcdIntegerScale` in `src/platform/sim/sim/frontend/Frontpanel.h`:
+
+```cpp
+static int lcdIntegerScale = 2;  // 1, 2, 3, ...
+static double scale = (256.0 / 82.0) * lcdIntegerScale;
+```
+
+| `lcdIntegerScale` | LCD render size | Notes |
+|---|---|---|
+| `1` | 256 × 64 px | Compact window |
+| `2` | 512 × 128 px | Default, recommended |
+| `3` | 768 × 192 px | Large window |
+
+The frontpanel panel image is scaled proportionally so the display fits exactly into the LCD cutout at any factor.
+
+### Simulator frontpanel skin configuration
+
+The simulator frontpanel PNG is controlled by `CONFIG_SIMULATOR_FRONTPANEL_SUFFIX` in `src/SystemConfig.h`.
+
+Default in `src/SystemConfig.h`:
+
+```cpp
+#ifndef CONFIG_SIMULATOR_FRONTPANEL_SUFFIX
+#define CONFIG_SIMULATOR_FRONTPANEL_SUFFIX ""
+#endif
+```
+
+How suffix mapping works:
+
+- `""` loads `assets/frontpanel.png` (dark panel, default)
+- `"-white"` loads `assets/frontpanel-white.png` (light panel variant)
+
+**Change in `src/SystemConfig.h` (project-wide default):**
+
+```cpp
+#define CONFIG_SIMULATOR_FRONTPANEL_SUFFIX "-white"
+```
+
+**Build-local override (no source edit required):**
+
+```bash
+cd build/sim/debug
+cmake -DCMAKE_CXX_FLAGS='-DCONFIG_SIMULATOR_FRONTPANEL_SUFFIX="-white"' .
+make -j sequencer
+```
+
 ## Troubleshooting
 
 ### Build configuration issues
