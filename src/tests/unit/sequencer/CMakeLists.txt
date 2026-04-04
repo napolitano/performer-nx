@@ -2,3 +2,58 @@ include_directories(../../../apps/sequencer)
 
 register_test(TestCurve TestCurve.cpp)
 register_test(TestScale TestScale.cpp)
+register_test(TestClockSetup TestClockSetup.cpp)
+
+add_executable(TestSequenceState TestSequenceState.cpp)
+target_link_libraries(TestSequenceState core sequencer_shared)
+platform_postprocess_executable(TestSequenceState)
+add_test(NAME TestSequenceState COMMAND TestSequenceState)
+
+add_executable(TestRoutingEngine TestRoutingEngine.cpp)
+target_link_libraries(TestRoutingEngine core sequencer_shared)
+platform_postprocess_executable(TestRoutingEngine)
+add_test(NAME TestRoutingEngine COMMAND TestRoutingEngine)
+
+add_executable(TestMidiCvTrackEngine TestMidiCvTrackEngine.cpp)
+target_link_libraries(TestMidiCvTrackEngine core sequencer_shared)
+platform_postprocess_executable(TestMidiCvTrackEngine)
+add_test(NAME TestMidiCvTrackEngine COMMAND TestMidiCvTrackEngine)
+
+add_executable(TestCvInput TestCvInput.cpp)
+target_link_libraries(TestCvInput core sequencer_shared)
+platform_postprocess_executable(TestCvInput)
+add_test(NAME TestCvInput COMMAND TestCvInput)
+
+# Engine-level sequencer test needs full sequencer implementation.
+add_executable(TestNoteTrackEngineGateOffset TestNoteTrackEngineGateOffset.cpp)
+target_link_libraries(TestNoteTrackEngineGateOffset core sequencer_shared)
+platform_postprocess_executable(TestNoteTrackEngineGateOffset)
+add_test(NAME TestNoteTrackEngineGateOffset COMMAND TestNoteTrackEngineGateOffset)
+
+add_executable(TestNoteTrackEngineAdvanced TestNoteTrackEngineAdvanced.cpp)
+target_link_libraries(TestNoteTrackEngineAdvanced core sequencer_shared)
+platform_postprocess_executable(TestNoteTrackEngineAdvanced)
+add_test(NAME TestNoteTrackEngineAdvanced COMMAND TestNoteTrackEngineAdvanced)
+
+add_executable(TestCurveTrackEngine TestCurveTrackEngine.cpp)
+target_link_libraries(TestCurveTrackEngine core sequencer_shared)
+platform_postprocess_executable(TestCurveTrackEngine)
+add_test(NAME TestCurveTrackEngine COMMAND TestCurveTrackEngine)
+
+# Engine integration-style unit tests using SequencerApp harness.
+add_executable(TestEngine TestEngine.cpp)
+target_link_libraries(TestEngine core sequencer_shared)
+platform_postprocess_executable(TestEngine)
+add_test(NAME TestEngine COMMAND TestEngine)
+
+# Focused transport/clock behavior tests for the engine.
+add_executable(TestEngineTransportClock TestEngineTransportClock.cpp)
+target_link_libraries(TestEngineTransportClock core sequencer_shared)
+platform_postprocess_executable(TestEngineTransportClock)
+add_test(NAME TestEngineTransportClock COMMAND TestEngineTransportClock)
+
+# External clock timing and relock regression tests.
+add_executable(TestClockExternalTiming TestClockExternalTiming.cpp)
+target_link_libraries(TestClockExternalTiming core sequencer_shared)
+platform_postprocess_executable(TestClockExternalTiming)
+add_test(NAME TestClockExternalTiming COMMAND TestClockExternalTiming)

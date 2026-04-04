@@ -1,11 +1,25 @@
 # Changelog
+## v0.1.46
+
+#### Fixes
+
+#### Improvements
+
+#### Features
+
+#### Development
+- Added dedicated unit tests for `CvInput` covering initialization, ADC-to-voltage conversion, and input clamping.
+- Added focused coverage tests for `SequenceState`, including free/aligned advance behavior across all run modes.
+- Added dedicated engine tests for `RoutingEngine`, `CurveTrackEngine`, and `MidiCvTrackEngine`, covering MIDI/CV routing, curve playback/recording, arpeggiator behavior, note priority, retrigger, slide, and polyphonic outputs.
+- Added focused sequencer regression tests for clock setup/external timing, transport clock behavior, and advanced note-track gate-offset/timing scenarios.
+
+
 ## v0.1.45 (04 April 2026)
 
 #### Fixes
 - Fix UI page initialization order by breaking PageManager/Pages ctor cycle
 
 #### Improvements
-
 - UI/UX refinements: header/footer structure, information density, emphasis.
 - Scrollbar design (positioning, thickness, visual simplification).
 - Improved visual consistency by integrating icons directly into the bitmap font pipeline.

@@ -9,8 +9,8 @@
 #define CONFIG_VERSION_NAME             "PERFORMER NX SEQUENCER"
 #define CONFIG_VERSION_MAJOR            0
 #define CONFIG_VERSION_MINOR            1
-#define CONFIG_VERSION_REVISION         45
-#define CONFIG_VERSION_DATE             "2026-04-02"
+#define CONFIG_VERSION_REVISION         46
+#define CONFIG_VERSION_DATE             "2026-04-04"
 
 // Task priorities
 #define CONFIG_DRIVER_TASK_PRIORITY     5
