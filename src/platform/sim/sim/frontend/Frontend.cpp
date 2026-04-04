@@ -490,6 +490,28 @@ void Frontend::setupControls() {
         });
 
     }
+
+    _window->createWidget<Panel>(Vector2f(float(x + 4), separatorY), Vector2f(1.f, separatorHeight), separatorColor);
+    x += 12;
+
+    // reboot
+    {
+        auto button = _window->createWidget<Button>(
+            Vector2f(x + 14, y + 34),
+            Vector2f(40, 20),
+            Button::Rectangle
+        );
+        _window->createWidget<Label>(Vector2f(x + 10, y + 72), Vector2f(52, 10), "REBOOT");
+        x += 70;
+
+        button->setCallback([this] (bool pressed) {
+            // Reboot on release so the button and mouse state are fully released
+            // before the simulated firmware instance is recreated.
+            if (!pressed) {
+                _simulator.reboot();
+            }
+        });
+    }
 }
 
 // // button label

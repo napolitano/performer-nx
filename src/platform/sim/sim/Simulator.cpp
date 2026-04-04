@@ -69,6 +69,53 @@ void Simulator::sendMidi(int port, const MidiMessage &message) {
     writeMidiInput(MidiEvent::makeMessage(port, message));
 }
 
+void Simulator::reboot() {
+    const auto buttonState = _targetState.button;
+    const auto adcState = _targetState.adc;
+    const auto digitalInputState = _targetState.digitalInput;
+
+    if (_targetCreated) {
+        _target.destroy();
+        _targetCreated = false;
+    }
+
+    _tick = 0;
+    _targetState = {};
+
+    // Reset visible outputs immediately so the frontend does not keep stale state
+    // until the recreated firmware produces fresh output.
+    for (int index = 0; index < LedState::Count; ++index) {
+        writeLed(index, false, false);
+    }
+    for (int channel = 0; channel < GateOutputState::Count; ++channel) {
+        writeGateOutput(channel, false);
+    }
+    for (int channel = 0; channel < DacState::Count; ++channel) {
+        writeDac(channel, 0);
+    }
+    for (int pin = 0; pin < DigitalOutputState::Count; ++pin) {
+        writeDigitalOutput(pin, false);
+    }
+    FrameBuffer frameBuffer;
+    frameBuffer.fill(0);
+    writeLcd(frameBuffer);
+
+    _target.create();
+    _targetCreated = true;
+
+    // Reapply the current simulated external inputs so the recreated firmware sees
+    // the same CV and digital input environment as before the reboot.
+    for (int index = 0; index < ButtonState::Count; ++index) {
+        writeButton(index, buttonState.state.test(index));
+    }
+    for (int channel = 0; channel < AdcState::Count; ++channel) {
+        writeAdc(channel, adcState.state[channel]);
+    }
+    for (int pin = 0; pin < DigitalInputState::Count; ++pin) {
+        writeDigitalInput(pin, digitalInputState.state.test(pin));
+    }
+}
+
 void Simulator::screenshot(const std::string &filename) {
     std::unique_ptr<uint8_t[]> pixelBuffer(new uint8_t[CONFIG_LCD_WIDTH * CONFIG_LCD_HEIGHT]);
 

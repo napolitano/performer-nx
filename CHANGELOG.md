@@ -45,6 +45,7 @@
   - Added fine adjustment buttons for each CV input with `0.01V` step size
   - Updated control layout for better readability: centered rotary controls above labels and repositioned `+/-` controls
   - Added dark-gray 1px vertical separator lines between CV, clock/reset, and screenshot control sections
+  - Added a dedicated `Reboot` button to restart the simulated firmware without closing the simulator window
   - Added interaction helpers on CV rotaries:
     - Double-click resets exactly to `0.00V`
     - Hold `SHIFT` while dragging to quantize in `0.25V` steps

@@ -765,12 +765,12 @@ The mapping below is derived from the simulator frontend and the test controller
 Notes:
 
 - The encoder rotation itself is currently controlled with the mouse in the simulator.
-- The extra control strip below the panel (CV inputs, clock/reset emulation, screenshot) is simulator-only and has no hardware equivalent.
+- The extra control strip below the panel (CV inputs, clock/reset emulation, screenshot, reboot) is simulator-only and has no hardware equivalent.
 
 ### Simulator control strip
 
 Below the frontpanel image, the simulator provides an additional control strip for test and development workflows.
-It lets you emulate analog CV inputs, external clock/reset signals, and capture LCD screenshots without requiring hardware.
+It lets you emulate analog CV inputs, external clock/reset signals, capture LCD screenshots, and reboot the simulated firmware without requiring hardware.
 
 #### CV input emulation (`CV1 IN` … `CV4 IN`)
 
@@ -819,6 +819,16 @@ Important details:
 - The screenshot contains the **LCD framebuffer only**, not the full simulator window chrome or frontpanel image
 - The image is written as a grayscale PNG using the current simulated LCD contents
 - If you launch the simulator from `build/sim/debug`, the file is created there unless you change the working directory first
+
+#### Reboot function
+
+The `REBOOT` button performs a full restart of the simulated firmware instance.
+
+Important details:
+
+- It is intended for quickly testing boot-time behavior and clean-start scenarios
+- Unlike `RST IN`, this is not a simulated panel input signal; it restarts the simulator-side firmware instance itself
+- The simulator process stays open while the firmware application is recreated internally
 
 ### Simulator display color configuration
 

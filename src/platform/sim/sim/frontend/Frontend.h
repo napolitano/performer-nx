@@ -97,6 +97,7 @@ private:
     std::vector<Led::Ptr> _leds;
     std::vector<Label::Ptr> _labels;
 
+
 #ifdef __EMSCRIPTEN__
     friend void emscriptenMainLoop();
 #endif

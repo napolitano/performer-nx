@@ -25,6 +25,7 @@ public:
     void setAdc(int channel, float voltage);
     void setDio(int pin, bool state);
     void sendMidi(int port, const MidiMessage &message);
+    void reboot();
 
     void screenshot(const std::string &filename);
 
