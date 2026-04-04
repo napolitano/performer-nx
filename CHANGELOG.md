@@ -1,5 +1,5 @@
 # Changelog
-## v0.1.45 (02 April 2026)
+## v0.1.45 (04 April 2026)
 
 #### Fixes
 - Fix UI page initialization order by breaking PageManager/Pages ctor cycle
@@ -40,6 +40,14 @@
   - Previously the mismatch caused 4× tempo runaway (120 BPM → 480 BPM) on first use
   - Added reference table as comment in `ClockSource.h` and `Frontend.cpp`
   - Added controls to allow adjusting external clock emulation PPQ and BPM inside the simulator
+- **Simulator CV input emulation UI:**
+  - Added live per-channel voltage readout for `CV1..CV4` with two decimal places
+  - Added fine adjustment buttons for each CV input with `0.01V` step size
+  - Updated control layout for better readability: centered rotary controls above labels and repositioned `+/-` controls
+  - Added dark-gray 1px vertical separator lines between CV, clock/reset, and screenshot control sections
+  - Added interaction helpers on CV rotaries:
+    - Double-click resets exactly to `0.00V`
+    - Hold `SHIFT` while dragging to quantize in `0.25V` steps
 - Decoupled font editing from firmware
   - Faster iteration for font/icon design
   - Deterministic pipeline (text → bin → header)
