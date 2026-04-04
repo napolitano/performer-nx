@@ -67,21 +67,186 @@ void Project::clear() {
 
     // load demo project on simulator
 #if PLATFORM_SIM
+    // Demo Pattern 1
     noteSequence(0, 0).setLastStep(15);
-    noteSequence(0, 0).setGates({ 1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0 });
+    noteSequence(0, 0).setGates({ 1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0 }); // Kick
     noteSequence(1, 0).setLastStep(15);
-    noteSequence(1, 0).setGates({ 0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0 });
+    noteSequence(1, 0).setGates({ 0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0 }); // Snare
     noteSequence(2, 0).setLastStep(15);
-    noteSequence(2, 0).setGates({ 0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0 });
+    noteSequence(2, 0).setGates({ 0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0 }); // Rimshot
     noteSequence(3, 0).setLastStep(15);
-    noteSequence(3, 0).setGates({ 0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0 });
+    noteSequence(3, 0).setGates({ 0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0 }); // Clap
     noteSequence(4, 0).setLastStep(15);
-    noteSequence(4, 0).setGates({ 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 });
+    noteSequence(4, 0).setGates({ 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 }); // Closed HiHat
     noteSequence(5, 0).setLastStep(15);
-    noteSequence(5, 0).setGates({ 0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0 });
+    noteSequence(5, 0).setGates({ 0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0 }); // Open HiHat
     noteSequence(7, 0).setLastStep(15);
-    noteSequence(7, 0).setGates({ 1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1 });
+    noteSequence(7, 0).setGates({ 1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1 }); // Synth
     noteSequence(7, 0).setNotes({ 0,0,0,0,12,0,12,1,24,21,22,0,3,6,12,1 });
+
+    // Demo Pattern 2
+    noteSequence(0, 1).setLastStep(15);
+    noteSequence(0, 1).setGates({ 1,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0 });
+    noteSequence(1, 1).setLastStep(15);
+    noteSequence(1, 1).setGates({ 0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0 });
+    noteSequence(2, 1).setLastStep(15);
+    noteSequence(2, 1).setGates({ 0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0 });
+    noteSequence(3, 1).setLastStep(15);
+    noteSequence(3, 1).setGates({ 0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0 });
+    noteSequence(4, 1).setLastStep(15);
+    noteSequence(4, 1).setGates({ 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 });
+    noteSequence(5, 1).setLastStep(15);
+    noteSequence(5, 1).setGates({ 0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0 });
+    noteSequence(7, 1).setLastStep(15);
+    noteSequence(7, 1).setGates({ 1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1 });
+    noteSequence(7, 1).setNotes({ 0,0,0,0,12,0,12,1,24,21,22,0,3,6,12,1 });
+
+    // Demo Pattern 3
+    noteSequence(0, 2).setLastStep(15);
+    noteSequence(0, 2).setGates({ 1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0 });
+    noteSequence(1, 2).setLastStep(15);
+    noteSequence(1, 2).setGates({ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 });
+    noteSequence(2, 2).setLastStep(15);
+    noteSequence(2, 2).setGates({ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 });
+    noteSequence(3, 2).setLastStep(15);
+    noteSequence(3, 2).setGates({ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 });
+    noteSequence(4, 2).setLastStep(15);
+    noteSequence(4, 2).setGates({ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 });
+    noteSequence(5, 2).setLastStep(15);
+    noteSequence(5, 2).setGates({ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 });
+    noteSequence(7, 2).setLastStep(15);
+    noteSequence(7, 2).setGates({ 1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1 });
+    noteSequence(7, 2).setNotes({ 0,0,0,0,12,0,12,1,24,21,22,0,3,6,12,1 });
+
+    // Demo Pattern 4
+    noteSequence(0, 3).setLastStep(15);
+    noteSequence(0, 3).setGates({ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 });
+    noteSequence(1, 3).setLastStep(15);
+    noteSequence(1, 3).setGates({ 0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1 });
+    noteSequence(2, 3).setLastStep(15);
+    noteSequence(2, 3).setGates({ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 });
+    noteSequence(3, 3).setLastStep(15);
+    noteSequence(3, 3).setGates({ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 });
+    noteSequence(4, 3).setLastStep(15);
+    noteSequence(4, 3).setGates({ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 });
+    noteSequence(5, 3).setLastStep(15);
+    noteSequence(5, 3).setGates({ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 });
+    noteSequence(7, 3).setLastStep(15);
+    noteSequence(7, 3).setGates({ 1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1 });
+    noteSequence(7, 3).setNotes({ 0,0,0,0,12,0,12,1,24,21,22,0,3,6,12,1 });
+
+#endif
+
+#if PLATFORM_SIM
+    // Demo Song
+    _song.clear();
+
+    _song.chainPattern(0);
+    _song.chainPattern(1);
+    _song.chainPattern(2);
+    _song.chainPattern(3);
+    _song.chainPattern(4);
+    _song.chainPattern(5);
+    _song.chainPattern(6);
+    _song.chainPattern(7);
+
+    // Slot 0:
+    _song.setPattern(0, 0, 0);
+    _song.setPattern(0, 1, 4);
+    _song.setPattern(0, 2, 4);
+    _song.setPattern(0, 3, 4);
+    _song.setPattern(0, 4, 4);
+    _song.setPattern(0, 5, 4);
+    _song.setPattern(0, 6, 4);
+    _song.setPattern(0, 7, 4);
+    _song.setRepeats(0, 4);
+
+    // Slot 1
+    _song.setPattern(1, 0, 0);
+    _song.setPattern(1, 1, 4);
+    _song.setPattern(1, 2, 4);
+    _song.setPattern(1, 3, 4);
+    _song.setPattern(1, 4, 0);
+    _song.setPattern(1, 5, 0);
+    _song.setPattern(1, 6, 4);
+    _song.setPattern(1, 7, 4);
+    _song.setRepeats(1, 3);
+
+    // Slot 2
+    _song.setPattern(2, 0, 1);
+    _song.setPattern(2, 1, 4);
+    _song.setPattern(2, 2, 4);
+    _song.setPattern(2, 3, 4);
+    _song.setPattern(2, 4, 0);
+    _song.setPattern(2, 5, 0);
+    _song.setPattern(2, 6, 4);
+    _song.setPattern(2, 7, 4);
+    _song.setRepeats(2, 1);
+
+    // Slot 3
+    _song.setPattern(3, 0, 0);
+    _song.setPattern(3, 1, 4);
+    _song.setPattern(3, 2, 4);
+    _song.setPattern(3, 3, 4);
+    _song.setPattern(3, 4, 0);
+    _song.setPattern(3, 5, 0);
+    _song.setPattern(3, 6, 4);
+    _song.setPattern(3, 7, 0);
+    _song.setRepeats(3, 3);
+
+    // Slot 4
+    _song.setPattern(4, 0, 0);
+    _song.setPattern(4, 1, 3);
+    _song.setPattern(4, 2, 4);
+    _song.setPattern(4, 3, 4);
+    _song.setPattern(4, 4, 0);
+    _song.setPattern(4, 5, 0);
+    _song.setPattern(4, 6, 4);
+    _song.setPattern(4, 7, 0);
+    _song.setRepeats(4, 1);
+
+    // Slot 5
+    _song.setPattern(5, 0, 0);
+    _song.setPattern(5, 1, 0);
+    _song.setPattern(5, 2, 0);
+    _song.setPattern(5, 3, 0);
+    _song.setPattern(5, 4, 0);
+    _song.setPattern(5, 5, 0);
+    _song.setPattern(5, 6, 0);
+    _song.setPattern(5, 7, 0);
+    _song.setRepeats(5, 3);
+
+    // Slot 6
+    _song.setPattern(6, 0, 1);
+    _song.setPattern(6, 1, 0);
+    _song.setPattern(6, 2, 0);
+    _song.setPattern(6, 3, 0);
+    _song.setPattern(6, 4, 0);
+    _song.setPattern(6, 5, 0);
+    _song.setPattern(6, 6, 0);
+    _song.setPattern(6, 7, 0);
+    _song.setRepeats(6, 1);
+
+    // Slot 7
+    _song.setPattern(7, 0, 1);
+    _song.setPattern(7, 1, 3);
+    _song.setPattern(7, 2, 0);
+    _song.setPattern(7, 3, 0);
+    _song.setPattern(7, 4, 0);
+    _song.setPattern(7, 5, 0);
+    _song.setPattern(7, 6, 0);
+    _song.setPattern(7, 7, 0);
+    _song.setRepeats(7, 1);
+
+    _song.setMute(6, 0, true);
+    _song.setMute(6, 1, true);
+    _song.setMute(6, 2, true);
+    _song.setMute(6, 3, true);
+    _song.setMute(6, 6, true);
+    _song.setMute(7, 0, true);
+    _song.setMute(7, 2, true);
+    _song.setMute(7, 3, true);
+    _song.setMute(7, 6, true);
 #endif
 
     _observable.notify(ProjectCleared);

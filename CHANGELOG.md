@@ -16,6 +16,7 @@
 - Improved play head in song mode with a more visible and informative design.
 - Improved range start/end in step sequence editor with clearer indicators and better visibility.
 - Added animation in front of tempo top indicate play state.
+- Expanded the simulator demo project with multiple demo patterns and a basic preconfigured song structure.
 
 #### Development
 - Added detailed project file format documentation in `doc/ProjectFileformat.md` (binary layout, field schema, version compatibility).
