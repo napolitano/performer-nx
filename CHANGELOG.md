@@ -18,6 +18,12 @@
 - Added animation in front of tempo top indicate play state.
 
 #### Development
+- Added detailed project file format documentation in `doc/ProjectFileformat.md` (binary layout, field schema, version compatibility).
+- Added standalone user scale file format documentation in `doc/UseScaleFileformat.md` (header, payload, FNV hash, compatibility behavior).
+- Added settings file format documentation in `doc/SettingsFileformat.md` (file/flash layout, versioning, hash integrity, compatibility behavior).
+- Added NoteTrack and note-layer documentation in `doc/NoteTrackLayers.md` (layer ranges/defaults, serialization, version availability, microtiming limitations).
+- Added CurveTrack and curve-layer documentation in `doc/CurveTrackLayers.md` (shape types, layer ranges/defaults, serialization, runtime behavior, version availability).
+- Added Song model and serialization documentation in `doc/Song.md` (slot layout, packed fields, version compatibility, runtime playback semantics).
 - Reworked `README.md` to improve structure, onboarding clarity, and maintainability.
 - Expanded unit test coverage for versioned serialization scenarios.
 - Refined existing test cases with clearer naming and intent-focused comments.
