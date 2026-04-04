@@ -22,7 +22,7 @@ static double scale = (256.0 / 82.0) * lcdIntegerScale;
 
 static int windowWidth = std::ceil(width * scale);
 static int windowHeight = std::ceil(height * scale);
-static int controlHeight = 80;
+static int controlHeight = 100;
 
 enum class Widget {
     Jack,

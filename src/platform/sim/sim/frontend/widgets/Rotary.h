@@ -2,6 +2,8 @@
 
 #include "../Widget.h"
 
+#include <cmath>
+
 namespace sim {
 
 class Rotary : public Widget {
@@ -50,13 +52,29 @@ public:
         _hovered = isInside(e.pos());
         if (_pressed) {
             int delta = e.pos().x() - _lastPos.x();
-            updateValue(_value + delta / 100.f);
+            float nextValue = _value + delta / 100.f;
+
+            // Hold Shift while dragging to quantize to 0.25V steps.
+            // Rotary uses a normalized [0..1] range that maps to [-5V..+5V],
+            // so one 0.25V step equals 0.025 in normalized units.
+            if ((SDL_GetModState() & KMOD_SHIFT) != 0) {
+                constexpr float normalizedStep = 0.025f;
+                nextValue = std::round(nextValue / normalizedStep) * normalizedStep;
+            }
+
+            updateValue(nextValue);
             _lastPos = e.pos();
         }
     }
 
     virtual void onMouseDown(MouseButtonEvent &e) override {
         if (!_pressed && e.button() == MouseButtonEvent::Left && isInside(e.pos())) {
+            if (e.clicks() >= 2) {
+                // Double-click resets rotary center (exactly 0V in CV mapping).
+                updateValue(0.5f);
+                e.consume();
+                return;
+            }
             SDL_CaptureMouse(SDL_TRUE);
             _lastPos = e.pos();
             setPressed(true);

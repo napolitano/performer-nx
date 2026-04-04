@@ -21,6 +21,7 @@
 #include <memory>
 #include <sstream>
 #include <iomanip>
+#include <algorithm>
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
@@ -305,19 +306,72 @@ void Frontend::setupControls() {
     int x = 10;
     int y = Frontpanel::windowHeight;
 
+    constexpr float kCvMinVoltage = -5.f;
+    constexpr float kCvMaxVoltage = 5.f;
+    constexpr float kCvFineStepVoltage = 0.01f; // 1/100 V
+    const Color separatorColor(0.2f, 0.2f, 0.2f, 1.f);
+    const float separatorY = float(y + 6);
+    const float separatorHeight = float(Frontpanel::controlHeight - 12);
+
     // panel
     _window->createWidget<Panel>(Vector2f(0.f, Frontpanel::windowHeight), Vector2f(Frontpanel::windowWidth, Frontpanel::controlHeight), Color(1.f, 1.f, 1.f, 0.05f));
 
     // cv inputs
     for (int i = 0; i < TargetConfig::AdcChannels; ++i) {
-        auto rotary = _window->createWidget<Rotary>(Vector2f(x, y + 10), Vector2f(40, 40));
-        rotary->setValueCallback([this, i] (float value) {
-            _simulator.setAdc(i, value * 10.f - 5.f);
+        const int controlX = x;
+        // Center rotary over the 78px label/value area.
+        auto rotary = _window->createWidget<Rotary>(Vector2f(controlX + 23, y + 8), Vector2f(32, 32));
+        auto fineDown = _window->createWidget<Button>(Vector2f(controlX + 24, y + 81), Vector2f(14, 14), Button::Rectangle);
+        auto fineUp = _window->createWidget<Button>(Vector2f(controlX + 40, y + 81), Vector2f(14, 14), Button::Rectangle);
+
+        _window->createWidget<Label>(Vector2f(controlX + 28, y + 89), Vector2f(8, 8), "-");
+        _window->createWidget<Label>(Vector2f(controlX + 44, y + 89), Vector2f(8, 8), "+");
+        // Show the fine-step size centered below the CV label/value area.
+        _window->createWidget<Label>(Vector2f(controlX, y + 72), Vector2f(78, 10), "STEP 0.01V");
+
+        _window->createWidget<Label>(Vector2f(controlX, y + 48), Vector2f(78, 10), tfm::format("CV%d IN", i + 1));
+        auto voltageLabel = _window->createWidget<Label>(Vector2f(controlX, y + 60), Vector2f(78, 10), "");
+
+        auto formatVoltage = [] (float voltage) {
+            // Avoid rendering "-0.00V" near zero.
+            if (std::fabs(voltage) < 0.0005f) {
+                voltage = 0.f;
+            }
+            return tfm::format("%+.2fV", voltage);
+        };
+
+        auto setCvInputVoltage = [this, i, rotary, voltageLabel, formatVoltage, kCvMinVoltage, kCvMaxVoltage] (float voltage) {
+            float clampedVoltage = std::max(kCvMinVoltage, std::min(kCvMaxVoltage, voltage));
+            float normalized = (clampedVoltage - kCvMinVoltage) / (kCvMaxVoltage - kCvMinVoltage);
+            rotary->setValue(normalized);
+            _simulator.setAdc(i, clampedVoltage);
+            voltageLabel->setText(formatVoltage(clampedVoltage));
+        };
+
+        rotary->setValueCallback([setCvInputVoltage, kCvMinVoltage, kCvMaxVoltage] (float value) {
+            setCvInputVoltage(kCvMinVoltage + value * (kCvMaxVoltage - kCvMinVoltage));
         });
-        _simulator.setAdc(i, 0.f);
-        _window->createWidget<Label>(Vector2f(x, y + 60), Vector2f(40, 10), tfm::format("CV%d IN", i + 1));
-        x += 50;
+
+        fineDown->setCallback([setCvInputVoltage, rotary, kCvMinVoltage, kCvMaxVoltage, kCvFineStepVoltage] (bool pressed) {
+            if (pressed) {
+                float currentVoltage = kCvMinVoltage + rotary->value() * (kCvMaxVoltage - kCvMinVoltage);
+                setCvInputVoltage(currentVoltage - kCvFineStepVoltage);
+            }
+        });
+
+        fineUp->setCallback([setCvInputVoltage, rotary, kCvMinVoltage, kCvMaxVoltage, kCvFineStepVoltage] (bool pressed) {
+            if (pressed) {
+                float currentVoltage = kCvMinVoltage + rotary->value() * (kCvMaxVoltage - kCvMinVoltage);
+                setCvInputVoltage(currentVoltage + kCvFineStepVoltage);
+            }
+        });
+
+        setCvInputVoltage(0.f);
+        x += 90;
     }
+
+    _window->createWidget<Panel>(Vector2f(float(x + 6), separatorY), Vector2f(1.f, separatorHeight), separatorColor);
+    x += 14;
 
     // clock input
     {
@@ -325,24 +379,24 @@ void Frontend::setupControls() {
         int controlY = y;
 
         auto button = _window->createWidget<Button>(
-            Vector2f(controlX + 10, controlY + 20),
+            Vector2f(controlX + 14, controlY + 34),
             Vector2f(20, 20),
             Button::Rectangle,
             SDLK_F10
         );
-        _window->createWidget<Label>(Vector2f(controlX, controlY + 60), Vector2f(50, 10), "CLK IN");
+        _window->createWidget<Label>(Vector2f(controlX, controlY + 72), Vector2f(50, 10), "CLK IN");
 
         _clockSource.reset(new ClockSource(_simulator, [this] () {
             _simulator.writeDigitalInput(0, true);
             _simulator.writeDigitalInput(0, false);
         }));
 
-        auto ppqValueLabel = _window->createWidget<Label>(Vector2f(controlX + 94, controlY + 15), Vector2f(30, 10), "");
-        auto bpmValueLabel = _window->createWidget<Label>(Vector2f(controlX + 94, controlY + 38), Vector2f(40, 10), "");
+        auto ppqValueLabel = _window->createWidget<Label>(Vector2f(controlX + 94, controlY + 35), Vector2f(30, 10), "");
+        auto bpmValueLabel = _window->createWidget<Label>(Vector2f(controlX + 94, controlY + 58), Vector2f(40, 10), "");
 
-        _window->createWidget<Label>(Vector2f(controlX + 46, controlY + 15), Vector2f(35, 10), "PPQ");
+        _window->createWidget<Label>(Vector2f(controlX + 50, controlY + 35), Vector2f(35, 10), "PPQ");
         // Hint: correct PPQ = 48 / ClockSetup::InputDivisor (e.g. 48/12=4 for default 1/16)
-        _window->createWidget<Label>(Vector2f(controlX + 46, controlY + 38), Vector2f(35, 10), "BPM");
+        _window->createWidget<Label>(Vector2f(controlX + 50, controlY + 58), Vector2f(35, 10), "BPM");
 
         auto refreshClockLabels = [this, ppqValueLabel, bpmValueLabel] () {
             ppqValueLabel->setText(tfm::format("%d", _clockSource->ppqn()));
@@ -350,15 +404,15 @@ void Frontend::setupControls() {
         };
         refreshClockLabels();
 
-        auto ppqDown = _window->createWidget<Button>(Vector2f(controlX + 78, controlY + 8), Vector2f(14, 14), Button::Rectangle);
-        auto ppqUp = _window->createWidget<Button>(Vector2f(controlX + 134, controlY + 8), Vector2f(14, 14), Button::Rectangle);
-        auto bpmDown = _window->createWidget<Button>(Vector2f(controlX + 78, controlY + 31), Vector2f(14, 14), Button::Rectangle);
-        auto bpmUp = _window->createWidget<Button>(Vector2f(controlX + 134, controlY + 31), Vector2f(14, 14), Button::Rectangle);
+        auto ppqDown = _window->createWidget<Button>(Vector2f(controlX + 82, controlY + 28), Vector2f(14, 14), Button::Rectangle);
+        auto ppqUp = _window->createWidget<Button>(Vector2f(controlX + 138, controlY + 28), Vector2f(14, 14), Button::Rectangle);
+        auto bpmDown = _window->createWidget<Button>(Vector2f(controlX + 82, controlY + 51), Vector2f(14, 14), Button::Rectangle);
+        auto bpmUp = _window->createWidget<Button>(Vector2f(controlX + 138, controlY + 51), Vector2f(14, 14), Button::Rectangle);
 
-        _window->createWidget<Label>(Vector2f(controlX + 82, controlY + 16), Vector2f(8, 8), "-");
-        _window->createWidget<Label>(Vector2f(controlX + 138, controlY + 16), Vector2f(8, 8), "+");
-        _window->createWidget<Label>(Vector2f(controlX + 82, controlY + 39), Vector2f(8, 8), "-");
-        _window->createWidget<Label>(Vector2f(controlX + 138, controlY + 39), Vector2f(8, 8), "+");
+        _window->createWidget<Label>(Vector2f(controlX + 86, controlY + 36), Vector2f(8, 8), "-");
+        _window->createWidget<Label>(Vector2f(controlX + 142, controlY + 36), Vector2f(8, 8), "+");
+        _window->createWidget<Label>(Vector2f(controlX + 86, controlY + 59), Vector2f(8, 8), "-");
+        _window->createWidget<Label>(Vector2f(controlX + 142, controlY + 59), Vector2f(8, 8), "+");
 
         ppqDown->setCallback([this, refreshClockLabels] (bool pressed) {
             if (pressed) {
@@ -402,12 +456,12 @@ void Frontend::setupControls() {
     // reset input
     {
         auto button = _window->createWidget<Button>(
-            Vector2f(x + 10, y + 20),
+            Vector2f(x + 10, y + 34),
             Vector2f(20, 20),
             Button::Rectangle,
             SDLK_F11
         );
-        _window->createWidget<Label>(Vector2f(x, y + 60), Vector2f(40, 10), "RST IN");
+        _window->createWidget<Label>(Vector2f(x, y + 72), Vector2f(40, 10), "RST IN");
         x += 50;
 
         button->setCallback([this] (bool pressed) {
@@ -415,15 +469,18 @@ void Frontend::setupControls() {
         });
     }
 
+    _window->createWidget<Panel>(Vector2f(float(x + 4), separatorY), Vector2f(1.f, separatorHeight), separatorColor);
+    x += 12;
+
     // screenshot
     {
         auto button = _window->createWidget<Button>(
-            Vector2f(x + 10, y + 20),
+            Vector2f(x + 14, y + 34),
             Vector2f(40, 20),
             Button::Rectangle,
             SDLK_F12
         );
-        _window->createWidget<Label>(Vector2f(x, y + 60), Vector2f(60, 10), "SCREENSHOT");
+        _window->createWidget<Label>(Vector2f(x + 6, y + 72), Vector2f(60, 10), "SCREENSHOT");
         x += 70;
 
         button->setCallback([&] (bool pressed) {

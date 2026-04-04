@@ -39,6 +39,8 @@ Firmware for the **PERFORMER NX** Eurorack sequencer.
   - [Build strategy for reliable on-device debugging](#build-strategy-for-reliable-on-device-debugging)
   - [When to debug on hardware vs simulator](#when-to-debug-on-hardware-vs-simulator)
 - [Simulator workflow](#simulator-workflow)
+  - [Simulator keyboard mapping](#simulator-keyboard-mapping)
+  - [Simulator control strip](#simulator-control-strip)
   - [Simulator display color configuration](#simulator-display-color-configuration)
 - [Troubleshooting](#troubleshooting)
 - [Source tree overview](#source-tree-overview)
@@ -728,6 +730,95 @@ Typical simulator loop:
 2. Rebuild in `build/sim/debug`
 3. Run simulator
 4. Repeat
+
+### Simulator keyboard mapping
+
+The simulator mirrors the frontpanel buttons on the computer keyboard.
+The mapping below is derived from the simulator frontend and the test controller button map, so it reflects the current implementation.
+
+#### Frontpanel button mapping
+
+| Keyboard key | Simulator control | Notes |
+|---|---|---|
+| `Q` `W` `E` `R` `T` `Y` `U` `I` | `TRACK 1` … `TRACK 8` | Top row of track buttons |
+| `A` `S` `D` `F` `G` `H` `J` `K` | `STEP 1` … `STEP 8` | Middle row |
+| `Z` `X` `C` `V` `B` `N` `M` `,` | `STEP 9` … `STEP 16` | Bottom row, last key is comma |
+| `1` | `PLAY` | Global transport button |
+| `2` | `CLOCK` | Clock page / clock button |
+| `3` | `PATT` | Pattern page / pattern button |
+| `4` | `PERF` | Performer page / performer button |
+| `Left Arrow` | `PREV` | Previous / left navigation button |
+| `Right Arrow` | `NEXT` | Next / right navigation button |
+| `Left Shift` | `SHIFT` | Modifier button on the frontpanel |
+| `Left Alt` | `PAGE` | Page modifier button |
+| `F1` … `F5` | Soft buttons `F1` … `F5` | Frontpanel function buttons |
+| `Space` | Encoder press | Presses the encoder button |
+
+#### Simulator-only keyboard shortcuts
+
+| Keyboard key | Simulator control | Notes |
+|---|---|---|
+| `F10` | `CLK IN` | Toggles external clock emulation on/off |
+| `F11` | `RST IN` | Holds the reset input while pressed |
+| `F12` | Screenshot | Saves `screenshot.png` from the simulator window |
+
+Notes:
+
+- The encoder rotation itself is currently controlled with the mouse in the simulator.
+- The extra control strip below the panel (CV inputs, clock/reset emulation, screenshot) is simulator-only and has no hardware equivalent.
+
+### Simulator control strip
+
+Below the frontpanel image, the simulator provides an additional control strip for test and development workflows.
+It lets you emulate analog CV inputs, external clock/reset signals, and capture LCD screenshots without requiring hardware.
+
+#### CV input emulation (`CV1 IN` … `CV4 IN`)
+
+Each simulated CV input provides a rotary control plus a live voltage readout.
+
+- Voltage range: `-5.00V` to `+5.00V`
+- Default value at startup: `0.00V`
+- Live readout updates immediately and is shown with two decimal places
+- Fine-step buttons change the value in `0.01V` increments
+- Values are clamped to the valid input range
+
+Mouse interaction on the CV rotaries:
+
+- **Drag** to change the input voltage continuously
+- **Double-click** to reset the value exactly to `0.00V`
+- **Hold `SHIFT` while dragging** to quantize movement in `0.25V` steps
+
+These controls drive the simulator ADC inputs directly and are useful for testing CV recording, routing, modulation, and threshold-sensitive logic.
+
+#### Clock and reset emulation (`CLK IN` / `RST IN`)
+
+The clock section simulates the external digital clock input used by the sequencer engine.
+
+- `CLK IN` toggles the external clock generator on/off
+- The button fill state indicates whether the clock generator is currently active
+- `PPQ` sets the external clock pulses per quarter note
+- `BPM` sets the tempo of the generated clock
+- Current default values are `PPQ = 4` and `BPM = 120`
+- Minimum values are clamped to `1` for both PPQ and BPM
+
+Important note for clock validation:
+
+- The simulator clock PPQ should match the expected external clock rate for the selected `Input Divisor`
+- Rule of thumb: `PPQ = 48 / Input Divisor`
+- Example: default `Input Divisor = 12` (`1/16`) corresponds to `4 PPQ`
+
+The `RST IN` control emulates the reset/run input line as a momentary digital input while the button/key is held.
+Its exact effect depends on the selected clock input mode in the sequencer project (`Reset`, `Run`, or `StartStop`).
+
+#### Screenshot function
+
+The `SCREENSHOT` button captures the simulated LCD contents and writes them to `screenshot.png` in the current working directory.
+
+Important details:
+
+- The screenshot contains the **LCD framebuffer only**, not the full simulator window chrome or frontpanel image
+- The image is written as a grayscale PNG using the current simulated LCD contents
+- If you launch the simulator from `build/sim/debug`, the file is created there unless you change the working directory first
 
 ### Simulator display color configuration
 
