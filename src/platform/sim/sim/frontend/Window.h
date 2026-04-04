@@ -42,6 +42,7 @@ private:
     }
 
     SDL_Window *_window;
+    Vector2i _fixedSize;
     Renderer _renderer;
     std::vector<Widget::Ptr> _widgets;
     bool _terminate = false;

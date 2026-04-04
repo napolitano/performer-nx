@@ -4,8 +4,10 @@ namespace sim {
 
 Window::Window(const std::string &title, const Vector2i &size) :
     _window(SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, size.x(), size.y(), SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI)),
+    _fixedSize(size),
     _renderer(_window)
 {
+    SDL_SetWindowResizable(_window, SDL_FALSE);
     SDL_ShowCursor(SDL_ENABLE);
 }
 
@@ -19,6 +21,12 @@ void Window::update() {
         switch (event.type) {
         case SDL_QUIT:
             _terminate = true;
+            break;
+        case SDL_WINDOWEVENT:
+            if (event.window.event == SDL_WINDOWEVENT_RESIZED ||
+                event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+                SDL_SetWindowSize(_window, _fixedSize.x(), _fixedSize.y());
+            }
             break;
         case SDL_KEYDOWN:
             handleEvent(KeyEvent::fromSDL(event.key), [] (Widget &widget, KeyEvent &e) { widget.onKeyDown(e); } );

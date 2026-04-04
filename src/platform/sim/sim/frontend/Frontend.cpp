@@ -304,17 +304,21 @@ void Frontend::setupFrontpanel() {
 
 void Frontend::setupControls() {
     int x = 10;
-    int y = Frontpanel::windowHeight;
+    const int controlStripTop = Frontpanel::windowHeight;
+    const int controlContentTop = controlStripTop + 5; // 1px separator + 4px gap
+    int y = controlContentTop;
 
     constexpr float kCvMinVoltage = -5.f;
     constexpr float kCvMaxVoltage = 5.f;
     constexpr float kCvFineStepVoltage = 0.01f; // 1/100 V
     const Color separatorColor(0.2f, 0.2f, 0.2f, 1.f);
     const float separatorY = float(y + 6);
-    const float separatorHeight = float(Frontpanel::controlHeight - 12);
+    const float separatorHeight = float(Frontpanel::controlHeight - 20);
 
-    // panel
-    _window->createWidget<Panel>(Vector2f(0.f, Frontpanel::windowHeight), Vector2f(Frontpanel::windowWidth, Frontpanel::controlHeight), Color(1.f, 1.f, 1.f, 0.05f));
+    // Keep the simulator-only control strip opaque black and separate it from the
+    // panel with a horizontal divider plus a small black gap below the line.
+    _window->createWidget<Panel>(Vector2f(0.f, float(controlStripTop)), Vector2f(Frontpanel::windowWidth, Frontpanel::controlHeight), Color(0.07f, 0.07f, 0.07f, 1.f));
+    _window->createWidget<Panel>(Vector2f(0.f, float(controlStripTop)), Vector2f(Frontpanel::windowWidth, 1.f), separatorColor);
 
     // cv inputs
     for (int i = 0; i < TargetConfig::AdcChannels; ++i) {
