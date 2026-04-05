@@ -81,6 +81,51 @@ static float evalStepNote(const NoteSequence::Step &step, int probabilityBias, c
     return scale.noteToVolts(note) + (scale.isChromatic() ? rootNote : 0) * (1.f / 12.f);
 }
 
+static bool lookAheadSupported(Types::RunMode runMode) {
+    return runMode == Types::RunMode::Forward || runMode == Types::RunMode::Backward;
+}
+
+struct LookAheadInfo {
+    int step = -1;
+    uint32_t iteration = 0;
+    bool valid = false;
+};
+
+static LookAheadInfo predictNextStep(const SequenceState &state, Types::RunMode runMode, int firstStep, int lastStep) {
+    LookAheadInfo info;
+
+    if (state.step() < 0) {
+        return info;
+    }
+
+    info.valid = true;
+    info.iteration = state.iteration();
+
+    switch (runMode) {
+    case Types::RunMode::Forward:
+        if (state.step() >= lastStep) {
+            info.step = firstStep;
+            ++info.iteration;
+        } else {
+            info.step = state.step() + 1;
+        }
+        break;
+    case Types::RunMode::Backward:
+        if (state.step() <= firstStep) {
+            info.step = lastStep;
+            ++info.iteration;
+        } else {
+            info.step = state.step() - 1;
+        }
+        break;
+    default:
+        info.valid = false;
+        break;
+    }
+
+    return info;
+}
+
 void NoteTrackEngine::reset() {
     _freeRelativeTick = 0;
     _sequenceState.reset();
@@ -303,35 +348,72 @@ void NoteTrackEngine::triggerStep(uint32_t tick, uint32_t divisor) {
     _currentStep = SequenceUtils::rotateStep(_sequenceState.step(), sequence.firstStep(), sequence.lastStep(), rotate);
     const auto &step = evalSequence.step(_currentStep);
 
-    uint32_t gateOffset = (divisor * step.gateOffset()) / (NoteSequence::GateOffset::Max + 1);
+    auto scheduleTick = [] (uint32_t baseTick, int32_t offset) {
+        int64_t eventTick = int64_t(baseTick) + offset;
+        return uint32_t(std::max<int64_t>(0, eventTick));
+    };
 
-    bool stepGate = evalStepGate(step, _noteTrack.gateProbabilityBias()) || useFillGates;
-    if (stepGate) {
-        stepGate = evalStepCondition(step, _sequenceState.iteration(), useFillCondition, _prevCondition);
+    // At this point, _firstStepAfterStart determines if we clamp negative offsets for the very first scheduled step
+    // (no look-ahead for negative offsets on first run)
+    auto scheduleStep = [&] (uint32_t baseTick, const NoteSequence::Step &scheduledStep, uint32_t iteration, bool clampNegativeOffsetToBoundary) {
+        int32_t gateOffset = (int32_t(divisor) * scheduledStep.gateOffset()) / (NoteSequence::GateOffset::Max + 1);
+        // Clamp negative offset only on first step after play/restart
+        if ((clampNegativeOffsetToBoundary || _firstStepAfterStart) && gateOffset < 0) {
+            gateOffset = 0;
+        }
+
+        bool stepGate = evalStepGate(scheduledStep, _noteTrack.gateProbabilityBias()) || useFillGates;
+        if (stepGate) {
+            stepGate = evalStepCondition(scheduledStep, iteration, useFillCondition, _prevCondition);
+        }
+
+        if (stepGate) {
+            uint32_t stepLength = (divisor * evalStepLength(scheduledStep, _noteTrack.lengthBias())) / NoteSequence::Length::Range;
+            int stepRetrigger = evalStepRetrigger(scheduledStep, _noteTrack.retriggerProbabilityBias());
+            if (stepRetrigger > 1) {
+                uint32_t retriggerLength = divisor / stepRetrigger;
+                uint32_t retriggerOffset = 0;
+                while (stepRetrigger-- > 0 && retriggerOffset <= stepLength) {
+                    _gateQueue.pushReplace({ Groove::applySwing(scheduleTick(baseTick, gateOffset + int32_t(retriggerOffset)), swing()), true });
+                    _gateQueue.pushReplace({ Groove::applySwing(scheduleTick(baseTick, gateOffset + int32_t(retriggerOffset + retriggerLength / 2)), swing()), false });
+                    retriggerOffset += retriggerLength;
+                }
+            } else {
+                _gateQueue.pushReplace({ Groove::applySwing(scheduleTick(baseTick, gateOffset), swing()), true });
+                _gateQueue.pushReplace({ Groove::applySwing(scheduleTick(baseTick, gateOffset + int32_t(stepLength)), swing()), false });
+            }
+        }
+
+        if (stepGate || _noteTrack.cvUpdateMode() == NoteTrack::CvUpdateMode::Always) {
+            const auto &scale = evalSequence.selectedScale(_model.project().scale());
+            int rootNote = evalSequence.selectedRootNote(_model.project().rootNote());
+            _cvQueue.push({ Groove::applySwing(scheduleTick(baseTick, gateOffset), swing()), evalStepNote(scheduledStep, _noteTrack.noteProbabilityBias(), scale, rootNote, octave, transpose), scheduledStep.slide() });
+        }
+    };
+
+    const bool currentStepHasNegativeOffset = step.gateOffset() < 0;
+    const bool firstScheduledStep = _sequenceState.prevStep() < 0;
+    const bool allowLookAhead = lookAheadSupported(sequence.runMode()) && !useFillGates && !useFillSequence && !useFillCondition;
+    const bool scheduleCurrentStep = !currentStepHasNegativeOffset || firstScheduledStep || !allowLookAhead;
+
+    if (scheduleCurrentStep) {
+        // On the very first scheduled step there is no previous boundary to pre-trigger from.
+        scheduleStep(tick, step, _sequenceState.iteration(), firstScheduledStep);
     }
 
-    if (stepGate) {
-        uint32_t stepLength = (divisor * evalStepLength(step, _noteTrack.lengthBias())) / NoteSequence::Length::Range;
-        int stepRetrigger = evalStepRetrigger(step, _noteTrack.retriggerProbabilityBias());
-        if (stepRetrigger > 1) {
-            uint32_t retriggerLength = divisor / stepRetrigger;
-            uint32_t retriggerOffset = 0;
-            while (stepRetrigger-- > 0 && retriggerOffset <= stepLength) {
-                _gateQueue.pushReplace({ Groove::applySwing(tick + gateOffset + retriggerOffset, swing()), true });
-                _gateQueue.pushReplace({ Groove::applySwing(tick + gateOffset + retriggerOffset + retriggerLength / 2, swing()), false });
-                retriggerOffset += retriggerLength;
+    if (allowLookAhead) {
+        LookAheadInfo next = predictNextStep(_sequenceState, sequence.runMode(), sequence.firstStep(), sequence.lastStep());
+        if (next.valid) {
+            int nextStep = SequenceUtils::rotateStep(next.step, sequence.firstStep(), sequence.lastStep(), rotate);
+            const auto &nextEvalStep = evalSequence.step(nextStep);
+            if (nextEvalStep.gateOffset() < 0) {
+                scheduleStep(tick + divisor, nextEvalStep, next.iteration, false);
             }
-        } else {
-            _gateQueue.pushReplace({ Groove::applySwing(tick + gateOffset, swing()), true });
-            _gateQueue.pushReplace({ Groove::applySwing(tick + gateOffset + stepLength, swing()), false });
         }
     }
 
-    if (stepGate || _noteTrack.cvUpdateMode() == NoteTrack::CvUpdateMode::Always) {
-        const auto &scale = evalSequence.selectedScale(_model.project().scale());
-        int rootNote = evalSequence.selectedRootNote(_model.project().rootNote());
-        _cvQueue.push({ Groove::applySwing(tick + gateOffset, swing()), evalStepNote(step, _noteTrack.noteProbabilityBias(), scale, rootNote, octave, transpose), step.slide() });
-    }
+    // After first triggerStep call, clear the flag
+    if (_firstStepAfterStart) _firstStepAfterStart = false;
 }
 
 void NoteTrackEngine::recordStep(uint32_t tick, uint32_t divisor) {

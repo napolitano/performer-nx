@@ -66,8 +66,8 @@ static NoteTrackEngine &prepareSingleStepEngine(
 }
 
 // Tick at which gate-on fires for a given gateOffset value (no swing).
-static uint32_t gateOnTick(const NoteSequence &seq, int gateOffset) {
-    uint32_t divisor = seq.divisor() * (CONFIG_PPQN / CONFIG_SEQUENCE_PPQN);
+static int32_t gateOnTick(const NoteSequence &seq, int gateOffset) {
+    int32_t divisor = seq.divisor() * (CONFIG_PPQN / CONFIG_SEQUENCE_PPQN);
     return (divisor * gateOffset) / (NoteSequence::GateOffset::Max + 1);
 }
 
@@ -111,24 +111,24 @@ UNIT_TEST("NoteTrackEngineGateOffset") {
 
     // ── 1. Model: setGateOffset input clamping ─────────────────────────────
 
-    CASE("Step::setGateOffset clamps any negative input to 0 (status quo)") {
+    CASE("Step::setGateOffset stores negative values down to GateOffset::Min") {
         NoteSequence::Step step;
         step.clear();
 
         step.setGateOffset(-1);
-        expectEqual(step.gateOffset(), 0);
+        expectEqual(step.gateOffset(), -1);
 
         step.setGateOffset(NoteSequence::GateOffset::Min); // -7
-        expectEqual(step.gateOffset(), 0);
+        expectEqual(step.gateOffset(), NoteSequence::GateOffset::Min);
 
         step.setGateOffset(-99);
-        expectEqual(step.gateOffset(), 0);
+        expectEqual(step.gateOffset(), NoteSequence::GateOffset::Min);
     }
 
-    CASE("Step::setGateOffset stores every value in [0..Max] without loss") {
+    CASE("Step::setGateOffset stores every value in [Min..Max] without loss") {
         NoteSequence::Step step;
         step.clear();
-        for (int v = 0; v <= NoteSequence::GateOffset::Max; ++v) {
+        for (int v = NoteSequence::GateOffset::Min; v <= NoteSequence::GateOffset::Max; ++v) {
             step.setGateOffset(v);
             expectEqual(step.gateOffset(), v);
         }
@@ -154,9 +154,9 @@ UNIT_TEST("NoteTrackEngineGateOffset") {
 
     // ── 2. Model: layer range / default ────────────────────────────────────
 
-    CASE("layerRange GateOffset min is 0, not negative (status quo)") {
+    CASE("layerRange GateOffset min equals GateOffset::Min") {
         auto range = NoteSequence::layerRange(NoteSequence::Layer::GateOffset);
-        expectEqual(range.min, 0);
+        expectEqual(range.min, NoteSequence::GateOffset::Min);
     }
 
     CASE("layerRange GateOffset max equals GateOffset::Max") {
@@ -171,7 +171,7 @@ UNIT_TEST("NoteTrackEngineGateOffset") {
     CASE("setLayerValue / layerValue round-trip for all valid GateOffset values") {
         NoteSequence::Step step;
         step.clear();
-        for (int v = 0; v <= NoteSequence::GateOffset::Max; ++v) {
+        for (int v = NoteSequence::GateOffset::Min; v <= NoteSequence::GateOffset::Max; ++v) {
             step.setLayerValue(NoteSequence::Layer::GateOffset, v);
             expectEqual(step.layerValue(NoteSequence::Layer::GateOffset), v);
         }
@@ -209,20 +209,46 @@ UNIT_TEST("NoteTrackEngineGateOffset") {
 
     // ── 4. Engine: negative input is silently clamped ─────────────────────
 
-    CASE("negative gateOffset: model stores 0") {
+    CASE("negative gateOffset: model stores the signed value") {
         NoteSequence::Step step;
         step.clear();
         step.setGateOffset(-5);
-        expectEqual(step.gateOffset(), 0);
+        expectEqual(step.gateOffset(), -5);
     }
 
-    CASE("negative gateOffset: engine fires gate at tick 0, never later") {
+    CASE("negative gateOffset on first step starts at tick 0") {
         SequencerHarness h;
-        auto &eng = prepareSingleStepEngine(h.app(), -5); // clamped to 0
+        auto &eng = prepareSingleStepEngine(h.app(), -5);
 
         auto r = eng.tick(0);
         expectTrue((r & TrackEngine::TickResult::GateUpdate) != 0);
         expectTrue(eng.gateOutput(0));
+    }
+
+    CASE("negative gateOffset pre-triggers only on subsequent loop passes") {
+        SequencerHarness h;
+        const int offset = -4;
+        auto &eng = prepareSingleStepEngine(h.app(), offset, 0);
+        const uint32_t divisor = eng.sequence().divisor() * (CONFIG_PPQN / CONFIG_SEQUENCE_PPQN);
+        const uint32_t lookAheadOn = divisor + gateOnTick(eng.sequence(), offset);
+
+        // Initial start cannot pre-trigger before tick 0.
+        auto r = eng.tick(0);
+        expectTrue((r & TrackEngine::TickResult::GateUpdate) != 0);
+        expectTrue(eng.gateOutput(0));
+
+        for (uint32_t t = 1; t < lookAheadOn; ++t) {
+            eng.tick(t);
+        }
+
+        // Next cycle starts with a proper negative-offset pre-trigger.
+        r = eng.tick(lookAheadOn);
+        expectTrue((r & TrackEngine::TickResult::GateUpdate) != 0);
+        expectTrue(eng.gateOutput(0));
+
+        // No additional gate-on should be emitted at the cycle boundary itself.
+        r = eng.tick(divisor);
+        expectFalse((r & TrackEngine::TickResult::GateUpdate) != 0 && eng.gateOutput(0));
     }
 
     // ── 5. Engine: CV co-arrives with gate-on ─────────────────────────────
@@ -331,10 +357,10 @@ UNIT_TEST("NoteTrackEngineGateOffset") {
 
     // ── 8. Serialization roundtrip ─────────────────────────────────────────
 
-    CASE("Step: gateOffset 0..Max survives serialize/deserialize at latest project version") {
+    CASE("Step: gateOffset Min..Max survives serialize/deserialize at latest project version") {
         uint8_t buf[32];
 
-        for (int v = 0; v <= NoteSequence::GateOffset::Max; ++v) {
+        for (int v = NoteSequence::GateOffset::Min; v <= NoteSequence::GateOffset::Max; ++v) {
             NoteSequence::Step writeStep;
             writeStep.clear();
             writeStep.setGateOffset(v);

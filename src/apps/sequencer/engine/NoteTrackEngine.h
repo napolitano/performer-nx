@@ -45,6 +45,9 @@ public:
 
     void setMonitorStep(int index);
 
+    // For look-ahead: set per-track first-step-after-start
+    void setFirstStepAfterStart(bool value) override { _firstStepAfterStart = value; }
+
 private:
     void triggerStep(uint32_t tick, uint32_t divisor);
     void recordStep(uint32_t tick, uint32_t divisor);
@@ -77,6 +80,8 @@ private:
     float _cvOutput;
     float _cvOutputTarget;
     bool _slideActive;
+
+    bool _firstStepAfterStart = true;
 
     struct Gate {
         uint32_t tick;

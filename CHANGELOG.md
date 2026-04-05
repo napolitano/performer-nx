@@ -1,4 +1,19 @@
 # Changelog
+## v0.1.47 (05 April 2026)
+
+#### Features
+- **NoteTrackEngine/Sequencer:** Added support for negative gate offset and look-ahead triggering.
+  - Introduced per-track `firstStepAfterStart` flag for look-ahead logic.
+  - Extended Engine API with methods to manage `firstStepAfterStart`.
+  - Fixed or added missing declarations/definitions for gate offset handling.
+  - Refactored and fixed bugs related to gate offset, step triggering, and look-ahead.
+
+#### Fixes
+
+#### Development
+- Added and updated relevant unit and integration tests for negative gate offsets and look-ahead triggering.
+
+
 ## v0.1.46
 
 #### Fixes

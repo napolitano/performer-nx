@@ -14,8 +14,7 @@ Types::LayerRange NoteSequence::layerRange(Layer layer) {
     case Layer::Slide:
         return { 0, 1 };
     case Layer::GateOffset:
-        // TODO: allow negative gate delay in the future
-        return { 0, GateOffset::Max };
+        return { GateOffset::Min, GateOffset::Max };
     CASE(GateProbability)
     CASE(Retrigger)
     CASE(RetriggerProbability)

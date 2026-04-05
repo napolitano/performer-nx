@@ -251,4 +251,16 @@ private:
     std::array<float, CvOutput::Channels> _cvOutputOverrideValues;
 
     MessageHandler _messageHandler;
+
+    // Track first-step-after-start for look-ahead scheduling
+    std::array<bool, CONFIG_TRACK_COUNT> _firstStepAfterStart = {};
+
+    // --- Add public API for firstStepAfterStart management ---
+public:
+    // Get the firstStepAfterStart flag for a track
+    bool firstStepAfterStart(int trackIndex) const { return _firstStepAfterStart[trackIndex]; }
+    // Set the firstStepAfterStart flag for a track
+    void setFirstStepAfterStart(int trackIndex, bool value) { _firstStepAfterStart[trackIndex] = value; }
+    // Reset all firstStepAfterStart flags
+    void resetAllFirstStepAfterStart() { _firstStepAfterStart.fill(true); }
 };
