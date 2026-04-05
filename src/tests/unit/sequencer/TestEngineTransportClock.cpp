@@ -36,6 +36,7 @@ public:
         _simulator.wait(ms);
     }
 
+
 private:
     sim::Target makeTarget() {
         sim::Target target;
@@ -249,6 +250,85 @@ UNIT_TEST("EngineTransportClock") {
         harness.waitMs(300);
         expectTrue(engine.tick() > tickBeforeResumePulse);
     }
+
+    CASE("updateClockSetup reset mode stops a running clock when reset is high") {
+        SequencerHarness harness;
+        auto &engine = harness.app().engine;
+        auto &clockSetup = harness.app().model.project().clockSetup();
+
+        configureSlaveClockInputMode(harness, ClockSetup::ClockInputMode::Run);
+        harness.setResetInput(true);
+        engine.update();
+        engine.update();
+        expectTrue(engine.clockRunning());
+
+        // Dirty transition: Run -> Reset while reset input remains high.
+        clockSetup.setClockInputMode(ClockSetup::ClockInputMode::Reset);
+        engine.update();
+        engine.update();
+        expectFalse(engine.clockRunning());
+    }
+
+    CASE("updateClockSetup run mode handles high-idle and low-running branches") {
+        SequencerHarness harness;
+        auto &engine = harness.app().engine;
+        auto &clockSetup = harness.app().model.project().clockSetup();
+
+        // Branch: reset high + idle -> slaveContinue.
+        configureSlaveClockInputMode(harness, ClockSetup::ClockInputMode::Reset);
+        harness.setResetInput(true);
+        engine.update();
+        expectFalse(engine.clockRunning());
+
+        clockSetup.setClockInputMode(ClockSetup::ClockInputMode::Run);
+        engine.update();
+        engine.update();
+        expectTrue(engine.clockRunning());
+
+        // Branch: reset low + running -> slaveStop.
+        clockSetup.setClockInputMode(ClockSetup::ClockInputMode::Reset);
+        harness.setResetInput(false);
+        harness.pulseClockInput();
+        engine.update();
+        engine.update();
+        expectTrue(engine.clockRunning());
+
+        clockSetup.setClockInputMode(ClockSetup::ClockInputMode::Run);
+        engine.update();
+        engine.update();
+        expectFalse(engine.clockRunning());
+    }
+
+    CASE("updateClockSetup startstop mode handles high-idle and low-running branches") {
+        SequencerHarness harness;
+        auto &engine = harness.app().engine;
+        auto &clockSetup = harness.app().model.project().clockSetup();
+
+        // Branch: reset high + idle -> slaveStart.
+        configureSlaveClockInputMode(harness, ClockSetup::ClockInputMode::Reset);
+        harness.setResetInput(true);
+        engine.update();
+        expectFalse(engine.clockRunning());
+
+        clockSetup.setClockInputMode(ClockSetup::ClockInputMode::StartStop);
+        engine.update();
+        engine.update();
+        expectTrue(engine.clockRunning());
+
+        // Branch: reset low + running -> slaveReset.
+        clockSetup.setClockInputMode(ClockSetup::ClockInputMode::Reset);
+        harness.setResetInput(false);
+        harness.pulseClockInput();
+        engine.update();
+        engine.update();
+        expectTrue(engine.clockRunning());
+
+        clockSetup.setClockInputMode(ClockSetup::ClockInputMode::StartStop);
+        engine.update();
+        engine.update();
+        expectFalse(engine.clockRunning());
+    }
+
 }
 
 

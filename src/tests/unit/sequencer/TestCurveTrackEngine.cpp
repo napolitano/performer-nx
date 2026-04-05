@@ -436,4 +436,101 @@ UNIT_TEST("CurveTrackEngine") {
 
         expectTrue(stepChanged);
     }
+
+    CASE("tick before first boundary keeps sequence step inactive") {
+        SequencerHarness harness;
+        auto &engine = configureCurveTrack(harness.app(), 0);
+
+        engine.reset();
+        auto result = engine.tick(1);
+
+        expectEqual(result, TrackEngine::TickResult::NoUpdate);
+        expectEqual(engine.currentStep(), -1);
+    }
+
+    CASE("shape probability bias forces shape variation branch") {
+        SequencerHarness harness;
+        auto &app = harness.app();
+        auto &engine = configureCurveTrack(app, 0);
+        auto &project = app.model.project();
+        auto &curveTrack = project.track(0).curveTrack();
+        auto &step = curveTrack.sequence(0).step(0);
+
+        step.setShape(0);
+        step.setShapeVariation(1);
+        step.setShapeVariationProbability(0);
+        curveTrack.setShapeProbabilityBias(8); // clamp to always-on variation
+
+        const uint32_t divisor = sequenceDivisorTicks(engine.sequence());
+        const uint32_t sampleTick = divisor / 4;
+
+        engine.reset();
+        engine.tick(0);
+        engine.tick(sampleTick);
+        engine.update(0.f);
+
+        expectTrue(engine.cvOutput(0) > 0.f);
+    }
+
+    CASE("fill active with zero amount keeps fill mode at none") {
+        SequencerHarness harness;
+        auto &app = harness.app();
+        auto &engine = configureCurveTrack(app, 0);
+        auto &project = app.model.project();
+        auto &playState = project.playState();
+        auto &curveTrack = project.track(0).curveTrack();
+        auto &step = curveTrack.sequence(0).step(0);
+
+        step.setMinNormalized(0.f);
+        step.setMaxNormalized(1.f);
+
+        const uint32_t divisor = sequenceDivisorTicks(engine.sequence());
+        const uint32_t sampleTick = divisor / 4;
+
+        curveTrack.setFillMode(CurveTrack::FillMode::Variation);
+
+        playState.trackState(0).setFillAmount(0);
+        playState.fillTrack(0, false);
+        app.engine.update();
+
+        engine.reset();
+        engine.tick(0);
+        engine.tick(sampleTick);
+        engine.update(0.f);
+        float cvWithoutFill = engine.cvOutput(0);
+
+        playState.trackState(0).setFillAmount(0);
+        playState.fillTrack(0, true);
+        app.engine.update();
+
+        engine.reset();
+        engine.tick(0);
+        engine.tick(sampleTick);
+        engine.update(0.f);
+        float cvWithZeroFill = engine.cvOutput(0);
+
+        expectEqual(cvWithZeroFill, cvWithoutFill);
+    }
+
+    CASE("linked follower ignores non-boundary relative tick") {
+        SequencerHarness harness;
+        auto &app = harness.app();
+        auto &project = app.model.project();
+
+        auto &leader = configureCurveTrack(app, 0);
+        auto &follower = configureCurveTrack(app, 1);
+
+        project.track(1).setLinkTrack(0);
+        app.engine.update();
+
+        leader.reset();
+        follower.reset();
+
+        // Non-boundary tick keeps linked step inactive.
+        leader.tick(1);
+        auto followerResult = follower.tick(1);
+
+        expectEqual(follower.currentStep(), -1);
+        expectEqual(followerResult, TrackEngine::TickResult::NoUpdate);
+    }
 }

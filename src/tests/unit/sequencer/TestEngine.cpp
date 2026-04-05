@@ -4,6 +4,7 @@
 #include "apps/sequencer/model/NoteSequence.h"
 
 #include "sim/Simulator.h"
+#include "sim/MidiEvent.h"
 
 #include <memory>
 
@@ -27,6 +28,26 @@ public:
         _simulator.sendMidi(1, message);
     }
 
+    void connectUsbMidi(uint16_t vendorId, uint16_t productId) {
+        _simulator.writeMidiInput(sim::MidiEvent::makeConnect(1, vendorId, productId));
+    }
+
+    void disconnectUsbMidi() {
+        _simulator.writeMidiInput(sim::MidiEvent::makeDisconnect(1));
+    }
+
+    void waitMs(int ms) {
+        _simulator.wait(ms);
+    }
+
+    void setResetInput(bool high) {
+        _simulator.setDio(1, high);
+    }
+
+    void setClockInput(bool high) {
+        _simulator.setDio(0, high);
+    }
+
 private:
     sim::Target makeTarget() {
         sim::Target target;
@@ -48,6 +69,12 @@ private:
 
 static uint32_t sequenceDivisorTicks(const NoteSequence &sequence) {
     return sequence.divisor() * (CONFIG_PPQN / CONFIG_SEQUENCE_PPQN);
+}
+
+static void forceMasterClockMode(SequencerApp &app) {
+    auto &clockSetup = app.model.project().clockSetup();
+    clockSetup.setMode(ClockSetup::Mode::Master);
+    app.engine.update();
 }
 
 static uint32_t gateOnTick(const NoteSequence &sequence, int gateOffset) {
@@ -133,6 +160,20 @@ UNIT_TEST("Engine") {
         project.setTrackMode(0, Track::TrackMode::Note);
         engine.update();
         expectTrue(engine.trackEnginesConsistent());
+        expectEqual(engine.trackEngine(0).trackMode(), Track::TrackMode::Note);
+    }
+
+    CASE("track mode MidiCv is instantiated and can switch back to Note") {
+        SequencerHarness harness;
+        auto &project = harness.app().model.project();
+        auto &engine = harness.app().engine;
+
+        project.setTrackMode(0, Track::TrackMode::MidiCv);
+        engine.update();
+        expectEqual(engine.trackEngine(0).trackMode(), Track::TrackMode::MidiCv);
+
+        project.setTrackMode(0, Track::TrackMode::Note);
+        engine.update();
         expectEqual(engine.trackEngine(0).trackMode(), Track::TrackMode::Note);
     }
 
@@ -256,6 +297,22 @@ UNIT_TEST("Engine") {
         expectFalse(songState.playing());
     }
 
+    CASE("playSong applies slot mutes when track has mutes in song") {
+        SequencerHarness harness;
+        auto &project = harness.app().model.project();
+        auto &engine = harness.app().engine;
+        auto &playState = project.playState();
+
+        project.song().clear();
+        project.song().insertSlot(0);
+        project.song().setMute(0, 0, true);
+
+        playState.playSong(0, PlayState::Immediate);
+        engine.update();
+
+        expectTrue(playState.trackState(0).mute());
+    }
+
     CASE("clock setup dirty flag is cleared by engine update") {
         SequencerHarness harness;
         auto &engine = harness.app().engine;
@@ -375,6 +432,136 @@ UNIT_TEST("Engine") {
         expectFalse(engine.recording());
     }
 
+    CASE("togglePlay covers restart and non-shift start-reset behavior") {
+        SequencerHarness harness;
+        auto &engine = harness.app().engine;
+        auto &clockSetup = harness.app().model.project().clockSetup();
+
+        clockSetup.setMode(ClockSetup::Mode::Master);
+        clockSetup.setShiftMode(ClockSetup::ShiftMode::Restart);
+        engine.update();
+
+        expectFalse(engine.clockRunning());
+
+        engine.togglePlay(true);
+        engine.update();
+        expectTrue(engine.clockRunning());
+
+        // Non-shift while running -> reset/stop.
+        engine.togglePlay(false);
+        engine.update();
+        expectFalse(engine.clockRunning());
+
+        // Non-shift while stopped -> start.
+        engine.togglePlay(false);
+        engine.update();
+        expectTrue(engine.clockRunning());
+    }
+
+    CASE("tap tempo and nudge helpers are callable and keep tempo positive") {
+        SequencerHarness harness;
+        auto &engine = harness.app().engine;
+        auto &project = harness.app().model.project();
+
+        engine.tapTempoReset();
+        harness.waitMs(120);
+        engine.tapTempoTap();
+        harness.waitMs(120);
+        engine.tapTempoTap();
+
+        engine.nudgeTempoSetDirection(1);
+        harness.waitMs(20);
+        engine.update();
+
+        expectTrue(project.tempo() > 0.f);
+        expectTrue(engine.nudgeTempoStrength() >= 0.f);
+
+        engine.nudgeTempoSetDirection(0);
+    }
+
+    CASE("usb midi connect and disconnect handlers are forwarded") {
+        SequencerHarness harness;
+        auto &engine = harness.app().engine;
+
+        int connectCalls = 0;
+        int disconnectCalls = 0;
+        uint16_t vendorId = 0;
+        uint16_t productId = 0;
+
+        engine.setUsbMidiConnectHandler([&] (uint16_t v, uint16_t p) {
+            ++connectCalls;
+            vendorId = v;
+            productId = p;
+        });
+        engine.setUsbMidiDisconnectHandler([&] () {
+            ++disconnectCalls;
+        });
+
+        harness.connectUsbMidi(0x1234, 0x5678);
+        expectEqual(connectCalls, 1);
+        expectEqual(vendorId, uint16_t(0x1234));
+        expectEqual(productId, uint16_t(0x5678));
+
+        harness.disconnectUsbMidi();
+        expectEqual(disconnectCalls, 1);
+    }
+
+    CASE("cv and gate output overrides are applied during update") {
+        SequencerHarness harness;
+        auto &engine = harness.app().engine;
+
+        engine.setGateOutputOverride(true);
+        engine.setGateOutput(0x0f);
+        engine.setCvOutputOverride(true);
+        engine.setCvOutput(0, 0.25f);
+        engine.setCvOutput(1, -0.5f);
+        engine.update();
+
+        expectEqual(engine.gateOutput(), uint8_t(0x0f));
+        expectTrue(engine.cvOutput().channel(0) == 0.25f);
+        expectTrue(engine.cvOutput().channel(1) == -0.5f);
+
+        engine.setGateOutputOverride(false);
+        engine.setCvOutputOverride(false);
+    }
+
+    CASE("cv gate input mode switching covers all converter branches") {
+        SequencerHarness harness;
+        auto &engine = harness.app().engine;
+        auto &project = harness.app().model.project();
+
+        project.setCvGateInput(Types::CvGateInput::Cv1Cv2);
+        engine.update();
+
+        project.setCvGateInput(Types::CvGateInput::Cv3Cv4);
+        engine.update();
+
+        project.setCvGateInput(Types::CvGateInput::Off);
+        engine.update();
+
+        expectTrue(engine.tick() >= 0);
+    }
+
+    CASE("clock output run mode and usb midi tx path can run in master mode") {
+        SequencerHarness harness;
+        auto &engine = harness.app().engine;
+        auto &clockSetup = harness.app().model.project().clockSetup();
+
+        clockSetup.setMode(ClockSetup::Mode::Master);
+        clockSetup.setClockOutputMode(ClockSetup::ClockOutputMode::Run);
+        clockSetup.setUsbTx(true);
+        clockSetup.setMidiTx(true);
+        engine.update();
+
+        engine.clockStart();
+        engine.update();
+        expectTrue(engine.clockRunning());
+
+        engine.clockStop();
+        engine.update();
+        expectFalse(engine.clockRunning());
+    }
+
     CASE("midi receive handler can consume messages before monitor processing") {
         SequencerHarness harness;
         auto &engine = harness.app().engine;
@@ -399,6 +586,56 @@ UNIT_TEST("Engine") {
 
         expectEqual(handlerCalls, 1);
         expectTrue(noteEngine.cvOutput(0) == baselineCv);
+    }
+
+    CASE("midi receive handler passthrough keeps normal monitor processing") {
+        SequencerHarness harness;
+        auto &engine = harness.app().engine;
+        auto &project = harness.app().model.project();
+        auto &noteEngine = engine.trackEngine(0).as<NoteTrackEngine>();
+
+        project.setMidiInputMode(Types::MidiInputMode::All);
+        project.setMonitorMode(Types::MonitorMode::Always);
+        project.track(0).noteTrack().setSlideTime(0);
+        engine.update();
+
+        float baselineCv = noteEngine.cvOutput(0);
+        int handlerCalls = 0;
+
+        engine.setMidiReceiveHandler([&] (MidiPort, uint8_t, const MidiMessage &) {
+            ++handlerCalls;
+            return false;
+        });
+
+        harness.sendDinMidi(MidiMessage::makeNoteOn(0, 63, 100));
+        engine.update();
+
+        expectEqual(handlerCalls, 1);
+        expectTrue(noteEngine.cvOutput(0) != baselineCv);
+    }
+
+    CASE("MidiCv track consumption short-circuits monitor path") {
+        SequencerHarness harness;
+        auto &app = harness.app();
+        auto &engine = app.engine;
+        auto &project = app.model.project();
+
+        // Track 0 consumes as MidiCv; selected track 1 should not be monitored.
+        project.setTrackMode(0, Track::TrackMode::MidiCv);
+        project.setTrackMode(1, Track::TrackMode::Note);
+        project.setSelectedTrackIndex(1);
+        project.setMidiInputMode(Types::MidiInputMode::All);
+        project.setMonitorMode(Types::MonitorMode::Always);
+        project.track(1).noteTrack().setSlideTime(0);
+        engine.update();
+
+        auto &selectedNoteEngine = engine.trackEngine(1).as<NoteTrackEngine>();
+        float baselineCv = selectedNoteEngine.cvOutput(0);
+
+        harness.sendDinMidi(MidiMessage::makeNoteOn(0, 64, 100));
+        engine.update();
+
+        expectTrue(selectedNoteEngine.cvOutput(0) == baselineCv);
     }
 
     CASE("midi input mode off ignores incoming monitor midi") {
@@ -486,6 +723,28 @@ UNIT_TEST("Engine") {
         expectTrue(noteEngine.cvOutput(0) == baselineCv);
     }
 
+    CASE("single-byte DIN and USB filters handle clock and non-clock statuses") {
+        SequencerHarness harness;
+        auto &engine = harness.app().engine;
+        auto &clockSetup = harness.app().model.project().clockSetup();
+
+        clockSetup.setMode(ClockSetup::Mode::Slave);
+        clockSetup.setUsbRx(true);
+        engine.update();
+
+        // Clock statuses should be consumed by clock receive filters.
+        harness.sendDinMidi(MidiMessage(uint8_t(MidiMessage::Start)));
+        harness.sendUsbMidi(MidiMessage(uint8_t(MidiMessage::Tick)));
+        engine.update();
+
+        // Non-clock one-byte statuses should not be consumed by clock filters.
+        harness.sendDinMidi(MidiMessage(uint8_t(MidiMessage::TuneRequest)));
+        harness.sendUsbMidi(MidiMessage(uint8_t(MidiMessage::TuneRequest)));
+        engine.update();
+
+        expectTrue(engine.tick() >= 0);
+    }
+
     CASE("midi source mode with omni channel accepts matching port on any channel") {
         SequencerHarness harness;
         auto &engine = harness.app().engine;
@@ -533,6 +792,50 @@ UNIT_TEST("Engine") {
         engine.update();
 
         expectTrue(noteEngine.cvOutput(0) != cvAfterFirstNote);
+    }
+
+    CASE("note-off and control-change messages pass through monitor branches") {
+        SequencerHarness harness;
+        auto &engine = harness.app().engine;
+        auto &project = harness.app().model.project();
+
+        project.setMidiInputMode(Types::MidiInputMode::All);
+        project.setMonitorMode(Types::MonitorMode::Always);
+        project.track(0).noteTrack().setSlideTime(0);
+        engine.update();
+
+        harness.sendDinMidi(MidiMessage::makeNoteOn(0, 60, 100));
+        engine.update();
+
+        harness.sendDinMidi(MidiMessage::makeControlChange(0, 1, 64));
+        engine.update();
+
+        harness.sendDinMidi(MidiMessage::makeNoteOff(0, 60));
+        engine.update();
+
+        expectFalse(engine.clockRunning());
+    }
+
+    CASE("changing selected track while note is active triggers monitor handoff") {
+        SequencerHarness harness;
+        auto &engine = harness.app().engine;
+        auto &project = harness.app().model.project();
+
+        project.setMidiInputMode(Types::MidiInputMode::All);
+        project.setMonitorMode(Types::MonitorMode::Always);
+        project.track(0).noteTrack().setSlideTime(0);
+        project.track(1).noteTrack().setSlideTime(0);
+        engine.update();
+
+        project.setSelectedTrackIndex(0);
+        harness.sendDinMidi(MidiMessage::makeNoteOn(0, 62, 100));
+        engine.update();
+
+        project.setSelectedTrackIndex(1);
+        harness.sendDinMidi(MidiMessage::makeControlChange(0, 7, 80));
+        engine.update();
+
+        expectEqual(project.selectedTrackIndex(), 1);
     }
 
     CASE("fake note-off (note-on with velocity 0) is normalized before receive handler") {

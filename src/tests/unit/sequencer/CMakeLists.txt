@@ -19,10 +19,55 @@ target_link_libraries(TestMidiCvTrackEngine core sequencer_shared)
 platform_postprocess_executable(TestMidiCvTrackEngine)
 add_test(NAME TestMidiCvTrackEngine COMMAND TestMidiCvTrackEngine)
 
+add_executable(TestMidiOutputEngine TestMidiOutputEngine.cpp)
+target_link_libraries(TestMidiOutputEngine core sequencer_shared)
+platform_postprocess_executable(TestMidiOutputEngine)
+add_test(NAME TestMidiOutputEngine COMMAND TestMidiOutputEngine)
+
+add_executable(TestArpeggiatorEngine TestArpeggiatorEngine.cpp)
+target_link_libraries(TestArpeggiatorEngine core sequencer_shared)
+platform_postprocess_executable(TestArpeggiatorEngine)
+add_test(NAME TestArpeggiatorEngine COMMAND TestArpeggiatorEngine)
+
+add_executable(TestGenerator TestGenerator.cpp)
+target_link_libraries(TestGenerator core sequencer_shared)
+platform_postprocess_executable(TestGenerator)
+add_test(NAME TestGenerator COMMAND TestGenerator)
+
+add_executable(TestRandomGenerator TestRandomGenerator.cpp)
+target_link_libraries(TestRandomGenerator core sequencer_shared)
+platform_postprocess_executable(TestRandomGenerator)
+add_test(NAME TestRandomGenerator COMMAND TestRandomGenerator)
+
+add_executable(TestEuclideanGenerator TestEuclideanGenerator.cpp)
+target_link_libraries(TestEuclideanGenerator core sequencer_shared)
+platform_postprocess_executable(TestEuclideanGenerator)
+add_test(NAME TestEuclideanGenerator COMMAND TestEuclideanGenerator)
+
+add_executable(TestRhythm TestRhythm.cpp)
+target_link_libraries(TestRhythm core sequencer_shared)
+platform_postprocess_executable(TestRhythm)
+add_test(NAME TestRhythm COMMAND TestRhythm)
+
+add_executable(TestMidiLearn TestMidiLearn.cpp)
+target_link_libraries(TestMidiLearn core sequencer_shared)
+platform_postprocess_executable(TestMidiLearn)
+add_test(NAME TestMidiLearn COMMAND TestMidiLearn)
+
+add_executable(TestAcidBasslineGenerator TestAcidBasslineGenerator.cpp)
+target_link_libraries(TestAcidBasslineGenerator core sequencer_shared)
+platform_postprocess_executable(TestAcidBasslineGenerator)
+add_test(NAME TestAcidBasslineGenerator COMMAND TestAcidBasslineGenerator)
+
 add_executable(TestCvInput TestCvInput.cpp)
 target_link_libraries(TestCvInput core sequencer_shared)
 platform_postprocess_executable(TestCvInput)
 add_test(NAME TestCvInput COMMAND TestCvInput)
+
+add_executable(TestCvOutput TestCvOutput.cpp)
+target_link_libraries(TestCvOutput core sequencer_shared)
+platform_postprocess_executable(TestCvOutput)
+add_test(NAME TestCvOutput COMMAND TestCvOutput)
 
 # Engine-level sequencer test needs full sequencer implementation.
 add_executable(TestNoteTrackEngineGateOffset TestNoteTrackEngineGateOffset.cpp)
@@ -57,3 +102,9 @@ add_executable(TestClockExternalTiming TestClockExternalTiming.cpp)
 target_link_libraries(TestClockExternalTiming core sequencer_shared)
 platform_postprocess_executable(TestClockExternalTiming)
 add_test(NAME TestClockExternalTiming COMMAND TestClockExternalTiming)
+
+add_executable(TestClockCore TestClockCore.cpp)
+target_link_libraries(TestClockCore core sequencer_shared)
+platform_postprocess_executable(TestClockCore)
+add_test(NAME TestClockCore COMMAND TestClockCore)
+

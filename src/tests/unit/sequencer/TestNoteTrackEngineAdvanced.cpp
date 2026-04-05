@@ -96,6 +96,30 @@ static void tickRange(NoteTrackEngine &engine, uint32_t firstTickInclusive, uint
 
 UNIT_TEST("NoteTrackEngineAdvanced") {
 
+    CASE("PlayMode Free advances on internal free tick cycle") {
+        SequencerHarness harness;
+        auto &app = harness.app();
+        auto &project = app.model.project();
+        auto &engine = prepareSingleStepSequence(app, 0);
+        auto &sequence = project.track(0).noteTrack().sequence(0);
+
+        project.track(0).noteTrack().setPlayMode(Types::PlayMode::Free);
+        engine.reset();
+
+        const uint32_t divisor = sequenceDivisorTicks(sequence);
+
+        auto first = engine.tick(0);
+        expectTrue((first & TrackEngine::TickResult::GateUpdate) != 0);
+
+        for (uint32_t tick = 1; tick < divisor; ++tick) {
+            auto r = engine.tick(tick);
+            expectFalse((r & TrackEngine::TickResult::GateUpdate) != 0 && engine.gateOutput(0));
+        }
+
+        auto nextCycle = engine.tick(divisor);
+        expectTrue((nextCycle & TrackEngine::TickResult::GateUpdate) != 0);
+    }
+
     CASE("restart clears current step after sequence was advanced") {
         SequencerHarness harness;
         auto &engine = prepareTwoStepSequence(harness.app());
@@ -133,6 +157,51 @@ UNIT_TEST("NoteTrackEngineAdvanced") {
         engine.setRecording(false);
         noteEngine.update(0.f);
         expectEqual(noteEngine.currentRecordStep(), -1);
+    }
+
+    CASE("monitor step override toggles gate activity while stopped") {
+        SequencerHarness harness;
+        auto &app = harness.app();
+        auto &project = app.model.project();
+        auto &engine = app.engine;
+        auto &noteEngine = prepareTwoStepSequence(app);
+
+        project.setMonitorMode(Types::MonitorMode::Always);
+        engine.clockReset();
+        engine.update();
+        expectFalse(engine.clockRunning());
+
+        noteEngine.setMonitorStep(0);
+        noteEngine.update(0.f);
+        expectTrue(noteEngine.gateOutput(0));
+        expectTrue(noteEngine.activity());
+
+        noteEngine.setMonitorStep(-1);
+        noteEngine.update(0.f);
+        expectFalse(noteEngine.gateOutput(0));
+        expectFalse(noteEngine.activity());
+    }
+
+    CASE("live monitoring uses active midi note and clearMidiMonitoring clears it") {
+        SequencerHarness harness;
+        auto &app = harness.app();
+        auto &project = app.model.project();
+        auto &engine = app.engine;
+        auto &noteEngine = prepareSingleStepSequence(app, 0);
+
+        project.setMonitorMode(Types::MonitorMode::Always);
+        engine.clockReset();
+        engine.update();
+
+        noteEngine.monitorMidi(0, MidiMessage::makeNoteOn(0, 60, 100));
+        noteEngine.update(0.f);
+        expectTrue(noteEngine.gateOutput(0));
+        expectTrue(noteEngine.activity());
+
+        noteEngine.clearMidiMonitoring();
+        noteEngine.update(0.f);
+        expectFalse(noteEngine.gateOutput(0));
+        expectFalse(noteEngine.activity());
     }
 
     CASE("step recorder writes note data and advances to next step on note off") {
@@ -268,6 +337,31 @@ UNIT_TEST("NoteTrackEngineAdvanced") {
         tickRange(engine, 1, divisor - 1);
         auto step1Result = engine.tick(divisor);
         expectTrue((step1Result & TrackEngine::TickResult::GateUpdate) != 0);
+        expectTrue(engine.gateOutput(0));
+    }
+
+    CASE("condition NotFill triggers when fill is inactive") {
+        SequencerHarness harness;
+        auto &app = harness.app();
+        auto &project = app.model.project();
+        auto &sequence = project.track(0).noteTrack().sequence(0);
+        auto &engine = app.engine.trackEngine(0).as<NoteTrackEngine>();
+
+        sequence.clearSteps();
+        sequence.setFirstStep(0);
+        sequence.setLastStep(0);
+        auto &step = sequence.step(0);
+        step.setGate(true);
+        step.setGateProbability(NoteSequence::GateProbability::Max);
+        step.setLength(0);
+        step.setCondition(Types::Condition::NotFill);
+
+        project.playState().fillTrack(0, false);
+        app.engine.update();
+
+        engine.reset();
+        auto result = engine.tick(0);
+        expectTrue((result & TrackEngine::TickResult::GateUpdate) != 0);
         expectTrue(engine.gateOutput(0));
     }
 
@@ -430,6 +524,43 @@ UNIT_TEST("NoteTrackEngineAdvanced") {
         engine.update(0.05f);
         float cvAfterSecondUpdate = engine.cvOutput(0);
         expectTrue(cvAfterSecondUpdate != cvAfterFirstUpdate);
+    }
+
+    CASE("negative note and length variation ranges execute variation inversion paths") {
+        SequencerHarness harness;
+        auto &app = harness.app();
+        auto &project = app.model.project();
+        auto &sequence = project.track(0).noteTrack().sequence(0);
+        auto &engine = app.engine.trackEngine(0).as<NoteTrackEngine>();
+
+        sequence.clearSteps();
+        sequence.setFirstStep(0);
+        sequence.setLastStep(0);
+        auto &step = sequence.step(0);
+        step.setGate(true);
+        step.setGateProbability(NoteSequence::GateProbability::Max);
+        step.setLength(4);
+        step.setLengthVariationRange(-3);
+        step.setLengthVariationProbability(NoteSequence::LengthVariationProbability::Max);
+        step.setRetrigger(0);
+        step.setRetriggerProbability(NoteSequence::RetriggerProbability::Max);
+        step.setGateOffset(0);
+        step.setNote(12);
+        step.setNoteVariationRange(-5);
+        step.setNoteVariationProbability(NoteSequence::NoteVariationProbability::Max);
+
+        // Use a non-chromatic scale to exercise noteFromMidiNote() non-chromatic branch.
+        sequence.setScale(14);
+
+        engine.reset();
+        auto tickResult = engine.tick(0);
+        expectTrue((tickResult & TrackEngine::TickResult::CvUpdate) != 0);
+
+        // Trigger live-monitor conversion path as well.
+        project.setMonitorMode(Types::MonitorMode::Always);
+        engine.monitorMidi(1, MidiMessage::makeNoteOn(0, 64, 100));
+        engine.update(0.f);
+        expectTrue(engine.activity());
     }
 
     CASE("overdub mode records note after deterministic boundary progression") {

@@ -12,6 +12,9 @@
 - Added focused coverage tests for `SequenceState`, including free/aligned advance behavior across all run modes.
 - Added dedicated engine tests for `RoutingEngine`, `CurveTrackEngine`, and `MidiCvTrackEngine`, covering MIDI/CV routing, curve playback/recording, arpeggiator behavior, note priority, retrigger, slide, and polyphonic outputs.
 - Added focused sequencer regression tests for clock setup/external timing, transport clock behavior, and advanced note-track gate-offset/timing scenarios.
+- Added dedicated sequencer unit tests for `MidiLearn` and `CvOutput`, including boundary and behavior-focused regression scenarios.
+- Added dedicated generator test suites for `Generator`, `RandomGenerator`, `EuclideanGenerator`, `Rhythm`, and `AcidBasslineGenerator` to improve deterministic pattern-generation coverage.
+- Added dedicated engine-level test suites for `ArpeggiatorEngine` and `MidiOutputEngine` to cover mode/state transitions and output behavior.
 
 
 ## v0.1.45 (04 April 2026)
